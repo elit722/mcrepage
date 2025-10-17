@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Règlement - Le Refuge Émeraudien</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, #0a1f1a 0%, #1a3a2e 50%, #2d5016 100%);
+            color: #e8f5e9;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 193, 7, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dragon-decoration {
+            position: fixed;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .dragon-left {
+            top: 10%;
+            left: -100px;
+            font-size: 300px;
+            transform: rotate(-15deg);
+        }
+        
+        .dragon-right {
+            bottom: 10%;
+            right: -100px;
+            font-size: 300px;
+            transform: rotate(15deg) scaleX(-1);
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(13, 27, 23, 0.95);
+            border: 3px solid #4caf50;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 
+                0 0 50px rgba(76, 175, 80, 0.3),
+                inset 0 0 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            padding: 30px 0;
+            border-bottom: 2px solid #ffc107;
+        }
+        
+        .header::before,
+        .header::after {
+            content: '◆';
+            position: absolute;
+            color: #4caf50;
+            font-size: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .header::before {
+            left: 10px;
+        }
+        
+        .header::after {
+            right: 10px;
+        }
+        
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3em;
+            color: #ffc107;
+            text-shadow: 
+                0 0 20px rgba(255, 193, 7, 0.8),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            color: #81c784;
+            font-size: 1.3em;
+            margin-top: 15px;
+            padding: 0 50px;
+            line-height: 1.6;
+        }
+        
+        .version-info {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+        
+        .quote {
+            font-style: italic;
+            text-align: center;
+            font-size: 1.2em;
+            color: #ffeb3b;
+            margin: 30px 0;
+            padding: 20px;
+            border-top: 1px solid #4caf50;
+            border-bottom: 1px solid #4caf50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+        
+        .section {
+            margin: 40px 0;
+            padding: 25px;
+            background: rgba(76, 175, 80, 0.05);
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+        }
+        
+        h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2em;
+            color: #4caf50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h2::before {
+            content: '⚔';
+            color: #ffc107;
+            font-size: 1.2em;
+        }
+        
+        h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5em;
+            color: #81c784;
+            margin: 25px 0 15px 0;
+        }
+        
+        p, li {
+            font-size: 1.15em;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        ul li {
+            padding-left: 35px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        ul li::before {
+            content: '◆';
+            position: absolute;
+            left: 10px;
+            color: #ffc107;
+            font-size: 0.8em;
+        }
+        
+        .important {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .important::before {
+            content: '⚠ IMPORTANT';
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            color: #ffc107;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .neutral-zone {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #4caf50;
+            font-style: italic;
+            color: #81c784;
+            font-size: 1.2em;
+        }
+        
+        .emerald-glow {
+            color: #4caf50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+            font-weight: bold;
+        }
+        
+        .gold-glow {
+            color: #ffc107;
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+            font-weight: bold;
+        }
+        
+        strong {
+            color: #ffc107;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(255, 193, 7, 0.2) 100%);
+            border: 3px solid #4caf50;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+        
+        .summary-box h2 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 25px;
+        }
+        
+        .summary-box ul li {
+            font-size: 1.2em;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dragon-decoration dragon-left">🐉</div>
+    <div class="dragon-decoration dragon-right">🐉</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⚔ RÈGLEMENT ⚔</h1>
+            <div class="subtitle">Événement Minecolonies du Refuge Émeraudien</div>
+        </div>
+        
+        <div class="version-info">
+            <strong>Minecraft 1.20.1</strong> — Event Officiel
+        </div>
+        
+        <div class="quote">
+            "Dans l'éclat des émeraudes s'écrivent les lois, et quiconque foule ce monde en accepte le poids."
+        </div>
+        
+        <!-- LES CITÉS & ALLIANCES -->
+        <div class="section">
+            <h2>Les Cités & Alliances</h2>
+            <p>Les cités sont le <span class="emerald-glow">cœur battant</span> de l'event. Leur nombre dépend de la population :</p>
+            
+            <ul>
+                <li><strong>≤ 6 joueurs</strong> → 1 cité maximum</li>
+                <li><strong>7 à 9 joueurs</strong> → 3 cités maximum — <span class="gold-glow">aucune alliance</span></li>
+                <li><strong>10 joueurs</strong> → 4 cités maximum — alliances possibles avec accord du staff</li>
+                <li><strong>15 joueurs</strong> → 8 cités maximum — alliances autorisées</li>
+                <li><strong>20+ joueurs</strong> → 10 cités maximum — alliances recommandées</li>
+            </ul>
+            
+            <h3>Règles citadines :</h3>
+            <ul>
+                <li>Alliances contractées uniquement via <strong>War'n Taxies</strong></li>
+                <li>Pas de trahison sauvage → toute intrigue doit être préparée avec le staff</li>
+                <li>Pas de grief (destruction gratuite, pillage abusif)</li>
+                <li><strong>PvP autorisé :</strong>
+                    <ul style="margin-top: 10px;">
+                        <li>En dehors des cités → libre</li>
+                        <li>Dans les cités → permis mais pas de harcèlement (spawnkill, camp excessif)</li>
+                    </ul>
+                </li>
+                <li>Les cités doivent être <span class="emerald-glow">RP, vivantes et cohérentes</span></li>
+            </ul>
+        </div>
+        
+        <!-- GUERRES & CONFLITS -->
+        <div class="section">
+            <h2>Guerres & Conflits</h2>
+            <p>Les guerres se règlent via <strong>War'n Taxies</strong>.</p>
+            
+            <div class="important">
+                <strong>Pas de guerre entre cités avant 2 semaines</strong>
+            </div>
+            
+            <h3>Déclaration de guerre :</h3>
+            <ul>
+                <li>Si <strong>pas de raison valable</strong> → prévenir le staff & les concernés <span class="gold-glow">24h à l'avance</span></li>
+                <li>Si <strong>raison RP claire</strong> → pas d'annonce obligatoire</li>
+                <li>En dehors de ces règles → aucune autre limitation</li>
+            </ul>
+            
+            <h3>Raisons valides de guerre :</h3>
+            <ul>
+                <li>Un membre entre sans autorisation dans une cité et y cause dégâts ou meurtres<br>
+                    <em style="color: #81c784;">(Visites pacifiques autorisées, mais vol = bannissement immédiat)</em></li>
+                <li>Meurtre en zone libre entre factions</li>
+                <li>Refus d'un traité ou d'un accord commercial/diplomatique</li>
+                <li>Trahison RP validée par le staff</li>
+                <li>Toute autre raison cohérente en RP (jugée valable par le staff)</li>
+            </ul>
+        </div>
+        
+        <!-- LE ROLEPLAY -->
+        <div class="section">
+            <h2>Le Rôleplay</h2>
+            <ul>
+                <li><span class="emerald-glow">Soyez créatifs avant tout</span> : inventez, racontez, surprenez</li>
+                <li><strong>Voice Mod PLUS que recommandé</strong> pour l'immersion<br>
+                    <em style="color: #81c784;">On sait que Discord est plus simple, la preuve on a le serveur, mais pour le RP VoiceMod c'est vraiment mieux !</em></li>
+                <li>Adoptez le rôle que vous voulez (chef, marchand, mercenaire, érudit…) mais restez cohérents</li>
+                <li><span class="gold-glow">Univers médiéval-fantasy</span> : respectez cette ambiance dans vos constructions, vos récits et vos alliances</li>
+            </ul>
+        </div>
+        
+        <!-- BOSS & PROGRESSION -->
+        <div class="section">
+            <h2>Boss & Progression</h2>
+            <ul>
+                <li>Tous les boss du monde sont accessibles librement</li>
+                <li>Le portail de l'End et le <span class="gold-glow">Dragon</span> seront ouverts uniquement à la <strong>fin de la 1ère semaine</strong> par le staff</li>
+            </ul>
+        </div>
+        
+        <!-- ZONES NEUTRES -->
+        <div class="neutral-zone">
+            <h2 style="color: #2196f3;">🛡 Zones Neutres</h2>
+            <p><strong>Spawn</strong> et les <strong>événements RP</strong> (marchés, cérémonies, fêtes) sont des zones neutres → <span style="color: #2196f3; font-weight: bold;">PvP strictement interdit</span></p>
+        </div>
+        
+        <!-- LIMITATIONS TECHNIQUES -->
+        <div class="section">
+            <h2>Limitations Techniques</h2>
+            <ul>
+                <li><strong style="color: #f44336;">Farms automatiques interdites</strong></li>
+                <li><strong style="color: #f44336;">Exploits, duplication, macros</strong> → sanction immédiate</li>
+                <li>Les règles du serveur Discord s'appliquent également en jeu</li>
+            </ul>
+        </div>
+        
+        <!-- AUTORITÉ DU STAFF -->
+        <div class="section">
+            <h2>Autorité du Staff</h2>
+            <div class="important">
+                <ul>
+                    <li>Contournement de règle ou recherche volontaire de faille → <strong>très sévèrement puni</strong></li>
+                    <li>Presque tout peut être accepté si c'est demandé au staff en RP (<span class="emerald-glow">bonne orthographe, justification claire</span>)</li>
+                    <li>Si le staff dit <strong style="color: #f44336;">NON</strong> → aucune négociation. Insister = sanction</li>
+                    <li>Les décisions du staff sont <span class="gold-glow">finales et incontestables</span></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- EN RÉSUMÉ -->
+        <div class="summary-box">
+            <h2>📜 En Résumé</h2>
+            <ul>
+                <li>Cités limitées selon le nombre de joueurs</li>
+                <li>Alliances & guerres via War'n Taxies</li>
+                <li>Guerres après 2 semaines, déclarées ou non selon la raison</li>
+                <li>PvP libre mais encadré (pas de grief/harcèlement)</li>
+                <li>Spawn & événements RP = zones neutres</li>
+                <li>Dragon de l'End uniquement après la 1ère semaine</li>
+                <li>Pas de farms auto ni d'exploits</li>
+                <li>Soyez inventifs, RP, et respectez l'univers</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p><span class="emerald-glow">Le Refuge Émeraudien</span> attend ses héros.</p>
+            <p>Saurez-vous bâtir des royaumes durables, ou sombrerez-vous dans les flammes des guerres à venir ?</p>
+            <p style="margin-top: 20px; font-size: 0.9em;">🐉 ⚔ 💎</p>
+        </div>
+    </div>
+</body>
+</html>

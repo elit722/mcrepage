@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infos - Le Refuge Émeraudien</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, #0a1f1a 0%, #1a3a2e 50%, #2d5016 100%);
+            color: #e8f5e9;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 193, 7, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dragon-decoration {
+            position: fixed;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .dragon-left {
+            top: 10%;
+            left: -100px;
+            font-size: 300px;
+            transform: rotate(-15deg);
+        }
+        
+        .dragon-right {
+            bottom: 10%;
+            right: -100px;
+            font-size: 300px;
+            transform: rotate(15deg) scaleX(-1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(13, 27, 23, 0.95);
+            border: 3px solid #4caf50;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 
+                0 0 50px rgba(76, 175, 80, 0.3),
+                inset 0 0 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            padding: 30px 0;
+            border-bottom: 2px solid #ffc107;
+        }
+        
+        .header::before,
+        .header::after {
+            content: '◆';
+            position: absolute;
+            color: #4caf50;
+            font-size: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .header::before {
+            left: 10px;
+        }
+        
+        .header::after {
+            right: 10px;
+        }
+        
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3em;
+            color: #ffc107;
+            text-shadow: 
+                0 0 20px rgba(255, 193, 7, 0.8),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            color: #81c784;
+            font-size: 1.3em;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        
+        .video-section {
+            background: rgba(76, 175, 80, 0.05);
+            border: 3px solid #4caf50;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            aspect-ratio: 16 / 9;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
+        }
+        
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-label {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5em;
+            color: #4caf50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .video-label::before {
+            content: '▶';
+            color: #ffc107;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+        
+        .info-card {
+            background: rgba(76, 175, 80, 0.05);
+            border-left: 5px solid #4caf50;
+            border-radius: 10px;
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+        }
+        
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4em;
+            color: #ffc107;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-content {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #e8f5e9;
+        }
+        
+        .emerald-glow {
+            color: #4caf50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+            font-weight: bold;
+        }
+        
+        .gold-glow {
+            color: #ffc107;
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+            font-weight: bold;
+        }
+        
+        .section {
+            margin: 40px 0;
+            padding: 25px;
+            background: rgba(76, 175, 80, 0.05);
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+        }
+        
+        h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2em;
+            color: #4caf50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h2::before {
+            content: '⚔';
+            color: #ffc107;
+            font-size: 1.2em;
+        }
+        
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .partner-card {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .partner-card:hover {
+            background: rgba(255, 193, 7, 0.2);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+        }
+        
+        .partner-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3em;
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+        
+        .partner-role {
+            font-size: 1em;
+            color: #81c784;
+            font-style: italic;
+        }
+        
+        .mods-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .mod-tag {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+        
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        ul li {
+            padding-left: 35px;
+            position: relative;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        ul li::before {
+            content: '◆';
+            position: absolute;
+            left: 10px;
+            color: #ffc107;
+            font-size: 0.8em;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #4caf50;
+            font-style: italic;
+            color: #81c784;
+            font-size: 1.2em;
+        }
+        
+        .highlight {
+            background: rgba(255, 193, 7, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dragon-decoration dragon-left">🐉</div>
+    <div class="dragon-decoration dragon-right">🐉</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⚔ LE REFUGE ÉMERAUDIEN ⚔</h1>
+            <div class="subtitle">Événement Minecraft - MineColonies & Aventure</div>
+        </div>
+        
+        <!-- VIDÉO -->
+        <div class="video-section">
+            <div class="video-label">Découvre l'aventure</div>
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+            <p style="margin-top: 15px; color: #81c784;">Remplace l'ID vidéo YouTube par le tien</p>
+        </div>
+        
+        <!-- INFOS PRINCIPALES -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="card-title">📦 Version</div>
+                <div class="card-content">
+                    <span class="highlight">Minecraft 1.20.1</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Java Edition</em>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="card-title">👥 Type d'Événement</div>
+                <div class="card-content">
+                    <span class="highlight">Roleplay Compétitif</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Villes & Conflits</em>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="card-title">📅 Durée</div>
+                <div class="card-content">
+                    <span class="highlight">1 Mois</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Une aventure épique</em>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="card-title">🎮 Slot Joueurs</div>
+                <div class="card-content">
+                    <span class="highlight">Illimité</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Tous les aventuriers bienvenue</em>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="card-title">🌍 Plateforme</div>
+                <div class="card-content">
+                    <span class="highlight">Serveur Privé</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Accès via Discord</em>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div class="card-title">🎤 Communication</div>
+                <div class="card-content">
+                    <span class="highlight">Discord + VoiceMod</span><br>
+                    <em style="color: #81c784; font-size: 0.95em;">Immersion recommandée</em>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MODS & CONTENU -->
+        <div class="section">
+            <h2>🛠️ Mods & Contenu</h2>
+            <p style="margin-bottom: 20px; font-size: 1.15em; line-height: 1.8;">L'événement utilise un modpack axé sur une <span class="emerald-glow">expérience immersive et variée</span>.</p>
+            <div class="mods-list">
+                <span class="mod-tag">Construction</span>
+                <span class="mod-tag">Politique</span>
+                <span class="mod-tag">Magie</span>
+                <span class="mod-tag">Chevaliers</span>
+                <span class="mod-tag">Boss Mythiques</span>
+            </div>
+        </div>
+        
+        <!-- PARTENAIRES -->
+        <div class="section">
+            <h2>🤝 Nos Partenaires</h2>
+            <div class="partners-grid">
+                <div class="partner-card">
+                    <div class="partner-name">Konoara</div>
+                    <div class="partner-role">YouTubeur</div>
+                </div>
+                <div class="partner-card">
+                    <div class="partner-name">Rexi_de_la_mort</div>
+                    <div class="partner-role">Streamer</div>
+                </div>
+                <div class="partner-card">
+                    <div class="partner-name">VirtualRune Studio</div>
+                    <div class="partner-role">Studio de Jeu</div>
+                </div>
+                <div class="partner-card">
+                    <div class="partner-name">Peut être toi ?</div>
+                    <div class="partner-role">Nous rejoindre</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ÉQUIPE -->
+        <div class="section">
+            <h2>👑 L'Équipe d'Organisation</h2>
+            <ul>
+                <li><span class="gold-glow">Elit722</span> - Organisateur Principal</li>
+                <li><span class="gold-glow">Cuiconse</span> - Modérateur</li>
+                <li><span class="gold-glow">Tisma</span> - Admin</li>
+            </ul>
+        </div>
+        
+        <!-- CE QU'IL FAUT SAVOIR -->
+        <div class="section">
+            <h2>✨ Ce qu'il Faut Savoir</h2>
+            <ul>
+                <li>Construis ta <span class="emerald-glow">cité et façonne le monde</span> avec MineColonies</li>
+                <li>Fonde des <span class="emerald-glow">alliances stratégiques</span> ou deviens un puissant rival</li>
+                <li>Participe à des <span class="emerald-glow">guerres épiques</span> bien structurées et équilibrées</li>
+                <li>Explore, découvre et <span class="emerald-glow">écris ton histoire</span> en roleplay</li>
+                <li>Triomphe des boss et <span class="emerald-glow">complète des quêtes</span> légendaires</li>
+            </ul>
+        </div>
+        
+        <!-- INSCRIPTION -->
+        <div class="section" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 193, 7, 0.1) 100%); border-left: 5px solid #ffc107;">
+            <h2 style="color: #ffc107;">🔔 Rejoins l'Aventure</h2>
+            <p style="font-size: 1.2em; margin: 20px 0; line-height: 1.8;">
+                Intéressé ? Rejoins notre <span class="gold-glow">serveur Discord</span> pour obtenir plus d'informations et accéder au serveur !
+            </p>
+            <p style="font-size: 1.1em; color: #81c784; font-style: italic;">
+                L'aventure commence bientôt...
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><span class="emerald-glow">Le Refuge Émeraudien</span> t'appelle.</p>
+            <p>Seras-tu à la hauteur de ce défi ?</p>
+            <p style="margin-top: 20px; font-size: 0.9em;">🐉 ⚔ 💎</p>
+        </div>
+    </div>
+</body>
+</html>
