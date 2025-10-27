@@ -170,6 +170,14 @@
             margin: 25px 0 15px 0;
         }
         
+        .article-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3em;
+            color: #ffc107;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+        
         p, li {
             font-size: 1.15em;
             line-height: 1.8;
@@ -195,6 +203,16 @@
             font-size: 0.8em;
         }
         
+        .sub-list {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        
+        .sub-list li::before {
+            content: '→';
+            color: #81c784;
+        }
+        
         .important {
             background: rgba(255, 193, 7, 0.1);
             border: 2px solid #ffc107;
@@ -209,6 +227,24 @@
             font-family: 'Cinzel', serif;
             font-weight: bold;
             color: #ffc107;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .danger-box {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid #f44336;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .danger-box::before {
+            content: '🔥 ATTENTION';
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            color: #f44336;
             margin-bottom: 15px;
             font-size: 1.2em;
         }
@@ -265,6 +301,18 @@
             font-size: 1.2em;
             margin-bottom: 18px;
         }
+
+        .partie-header {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            padding: 15px 25px;
+            margin: 30px 0 20px 0;
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.6em;
+            color: #4caf50;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -284,124 +332,311 @@
         <div class="quote">
             "Dans l'éclat des émeraudes s'écrivent les lois, et quiconque foule ce monde en accepte le poids."
         </div>
+
+        <!-- PARTIE I : RÈGLEMENT GÉNÉRAL -->
+        <div class="partie-header">📜 PARTIE I : RÈGLEMENT GÉNÉRAL</div>
         
-        <!-- LES CITÉS & ALLIANCES -->
         <div class="section">
-            <h2>Les Cités & Alliances</h2>
-            <p>Les cités sont le <span class="emerald-glow">cœur battant</span> de l'event. Leur nombre dépend de la population :</p>
+            <h2>Principes Fondamentaux</h2>
             
+            <div class="article-title">Article 1 : Règles du serveur</div>
+            <p>Toutes les règles du serveur Discord s'appliquent également lors de l'événement. En cas de non-respect, des sanctions appropriées seront prises.</p>
+            
+            <div class="article-title">Article 2 : Triche et Exploits</div>
+            <div class="danger-box">
+                <p><strong>Toute triche</strong> lors de cet événement résultera en :</p>
+                <ul>
+                    <li><strong style="color: #f44336;">Expulsion immédiate de l'événement</strong></li>
+                    <li><strong style="color: #f44336;">Ban de tous les events pendant 6 mois</strong></li>
+                </ul>
+                <p style="margin-top: 15px;">Sont considérés comme triche :</p>
+                <ul class="sub-list">
+                    <li>Farms automatiques</li>
+                    <li>Exploits et duplication</li>
+                    <li>Macros et modifications non autorisées</li>
+                    <li>Toute utilisation de logiciel</li>
+                    <li>Tout ce que les staff considérerons comme tel</li>
+                </ul>
+            </div>
+            
+            <div class="article-title">Article 3 : Valeurs essentielles</div>
+            <p>Le <span class="emerald-glow">RESPECT</span> et le <span class="gold-glow">FAIR-PLAY</span> sont des valeurs très appréciables et attendues de tous les participants.</p>
+            
+            <div class="article-title">Article 4 : Autorité du Staff</div>
+            <div class="important">
+                <ul>
+                    <li>Un Staff a <strong>toujours</strong> le dernier mot</li>
+                    <li>Les décisions du staff sont <span class="gold-glow">finales et incontestables</span></li>
+                    <li>Si le staff dit <strong style="color: #f44336;">NON</strong> → aucune négociation. Insister = sanction</li>
+                    <li>Contournement de règle ou recherche volontaire de faille → <strong>très sévèrement puni</strong></li>
+                    <li>Presque tout peut être accepté si c'est demandé au staff en RP avec <span class="emerald-glow">une bonne orthographe et justification claire</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PARTIE II : GUERRES ET ALLIANCES -->
+        <div class="partie-header">⚔ PARTIE II : GUERRES ET ALLIANCES</div>
+        
+        <div class="section">
+            <h2>Déclenchement des Guerres</h2>
+            
+            <div class="important">
+                <strong>Pas de guerre entre cités avant 1 semaines de jeu</strong>
+            </div>
+            
+            <div class="article-title">Article 1 : Deux façons de déclencher une guerre</div>
+            <p>Il existe deux méthodes pour démarrer un conflit :</p>
+            
+            <h3>Option 1 : Demande de guerre mutuelle</h3>
+            <ul>
+                <li>Vous proposez une guerre à une autre équipe</li>
+                <li>L'équipe adverse accepte la proposition</li>
+                <li>Le staff valide la guerre</li>
+                <li>La guerre peut alors commencer</li>
+            </ul>
+            
+            <h3>Option 2 : Raison de guerre valide</h3>
+            <ul>
+                <li>Vous possédez une raison de guerre légitime</li>
+                <li>Vous pouvez lancer la guerre quand vous le voulez</li>
+                <li><strong>Par sécurité :</strong> Vous pouvez demander une validation de la raison par un staff d'une autre équipe en privé</li>
+            </ul>
+            
+            <div class="danger-box">
+                <p><strong>Si votre raison de guerre n'est pas valide, vous recevrez des sanctions en jeu !</strong></p>
+            </div>
+            
+            <div class="article-title">Article 2.1 : Raisons valides de guerre</div>
+            <p>Les raisons suivantes justifient une déclaration de guerre :</p>
+            <ul>
+                <li><strong>Kill en zone neutre ou ennemie</strong> — Meurtre d'un joueur en territoire hostile ou neutre</li>
+                <li><strong>Intrusion hostile</strong> — Un membre entre sans autorisation dans une cité et y cause dégâts ou meurtres<br>
+                    <em style="color: #81c784;">(Note : Les visites pacifiques sont autorisées, mais le vol = bannissement immédiat)</em></li>
+                <li><strong>Trahison</strong> — Incluant :
+                    <ul class="sub-list">
+                        <li>Rupture d'alliance unilatérale</li>
+                        <li>Un joueur de votre équipe vous trahit et rejoint une équipe adverse</li>
+                    </ul>
+                </li>
+                <li><strong>Refus diplomatique</strong> — Refus d'un traité ou d'un accord commercial/diplomatique important d'un pays plus grand [VALIDATION STAFF OBLIGATOIRE]</li>
+                <li><strong>Autre raison RP</strong> — Toute autre raison cohérente en roleplay, jugée valable par le staff</li>
+                <li><strong>Grade de Cité Majeur</strong> — Ce grade peut être donné par une assemblé de tous les staff, a partir de 2 semaine de jeu et permet a ces dernières de s'attaquer entre elle sans raison réel</li>
+            </ul>
+            <div class="article-title">Article 2.2 :Définition d'une cité Majeur ou de plus grande taille</div>
+            <p>Les modalités suivantes définissent le cadre d'une guerre :</p>
+             <h3> Une cité est dites plus importantes non en fonction des joueurs mais en fonction de sa taille et de son niveau de développement</h3>
+            <ul>
+                <li>Si l'autre cité possède une majorité de ses batiments de <strong>lvl plus élevé</strong></li>
+                <li>Si il y a plus de joueur</li>
+                <li>Si son territoire est <strong>Vraiment</strong> plus grand</li>
+                <li>Si ses membres possèdent de manière individuelle ou collective plus de 3 ressources considéré comme rare</li>
+                <li>Si ses membres possèdent de manière individuelle et collective plus du double de stuff du pays "inférieur"</li>
+                <li>Si la cité possède le grade de <strong>Cité Majeur</strong></li>
+            <div class="article-title">Quatres conditions MINIMUM doivent être rempli !</div>
+            </ul>
+            
+            <h3>Définition d'une cité majeur</h3>
+            <ul>
+                <li>une cité est reconnu majeur par <strong>l'ensemble du staff</strong> lorsqu'elle semble avoir une <strong>très grande avance</strong> sur les autres, Elle doit au minima posséder plusieurs batiments lvl 2 et 1 lvl 3 mais cela n'est pas pour autant une condition sinequanon a ce grade. </li>
+                <li>il peut être demandé par l'équipe elle même, une autre ou le staff</li>
+            </ul>
+            <div class="article-title">Article 3 :Modalités de guerre</div>
+            <p>Les modalités suivantes définissent le cadre d'une guerre :</p>
+            
+            <h3>Déclaration de guerre</h3>
+            <ul>
+                <li>La guerre se déclare via la commande : <code style="background: rgba(76, 175, 80, 0.2); padding: 2px 8px; border-radius: 3px; color: #4caf50;">/wnt wagewar "&lt;colonyName&gt;"</code></li>
+                <li>Cette commande lance la <strong>phase de préparation</strong></li>
+            </ul>
+            
+            <h3>Phase de préparation / adhésion</h3>
+            <ul>
+                <li>Les joueurs des deux camps (attaquants & défenseurs) s'inscrivent à la guerre</li>
+                <li>Les officiers et membres de la colonie sont <span class="emerald-glow">automatiquement inscrits</span></li>
+                <li>Cette phase permet à chaque camp de se préparer avant le conflit</li>
+            </ul>
+            
+            <h3>Phase active de guerre</h3>
+            <ul>
+                <li><strong>Durée :</strong> ~2 heures par défaut (configurable selon l'accord entre les parties)</li>
+                <li>Chaque joueur commence avec <span class="gold-glow">5 vies</span></li>
+                <li>Les <strong>gardes de la colonie</strong> sont également comptabilisés dans le conflit</li>
+            </ul>
+            
+            <h3>Actions autorisées pendant la guerre</h3>
+            <p>Selon le type de guerre configuré :</p>
+            <ul>
+                <li><strong>War Actions :</strong> Possibilité de poser des blocs dans la colonie ennemie pas de casser</li>
+                <li><strong>Raid Actions :</strong> Uniquement dégâts aux entités (pas de destruction de terrain)</li>
+            </ul>
+            
+            <h3>Proposition de paix</h3>
+            <p>Pendant la guerre active, il est possible de négocier :</p>
+            <ul>
+                <li><strong>Paix blanche :</strong> <code style="background: rgba(33, 150, 243, 0.2); padding: 2px 8px; border-radius: 3px; color: #2196f3;">/wnt peace whitepeace</code> — Fin du conflit sans vainqueur ni réparations</li>
+                <li><strong>Réparations :</strong> <code style="background: rgba(255, 193, 7, 0.2); padding: 2px 8px; border-radius: 3px; color: #ffc107;">/wnt peace reparations &lt;amount&gt;</code> — Le camp perdant paie des réparations</li>
+                <li>Le défenseur doit <span class="emerald-glow">accepter la proposition</span> pour qu'elle soit validée</li>
+            </ul>
+            
+            <h3>Résolution de la guerre</h3>
+            <p>La guerre se termine selon plusieurs scénarios possibles :</p>
+            <ul>
+                <li><strong>Victoire totale :</strong> Tous les ennemis sont éliminés (0 vies restantes)</li>
+                <li><strong>Victoire stratégique :</strong> Temps écoulé — Le camp avec le meilleur ratio <em>(vies restantes + gardes) / (vies initiales + gardes)</em> remporte la victoire</li>
+                <li><strong>Égalité :</strong> En cas de ratio identique, possibilité de pénalités ou de match nul</li>
+                <li><strong>Vassalisation :</strong> Le gagnant peut transformer la colonie perdante en <span class="gold-glow">vassal</span> (voir détails en section vassalisation)</li>
+            </ul>
+            
+            <h3>Raid spécifique (vol de taxes)</h3>
+            <ul>
+                <li>Il est possible de lancer un <strong>raid ciblé</strong> pour voler les revenus de taxes d'une colonie</li>
+                <li>Cette action ne déclenche pas forcément une guerre complète</li>
+                <li>Nécessite une justification RP ou peut constituer une <span class="gold-glow">raison de guerre valide</span></li>
+            </ul>
+
+        </div>
+        </div>
+        
+        <div class="section">
+            <h2>Système d'Alliances</h2>
+            
+            <div class="important">
+                <strong>Toute demande d'alliance</strong> (économique, militaire, diplomatique, etc.) doit <span class="gold-glow">obligatoirement</span> être faite via le <strong>forum associé</strong> en plus de l'addon de minecolonies "War'n Taxes". Sans cela, elle ne sera pas validée ni officialisée par le staff.
+            </div>
+            
+            <div class="article-title">Article 4 : Participation aux guerres des alliés</div>
+            <ul>
+                <li>Si votre <strong>allié militaire</strong> est en guerre, vous pouvez l'aider à <span class="emerald-glow">protéger sa base</span></li>
+                <li>Si vous décidez de participer aux <strong>assauts offensifs</strong>, l'équipe adverse pourra également vous attaquer directement</li>
+            </ul>
+            
+            <div class="article-title">Article 5 : Rupture d'alliance</div>
+            <p>Une alliance peut être rompue à n'importe quel moment, mais cela constitue une <span class="gold-glow">raison de guerre valide (trahison) et doit être fait selon les conditions établis au début de l'alliance</span>.</p>
+            
+            <div class="article-title">Article 6 : Trahison interne</div>
+            <p>Si un joueur de votre équipe vous trahit et rejoint une autre équipe, vous pouvez déclarer la guerre à cette équipe.</p>
+            
+            <h3>Gestion via War'n Taxies</h3>
+            <p>Toutes les guerres et alliances officielles se règlent via le système <strong>War'n Taxies</strong>.</p>
+        </div>
+
+        <!-- PARTIE III : PROGRESSION ET DÉVELOPPEMENT -->
+        <div class="partie-header">🏰 PARTIE III : PROGRESSION DANS LE JEU & DÉVELOPPEMENT D'ÉQUIPE</div>
+        
+        <div class="section">
+            <h2>Les Cités & Territoires</h2>
+            
+            <div class="article-title">Article 1 : Localisation obligatoire</div>
+            <div class="important">
+                <strong>Chaque ville doit être construite à moins de <span class="emerald-glow">10 000 blocs</span> du point d'apparition de l'Overworld</strong><br>
+                <em style="color: #81c784;">(Sauf autorisation spéciale accordée par Elit)</em>
+            </div>
+            
+            <h3>Nombre de cités autorisées</h3>
+            <p>Le nombre de cités dépend de la population du serveur :</p>
             <ul>
                 <li><strong>≤ 6 joueurs</strong> → 1 cité maximum</li>
-                <li><strong>7 à 9 joueurs</strong> → 3 cités maximum — <span class="gold-glow">aucune alliance</span></li>
+                <li><strong>7 à 9 joueurs</strong> → 3 cités maximum — <span class="gold-glow">aucune alliance autorisée</span></li>
                 <li><strong>10 joueurs</strong> → 4 cités maximum — alliances possibles avec accord du staff</li>
                 <li><strong>15 joueurs</strong> → 8 cités maximum — alliances autorisées</li>
                 <li><strong>20+ joueurs</strong> → 10 cités maximum — alliances recommandées</li>
             </ul>
             
-            <h3>Règles citadines :</h3>
+            <h3>Règles de construction et comportement</h3>
             <ul>
-                <li>Alliances contractées uniquement via <strong>War'n Taxies</strong></li>
-                <li>Pas de trahison sauvage → toute intrigue doit être préparée avec le staff</li>
-                <li>Pas de grief (destruction gratuite, pillage abusif)</li>
-                <li><strong>PvP autorisé :</strong>
-                    <ul style="margin-top: 10px;">
-                        <li>En dehors des cités → libre</li>
-                        <li>Dans les cités → permis mais pas de harcèlement (spawnkill, camp excessif)</li>
+                <li>Les cités doivent être <span class="emerald-glow">RP, vivantes et cohérentes</span> avec l'univers médiéval-fantasy</li>
+                <li><strong style="color: #f44336;">Le Grief sera très sévèrement puni</strong> (destruction gratuite, pillage abusif)</li>
+                <li>Evitez les constructions anachroniques ou hors thème</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>PvP & Zones de Combat</h2>
+            
+            <h3>PvP autorisé avec règles :</h3>
+            <ul>
+                <li><strong>En dehors des cités</strong> → PvP libre pouvant constituer une raison de guerre</li>
+                <li><strong>Dans les cités</strong> → PvP permis mais :
+                    <ul class="sub-list">
+                        <li>Pas de harcèlement (spawnkill répété)</li>
+                        <li>Pas de camping excessif</li>
+                        <li>est reconnu automatiquement comme raison de guerre</li>
                     </ul>
                 </li>
-                <li>Les cités doivent être <span class="emerald-glow">RP, vivantes et cohérentes</span></li>
             </ul>
-        </div>
-        
-        <!-- GUERRES & CONFLITS -->
-        <div class="section">
-            <h2>Guerres & Conflits</h2>
-            <p>Les guerres se règlent via <strong>War'n Taxies</strong>.</p>
             
-            <div class="important">
-                <strong>Pas de guerre entre cités avant 2 semaines</strong>
+            <div class="neutral-zone">
+                <h2 style="color: #2196f3;">🛡 Zones Neutres</h2>
+                <p><strong>Le Spawn</strong> et les <strong>événements RP</strong> (marchés, cérémonies, fêtes) sont des zones neutres → <span style="color: #2196f3; font-weight: bold;">PvP strictement interdit</span></p>
             </div>
-            
-            <h3>Déclaration de guerre :</h3>
-            <ul>
-                <li>Si <strong>pas de raison valable</strong> → prévenir le staff & les concernés <span class="gold-glow">24h à l'avance</span></li>
-                <li>Si <strong>raison RP claire</strong> → pas d'annonce obligatoire</li>
-                <li>En dehors de ces règles → aucune autre limitation</li>
-            </ul>
-            
-            <h3>Raisons valides de guerre :</h3>
-            <ul>
-                <li>Un membre entre sans autorisation dans une cité et y cause dégâts ou meurtres<br>
-                    <em style="color: #81c784;">(Visites pacifiques autorisées, mais vol = bannissement immédiat)</em></li>
-                <li>Meurtre en zone libre entre factions</li>
-                <li>Refus d'un traité ou d'un accord commercial/diplomatique</li>
-                <li>Trahison RP validée par le staff</li>
-                <li>Toute autre raison cohérente en RP (jugée valable par le staff)</li>
-            </ul>
         </div>
         
+        <div class="section">
+            <h2>Boss & Progression</h2>
+            <ul>
+                <li>Tous les boss du monde sont accessibles librement dès le début</li>
+                <li>Le portail de l'End et le <span class="gold-glow">Dragon de l'End</span> seront ouverts uniquement à la <strong>fin de la 1ère semaine</strong> par le staff</li>
+            </ul>
+        </div>
+
         <!-- LE ROLEPLAY -->
         <div class="section">
             <h2>Le Rôleplay</h2>
             <ul>
                 <li><span class="emerald-glow">Soyez créatifs avant tout</span> : inventez, racontez, surprenez</li>
-                <li><strong>Voice Mod PLUS que recommandé</strong> pour l'immersion<br>
                     <em style="color: #81c784;">On sait que Discord est plus simple, la preuve on a le serveur, mais pour le RP VoiceMod c'est vraiment mieux !</em></li>
                 <li>Adoptez le rôle que vous voulez (chef, marchand, mercenaire, érudit…) mais restez cohérents</li>
                 <li><span class="gold-glow">Univers médiéval-fantasy</span> : respectez cette ambiance dans vos constructions, vos récits et vos alliances</li>
             </ul>
         </div>
-        
-        <!-- BOSS & PROGRESSION -->
+
+        <!-- SANCTIONS -->
         <div class="section">
-            <h2>Boss & Progression</h2>
+            <h2>Échelle des Sanctions</h2>
+            <p>En cas d'infraction, le staff appliquera des sanctions graduées selon la gravité :</p>
+            
             <ul>
-                <li>Tous les boss du monde sont accessibles librement</li>
-                <li>Le portail de l'End et le <span class="gold-glow">Dragon</span> seront ouverts uniquement à la <strong>fin de la 1ère semaine</strong> par le staff</li>
+                <li><strong>Niveau 1 : Remboursement</strong> → Pour dommages matériels mineurs</li>
+                <li><strong>Niveau 2 : Sanction Discord</strong> → Pour infractions modérées ou récidives (avertissement, mute, etc.)</li>
+                <li><strong>Niveau 3 : Ban de l'event</strong> → Pour infractions graves :
+                    <ul class="sub-list">
+                        <li>Grief sévère</li>
+                        <li>Non-respect répété des règles</li>
+                        <li>Harcèlement caractérisé</li>
+                    </ul>
+                </li>
+                <li><strong style="color: #f44336;">Niveau 4 : Ban de tous les events pendant 6 mois</strong> → Pour :
+                    <ul class="sub-list">
+                        <li>Triche avérée</li>
+                        <li>Utilisation d'exploits majeurs</li>
+                        <li>Contournement volontaire et répété des règles</li>
+                    </ul>
+                </li>
+                <li><strong style="color: #000000;">Niveau 5 : Sanction discord Lourde</strong> → tel que :
+                    <ul class="sub-list">
+                        <li>Ban Temp</li>
+                        <li>Perma Ban</li>
+                    </ul>
+                </li>
             </ul>
         </div>
-        
-        <!-- ZONES NEUTRES -->
-        <div class="neutral-zone">
-            <h2 style="color: #2196f3;">🛡 Zones Neutres</h2>
-            <p><strong>Spawn</strong> et les <strong>événements RP</strong> (marchés, cérémonies, fêtes) sont des zones neutres → <span style="color: #2196f3; font-weight: bold;">PvP strictement interdit</span></p>
-        </div>
-        
-        <!-- LIMITATIONS TECHNIQUES -->
-        <div class="section">
-            <h2>Limitations Techniques</h2>
-            <ul>
-                <li><strong style="color: #f44336;">Farms automatiques interdites</strong></li>
-                <li><strong style="color: #f44336;">Exploits, duplication, macros</strong> → sanction immédiate</li>
-                <li>Les règles du serveur Discord s'appliquent également en jeu</li>
-            </ul>
-        </div>
-        
-        <!-- AUTORITÉ DU STAFF -->
-        <div class="section">
-            <h2>Autorité du Staff</h2>
-            <div class="important">
-                <ul>
-                    <li>Contournement de règle ou recherche volontaire de faille → <strong>très sévèrement puni</strong></li>
-                    <li>Presque tout peut être accepté si c'est demandé au staff en RP (<span class="emerald-glow">bonne orthographe, justification claire</span>)</li>
-                    <li>Si le staff dit <strong style="color: #f44336;">NON</strong> → aucune négociation. Insister = sanction</li>
-                    <li>Les décisions du staff sont <span class="gold-glow">finales et incontestables</span></li>
-                </ul>
-            </div>
-        </div>
-        
+
         <!-- EN RÉSUMÉ -->
         <div class="summary-box">
             <h2>📜 En Résumé</h2>
             <ul>
                 <li>Cités limitées selon le nombre de joueurs</li>
-                <li>Alliances & guerres via War'n Taxies</li>
-                <li>Guerres après 2 semaines, déclarées ou non selon la raison</li>
-                <li>PvP libre mais encadré (pas de grief/harcèlement)</li>
-                <li>Spawn & événements RP = zones neutres</li>
+                <li>Construction obligatoire à moins de 10 000 blocs du spawn (sauf dérogation d'Elit)</li>
+                <li>Alliances via le forum uniquement pour validation officielle</li>
+                <li>Guerre : soit par demande mutuelle acceptée, soit par raison valide</li>
+                <li>Guerres interdites avant 1 semaines de jeu</li>
+                <li>PvP libre mais encadré (pas de harcèlement ni grief)</li>
+                <li>Grief très sévèrement puni</li>
+                <li>Spawn & événements RP = zones neutres absolues</li>
                 <li>Dragon de l'End uniquement après la 1ère semaine</li>
-                <li>Pas de farms auto ni d'exploits</li>
-                <li>Soyez inventifs, RP, et respectez l'univers</li>
+                <li>Pas de farms auto ni d'exploits — triche = ban 6 mois</li>
+                <li>Respectez le staff : leur décision est finale</li>
+                <li>Soyez inventifs, RP, et respectez l'univers médiéval-fantasy</li>
             </ul>
         </div>
         
