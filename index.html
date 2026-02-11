@@ -81,6 +81,33 @@
             margin-top: 20px;
         }
 
+        .discord-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #5865F2, #7289DA);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(88, 101, 242, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .discord-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(88, 101, 242, 0.6);
+        }
+
+        .discord-icon {
+            font-size: 1.3em;
+        }
+
         .nav-button {
             background: linear-gradient(135deg, #2d8b6e, #3ea87d);
             color: white;
@@ -323,6 +350,11 @@
     </style>
 </head>
 <body>
+    <a href="https://discord.gg/UuPUACckND" target="_blank" class="discord-button">
+        <span class="discord-icon">💬</span>
+        <span>Rejoindre Discord</span>
+    </a>
+    
     <div class="container">
         <header>
             <img src="Banniere_Emeraudias_Return_V2.png" alt="Emeraudia's Return" class="banner">

@@ -83,6 +83,33 @@
             flex-wrap: wrap;
         }
 
+        .discord-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #5865F2, #7289DA);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(88, 101, 242, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .discord-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(88, 101, 242, 0.6);
+        }
+
+        .discord-icon {
+            font-size: 1.3em;
+        }
+
         .nav-button {
             background: linear-gradient(135deg, #2d8b6e, #3ea87d);
             color: white;
@@ -290,6 +317,11 @@
     </style>
 </head>
 <body>
+    <a href="https://discord.gg/UuPUACckND" target="_blank" class="discord-button">
+        <span class="discord-icon">💬</span>
+        <span>Rejoindre Discord</span>
+    </a>
+    
     <div class="container">
         <header>
             <img src="Banniere_Emeraudias_Return_V2.png" alt="Emeraudia's Return" class="banner">
@@ -328,15 +360,6 @@
                 <h2>🏢 Partenaires Principaux</h2>
                 <div class="partners-grid">
                     <div class="partner-card">
-                        <div class="icon">🏛️</div>
-                        <h3>Le Refuge Emeraudien</h3>
-                        <p>
-                            Notre communauté principale qui rend tout cela possible. Merci pour votre passion, votre engagement et votre fidélité !
-                        </p>
-                        <span class="role">Organisateur</span>
-                    </div>
-
-                    <div class="partner-card">
                         <div class="icon">💻</div>
                         <h3>ENA Studio</h3>
                         <p>
@@ -346,12 +369,48 @@
                     </div>
 
                     <div class="partner-card">
-                        <div class="icon">🎨</div>
-                        <h3>Équipe Graphique</h3>
+                        <div class="icon">📺</div>
+                        <h3>Zenh</h3>
                         <p>
-                            Merci à Cla1001 et Yoko pour les magnifiques créations visuelles qui donnent son identité unique à Emeraudia's Return.
+                            Streamer et youtubeur talentueux qui partage nos aventures avec sa communauté. Merci pour ton soutien et ton contenu de qualité !
                         </p>
-                        <span class="role">Design & Graphisme</span>
+                        <span class="role">Streamer & Youtubeur</span>
+                    </div>
+
+                    <div class="partner-card">
+                        <div class="icon">🎮</div>
+                        <h3>Rexi</h3>
+                        <p>
+                            Streamer passionné qui fait vivre Emeraudia's Return en direct. Merci pour ton énergie et ta présence !
+                        </p>
+                        <span class="role">Streamer</span>
+                    </div>
+
+                    <div class="partner-card">
+                        <div class="icon">🎬</div>
+                        <h3>TimeoZz</h3>
+                        <p>
+                            Streamer engagé qui contribue à faire grandir notre communauté. Merci pour ta fidélité et ton investissement !
+                        </p>
+                        <span class="role">Streamer</span>
+                    </div>
+
+                    <div class="partner-card">
+                        <div class="icon">🎥</div>
+                        <h3>Konoaru</h3>
+                        <p>
+                            Youtubeur créatif qui immortalise les moments forts d'Emeraudia's Return. Merci pour tes vidéos captivantes !
+                        </p>
+                        <span class="role">Youtubeur</span>
+                    </div>
+
+                    <div class="partner-card">
+                        <div class="icon">💬</div>
+                        <h3>Fraktal</h3>
+                        <p>
+                            Serveur discord partenaire qui enrichit notre écosystème communautaire. Merci pour cette collaboration précieuse !
+                        </p>
+                        <span class="role">Serveur Discord Partenaire</span>
                     </div>
                 </div>
             </section>
@@ -360,30 +419,30 @@
                 <h2>🎭 Contributeurs Spéciaux</h2>
                 <div class="partners-grid">
                     <div class="partner-card">
-                        <div class="icon">🎵</div>
-                        <h3>Paco - Musicien</h3>
+                        <div class="icon">🏗️</div>
+                        <h3>Gougou</h3>
                         <p>
-                            Merci pour les ambiances sonores qui enrichissent l'expérience de jeu et créent une atmosphère immersive unique.
+                            Constructeur talentueux dont les builds magnifiques embellissent notre monde. Merci pour ton art et ta créativité !
                         </p>
-                        <span class="role">Création Musicale</span>
+                        <span class="role">Builder</span>
                     </div>
 
                     <div class="partner-card">
-                        <div class="icon">🎪</div>
-                        <h3>Nocturno - Animateur</h3>
+                        <div class="icon">💼</div>
+                        <h3>Cuiconse</h3>
                         <p>
-                            Ton énergie et ta créativité dans l'animation de la communauté font toute la différence. Merci pour ta passion !
+                            Community Manager exceptionnel qui gère notre communauté avec passion et professionnalisme. Merci pour ton dévouement !
                         </p>
-                        <span class="role">Animation</span>
+                        <span class="role">Community Manager</span>
                     </div>
 
                     <div class="partner-card">
-                        <div class="icon">🎉</div>
-                        <h3>Gougou - Animations & VIP</h3>
+                        <div class="icon">🎨</div>
+                        <h3>Elit722</h3>
                         <p>
-                            Merci pour l'organisation des événements spéciaux et la gestion VIP qui rendent l'expérience encore plus mémorable.
+                            Modélisateur 3D de talent qui crée des assets uniques pour Emeraudia's Return. Merci pour ton savoir-faire technique !
                         </p>
-                        <span class="role">Événementiel</span>
+                        <span class="role">Modélisateur 3D</span>
                     </div>
                 </div>
             </section>
@@ -391,15 +450,7 @@
             <div class="staff-thanks">
                 <h3>👥 Remerciements au Staff</h3>
                 <p>
-                    Un <strong class="highlight-text">IMMENSE MERCI</strong> à toute l'équipe de modération et d'administration qui veille au bon déroulement de l'événement jour et nuit :
-                </p>
-                <p style="margin-top: 15px;">
-                    <strong class="highlight-text">Elit722</strong> (Owner & Admin), 
-                    <strong class="highlight-text">Tisma0202</strong> (Administrateur), 
-                    <strong class="highlight-text">Xey7805</strong> (Responsable Modération), 
-                    <strong class="highlight-text">Cuiconse2</strong> (Community Manager), 
-                    <strong class="highlight-text">Cat1001</strong> (Modératrice), 
-                    et <strong class="highlight-text">Alja</strong> (Staff Honoraire).
+                    Un <strong class="highlight-text">IMMENSE MERCI</strong> à toute l'équipe de modération et d'administration qui veille au bon déroulement de l'événement jour et nuit !
                 </p>
                 <p style="margin-top: 15px;">
                     Votre dévouement, votre patience et votre professionnalisme sont les piliers de notre communauté. Merci pour tout ce que vous faites ! 💚
