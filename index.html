@@ -217,7 +217,18 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .partner-info h3{font-family:'Cinzel Decorative',serif;font-size:.92rem;color:var(--white-jade);margin-bottom:.5rem;}
 .partner-info p{font-size:.82rem;color:var(--mist);line-height:1.7;margin-bottom:.9rem;}
 .partner-links{display:flex;gap:.5rem;flex-wrap:wrap;}
-.partner-cta{margin-top:2.5rem;border:1px dashed rgba(201,168,76,.25);border-radius:4px;padding:2rem;text-align:center;}
+.partner-cta{margin-top:2.5rem;border:1px dashed rgba(201,168,76,.25);border-radius:4px;padding:2rem;}
+.partner-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-top:1.2rem;text-align:left;}
+.pf-field label{display:block;font-size:.7rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.32rem;font-family:'Cinzel Decorative',serif;}
+.pf-field input,.pf-field select,.pf-field textarea{width:100%;padding:.65rem .88rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.22);border-radius:2px;color:var(--white-jade);font-family:'Noto Serif JP',serif;font-size:.87rem;outline:none;transition:border-color .2s;resize:vertical;}
+.pf-field input:focus,.pf-field select:focus,.pf-field textarea:focus{border-color:var(--gold);}
+.pf-field input::placeholder,.pf-field textarea::placeholder{color:rgba(255,255,255,.22);}
+.pf-field select option{background:#1A1208;color:var(--white-jade);}
+.pf-status{margin-top:.9rem;padding:.85rem;border-radius:4px;font-size:.82rem;text-align:center;}
+.pf-sending{background:rgba(255,193,7,.09);border:1px solid rgba(255,193,7,.28);color:#FFC107;}
+.pf-sent{background:rgba(39,174,96,.09);border:1px solid rgba(39,174,96,.28);color:#2ECC71;}
+.pf-error{background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.28);color:#E07070;}
+@media(max-width:640px){.partner-form-grid{grid-template-columns:1fr;}.pf-field[style*="grid-column"]{grid-column:auto !important;}}
 .partner-cta-inner h3{font-family:'Cinzel Decorative',serif;font-size:.88rem;color:var(--gold-light);margin-bottom:.5rem;}
 .partner-cta-inner p{font-size:.82rem;color:var(--mist);margin-bottom:1.2rem;}
 
@@ -717,8 +728,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
           <h3>Stellar Group</h3>
           <p>Constellation d'organisations créatives et gaming, co-fondée par Elit722. Stellar Group chapeaute l'ensemble de l'écosystème Emerarudo Senso et en assure la gouvernance.</p>
           <div class="partner-links">
-            <a href="#" class="btn btn-ghost btn-sm">Site web</a>
-            <a href="#" class="btn btn-ghost btn-sm">Discord</a>
+            <a href="https://discord.gg/eMqMgzvh6t" target="_blank" class="btn btn-ghost btn-sm">Discord</a>
           </div>
         </div>
       </div>
@@ -733,8 +743,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
           <h3>VirtualRune Studio</h3>
           <p>Studio de développement Minecraft en charge du mod Sengoku Jidai. NkingLife et son équipe ont patché et optimisé le modpack spécialement pour cet événement.</p>
           <div class="partner-links">
-            <a href="#" class="btn btn-ghost btn-sm">GitHub</a>
-            <a href="#" class="btn btn-ghost btn-sm">Discord</a>
           </div>
         </div>
       </div>
@@ -750,7 +758,8 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
           <h3>Zenh</h3>
           <p>Créateur de contenu et partenaire actif de l'event. Zenh participe au rayonnement de l'événement sur Recraft et ses communautés.</p>
           <div class="partner-links">
-            <a href="#" class="btn btn-ghost btn-sm">Chaîne</a>
+            <a href="https://youtube.com/@JustZenh" target="_blank" class="btn btn-ghost btn-sm">YouTube</a>
+            <a href="https://discord.gg/dXWHKbse5M" target="_blank" class="btn btn-ghost btn-sm">Discord ReCraft</a>
           </div>
         </div>
       </div>
@@ -766,7 +775,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
           <h3>Holkano</h3>
           <p>Streamer et créateur Minecraft, Holkano apporte son expertise en contenu et en communauté à l'Emerarudo Senso.</p>
           <div class="partner-links">
-            <a href="#" class="btn btn-ghost btn-sm">Chaîne</a>
+            <a href="https://www.youtube.com/@HolkAnO" target="_blank" class="btn btn-ghost btn-sm">YouTube</a>
           </div>
         </div>
       </div>
@@ -782,7 +791,8 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
           <h3>Rexi</h3>
           <p>Partenaire officiel de l'event, Rexi rejoint l'aventure avec sa communauté pour vivre et partager l'expérience Sengoku.</p>
           <div class="partner-links">
-            <a href="#" class="btn btn-ghost btn-sm">Chaîne</a>
+            <a href="https://twitch.tv/rexi_de_la_mort" target="_blank" class="btn btn-ghost btn-sm">Twitch</a>
+            <a href="https://www.youtube.com/@levrairexidelamort" target="_blank" class="btn btn-ghost btn-sm">YouTube</a>
           </div>
         </div>
       </div>
@@ -791,8 +801,46 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div class="partner-cta">
       <div class="partner-cta-inner">
         <h3>Devenir partenaire ?</h3>
-        <p>Vous êtes créateur de contenu, studio ou communauté intéressé par un partenariat ? Contactez-nous sur Discord.</p>
-        <a href="#" class="btn btn-gold" style="width:auto;padding:.65rem 2rem;">Nous contacter</a>
+        <p>Vous êtes créateur de contenu, studio ou communauté intéressé par un partenariat avec l'Emerarudo Senso ? Remplissez ce formulaire, nous vous répondrons rapidement.</p>
+        <div id="partner-form-wrap">
+          <div class="partner-form-grid">
+            <div class="pf-field">
+              <label>Pseudo / Nom</label>
+              <input type="text" id="pf-name" placeholder="Votre pseudo ou nom…" maxlength="64">
+            </div>
+            <div class="pf-field">
+              <label>Pseudo Discord</label>
+              <input type="text" id="pf-discord" placeholder="pseudo#0000 ou @pseudo" maxlength="64">
+            </div>
+            <div class="pf-field">
+              <label>Type de profil</label>
+              <select id="pf-type">
+                <option value="">— Choisir —</option>
+                <option value="Créateur de contenu">Créateur de contenu</option>
+                <option value="Studio / Équipe">Studio / Équipe</option>
+                <option value="Communauté / Serveur">Communauté / Serveur</option>
+                <option value="Marque / Sponsor">Marque / Sponsor</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <div class="pf-field">
+              <label>Plateforme principale</label>
+              <input type="text" id="pf-platform" placeholder="Twitch, YouTube, TikTok…" maxlength="64">
+            </div>
+            <div class="pf-field" style="grid-column:1/-1;">
+              <label>Lien (chaîne, serveur, site…)</label>
+              <input type="text" id="pf-link" placeholder="https://…" maxlength="200">
+            </div>
+            <div class="pf-field" style="grid-column:1/-1;">
+              <label>Pourquoi souhaitez-vous devenir partenaire ?</label>
+              <textarea id="pf-why" rows="3" placeholder="Décrivez votre projet, votre audience, ce que vous proposez…" maxlength="800"></textarea>
+            </div>
+          </div>
+          <div id="pf-status" class="pf-status" style="display:none;"></div>
+          <div style="text-align:center;margin-top:1.2rem;">
+            <button class="btn btn-gold" style="width:auto;padding:.65rem 2rem;" onclick="submitPartnerForm()" type="button">Candidater →</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1050,6 +1098,58 @@ async function sendDC(pseudo, ally, teamInternal, sc, recap){
 }
 
 function resetTest(){curQ=0;score=0;answers=[];document.getElementById('pseudo-player').value='';document.getElementById('pseudo-ally').value='';switchStep('step-result','step-intro');}
+
+// ── PARTNER FORM ─────────────────────────────────────────────────────────
+async function submitPartnerForm() {
+  const name = document.getElementById('pf-name').value.trim();
+  const discord = document.getElementById('pf-discord').value.trim();
+  const type = document.getElementById('pf-type').value;
+  const platform = document.getElementById('pf-platform').value.trim();
+  const link = document.getElementById('pf-link').value.trim();
+  const why = document.getElementById('pf-why').value.trim();
+
+  if (!name || !discord) {
+    showPfStatus('pf-error', '⚠️ Merci de remplir au moins votre pseudo et votre Discord.');
+    return;
+  }
+
+  showPfStatus('pf-sending', '⏳ Envoi de votre candidature…');
+
+  const WEBHOOK = 'https://discord.com/api/webhooks/1519822452027560180/nZEjHvjROwnBbV1Yye0WiDsseZXFX4Vzs-cNsh5Fw3Lhi5DkvGU9JtvvhnU55dQImQGK';
+  const content = [
+    '🤝 **Nouvelle candidature partenaire — Emerarudo Senso**',
+    '👤 **Pseudo / Nom :** ' + name,
+    '💬 **Discord :** ' + discord,
+    type ? '🏷️ **Type :** ' + type : '',
+    platform ? '📺 **Plateforme :** ' + platform : '',
+    link ? '🔗 **Lien :** ' + link : '',
+    why ? '\n📝 **Motivation :**\n' + why : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const r = await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, username: 'Emerarudo Senso — Candidature Partenaire' })
+    });
+    if (r.ok) {
+      showPfStatus('pf-sent', '✅ Candidature envoyée ! Nous vous répondrons via Discord très prochainement.');
+      ['pf-name','pf-discord','pf-platform','pf-link','pf-why'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('pf-type').value = '';
+    } else {
+      showPfStatus('pf-error', '❌ Envoi échoué (' + r.status + '). Contactez-nous directement sur Discord.');
+    }
+  } catch(e) {
+    showPfStatus('pf-error', '❌ Connexion impossible. Contactez-nous directement sur Discord.');
+  }
+}
+
+function showPfStatus(cls, msg) {
+  const el = document.getElementById('pf-status');
+  el.className = 'pf-status ' + cls;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 </script>
 
 </body>
