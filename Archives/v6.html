@@ -1315,311 +1315,313 @@ function toggleRule(header) {
 }
 
 // ── TEST DE PERSONNALITÉ ─────────────────────────────────────────────────
-// Susaku 炎 (rouge) : Indépendant · Stratège · Ambitieux · Déterminé · Lucide
-//                     Défauts : Distant · Froid · Sans scrupules · Inflexible · Cynique
-// Seiryu 水 (bleu)  : Loyal · Intuitif · Dévoué · Résilient · Perspicace
-//                     Défauts : Dépendant · Impulsif · Naïf · Entêté · Méfiant
-//
-// Valeurs : +2 = option forte Susaku  /  +1 = option faible Susaku
-//           -2 = option forte Seiryu  /  -1 = option faible Seiryu
-//
-// Structure garantie par question (6 options, 4 tirées aléatoirement) :
-//   Slot A : forte Susaku  (+2)   — toujours présente dans les 4 tirées
-//   Slot B : forte Seiryu  (-2)   — toujours présente dans les 4 tirées
-//   Slot C : faible Susaku (+1)   — tirée parmi les 2 options faibles
-//   Slot D : faible Seiryu (-1)   — tirée parmi les 2 options faibles
-//   (les 2 options faibles restantes restent en réserve et ne sont jamais
-//    toutes les deux absentes en même temps grâce au tirage 4/6)
-//
-// IMPORTANT : les slots A et B sont toujours en position 0 et 1 du tableau.
-// buildQuestions() les protège et ne tire aléatoirement que parmi les slots C-F.
-
+// Valeurs : positif = tendance Susaku 炎, négatif = tendance Seiryu 水, 0 = neutre
+// Chaque question a 5 à 7 options ; 4 sont tirées aléatoirement à chaque test.
+// 13 questions sur 26 sont tirées aléatoirement à chaque test.
 const QUESTIONS_BANK = [
 
-  // Q1 — Indépendant (S+) vs Loyal (R-)
-  { text: "Un désaccord éclate entre toi et ton clan sur la marche à suivre. Tu es convaincu d'avoir raison.", ctx: "La certitude est un luxe — la loyauté aussi.",
+  // Q1
+  { text: "Un ennemi approche lentement de ton territoire. Quelle est ta première réaction ?", ctx: "Pas de panique — mais pas d'inaction non plus.",
     opts: [
-      {t:"J'agis selon ma conviction, quitte à expliquer après pourquoi j'avais raison.", s:"+2"},        // Indépendant fort
-      {t:"Je mets ma position de côté et je suis le clan — c'est ça, faire équipe.", s:"-2"},            // Loyal fort
-      {t:"Je défends mon point de vue mais j'accepte la décision collective.", s:"+1"},                  // Indépendant faible
-      {t:"Je cède cette fois, mais je note que ma parole devra compter davantage la prochaine.", s:"-1"},// Dépendant (défaut Seiryu)
-      {t:"Je pose mes arguments clairement, puis je laisse les autres trancher.", s:"+1"},               // Indépendant faible (réserve)
-      {t:"Je cherche un compromis — ni plier entièrement, ni tout imposer.", s:"-1"}                     // Faible Seiryu (réserve)
+      {t:"J'envoie une patrouille observer sans engager, le temps d'évaluer.",v:0},
+      {t:"Je renforce discrètement mes défenses en attendant de mieux comprendre ses intentions.",v:-3},
+      {t:"Je mobilise mes guerriers : mieux vaut prendre l'initiative avant lui.",v:6},
+      {t:"J'envoie un émissaire — peut-être n'est-il pas venu pour se battre.",v:-5},
+      {t:"Je prépare une embuscade sur le chemin qu'il doit emprunter.",v:7},
+      {t:"Je consulte mon conseil pour ne pas agir seul sur une décision importante.",v:-2},
+      {t:"Je m'assure d'abord que mes alliés sont informés et prêts.",v:1}
     ]},
 
-  // Q2 — Stratège (S+) vs Intuitif (R-)
-  { text: "Tu dois prendre une décision importante sans avoir toutes les informations.", ctx: "L'incertitude révèle qui on est vraiment.",
+  // Q2
+  { text: "Ton clan doit choisir l'emplacement de sa base. Tu proposes…", ctx: "L'architecture révèle l'âme du bâtisseur.",
     opts: [
-      {t:"J'analyse ce que j'ai, je déduis ce qui manque, et je pose un plan.", s:"+2"},                 // Stratège fort
-      {t:"Je fais confiance à ce que je ressens — mon instinct m'a rarement trompé.", s:"-2"},           // Intuitif fort
-      {t:"Je prends le temps de rassembler un minimum d'infos avant d'agir.", s:"+1"},                   // Stratège faible
-      {t:"Je me lance — attendre parfois coûte plus cher que de se tromper.", s:"-1"},                   // Impulsif (défaut Seiryu)
-      {t:"Je découpe le problème en parties et je traite d'abord ce qui est certain.", s:"+1"},          // Stratège faible (réserve)
-      {t:"Je consulte quelqu'un en qui j'ai confiance pour affiner mon ressenti.", s:"-1"}               // Faible Seiryu (réserve)
+      {t:"Un sommet de colline : bon aperçu du territoire, même si c'est moins confortable.",v:5},
+      {t:"Un vallon près d'une rivière : ressources, mais discrétion aussi.",v:-4},
+      {t:"Une plaine dégagée : on voit venir les menaces, et on peut s'agrandir.",v:3},
+      {t:"Un site facile à défendre, même s'il n'est pas idéal pour le commerce.",v:2},
+      {t:"Un carrefour de routes : du mouvement, de l'information, des opportunités.",v:-3},
+      {t:"Un endroit qu'on peut fortifier progressivement selon nos besoins.",v:0},
+      {t:"L'emplacement où les ressources sont les plus abondantes à court terme.",v:4}
     ]},
 
-  // Q3 — Ambitieux (S+) vs Dévoué (R-)
-  { text: "Une opportunité se présente — elle te profite clairement, mais ton clan en tire peu de chose.", ctx: "Les intérêts divergent souvent au mauvais moment.",
+  // Q3
+  { text: "Dans le Conseil des clans, quel rôle endosses-tu le plus naturellement ?", ctx: "Le pouvoir se révèle dans les moments collectifs.",
     opts: [
-      {t:"Je la saisis — ma montée en puissance bénéficiera à tout le monde à terme.", s:"+2"},          // Ambitieux fort
-      {t:"Je la laisse passer — si ça ne sert pas le clan, ça ne me sert pas non plus.", s:"-2"},        // Dévoué fort
-      {t:"Je la prends, mais je cherche comment en redistribuer une partie.", s:"+1"},                   // Ambitieux faible
-      {t:"Je propose à un coéquipier de la saisir à ma place si elle lui convient mieux.", s:"-1"},      // Naïf (défaut Seiryu)
-      {t:"Je l'évalue froidement : si le gain personnel est suffisant, je fonce.", s:"+1"},              // Ambitieux faible (réserve)
-      {t:"Je la mets en attente le temps de voir si le clan peut en profiter aussi.", s:"-1"}            // Faible Seiryu (réserve)
+      {t:"Je prends la parole assez tôt — j'ai souvent une idée claire et je veux la défendre.",v:6},
+      {t:"J'écoute d'abord, puis j'attends le bon moment pour peser dans la balance.",v:-4},
+      {t:"Je construis des coalitions discrètes entre les séances.",v:-5},
+      {t:"Je joue la carte du médiateur — les tensions me semblent souvent inutiles.",v:-1},
+      {t:"Je pose les questions inconfortables que personne n'ose poser.",v:2},
+      {t:"Je m'assure qu'on ne perd pas de temps et que les décisions avancent.",v:5}
     ]},
 
-  // Q4 — Déterminé (S+) vs Résilient (R-)
-  { text: "La mission tourne mal. L'objectif initial semble hors de portée.", ctx: "C'est là que les caractères se révèlent.",
+  // Q4
+  { text: "La ressource la plus précieuse en temps de conflit, c'est…", ctx: "Chaque réponse est défendable — laquelle est la tienne ?",
     opts: [
-      {t:"Je redéfinis l'objectif et j'avance — abandonner n'est pas dans mon vocabulaire.", s:"+2"},    // Déterminé fort
-      {t:"Je reconstruis méthodiquement ce qui peut l'être — la patience est une force.", s:"-2"},       // Résilient fort
-      {t:"Je concentre toute mon énergie sur ce qui est encore atteignable.", s:"+1"},                   // Déterminé faible
-      {t:"Je continue malgré l'échec partiel — le groupe a besoin de me voir tenir.", s:"-1"},           // Entêté (défaut Seiryu)
-      {t:"Je refuse de lâcher tant qu'il reste une voie, même étroite.", s:"+1"},                        // Déterminé faible (réserve)
-      {t:"Je prends du recul, j'absorbe l'échec, et je repars sur des bases solides.", s:"-1"}           // Faible Seiryu (réserve)
+      {t:"Les armes et l'équipement — sans ça, rien n'est possible.",v:6},
+      {t:"La nourriture — une armée épuisée ne tient pas longtemps.",v:-3},
+      {t:"L'information — savoir avant les autres, c'est déjà une longueur d'avance.",v:-5},
+      {t:"Les alliés — seul, on ne résiste pas éternellement.",v:-2},
+      {t:"Le moral des troupes — les ressources ne servent à rien si les gens lâchent.",v:3},
+      {t:"L'or — il achète tout ce qu'on n'a pas.",v:1},
+      {t:"Le temps — celui qui impose son rythme contrôle la situation.",v:-4}
     ]},
 
-  // Q5 — Lucide (S+) vs Perspicace (R-)
-  { text: "Un allié te présente un plan enthousiaste. Quelque chose cloche, mais tu ne sais pas quoi.", ctx: "La vérité est rarement confortable.",
+  // Q5
+  { text: "Un traître est découvert dans ton équipe. Comment tu gères ça ?", ctx: "Il n'y a pas de bonne réponse universelle.",
     opts: [
-      {t:"Je l'arrête et je lui montre froidement les failles que je vois.", s:"+2"},                    // Lucide fort
-      {t:"Je creuse discrètement jusqu'à trouver ce qui me dérange avant de parler.", s:"-2"},           // Perspicace fort
-      {t:"Je signale mes doutes sans aller jusqu'à démonter son plan.", s:"+1"},                         // Lucide faible
-      {t:"Je le laisse aller au bout — il apprendra mieux en vivant l'échec.", s:"-1"},                  // Méfiant (défaut Seiryu)
-      {t:"Je liste les hypothèses fragiles et je lui demande de les justifier.", s:"+1"},                 // Lucide faible (réserve)
-      {t:"Je pose des questions pour le pousser à trouver lui-même ce qui coince.", s:"-1"}              // Faible Seiryu (réserve)
+      {t:"Je l'écarte immédiatement — qu'il soit coupable ou non, le doute suffit.",v:5},
+      {t:"Je l'interroge en privé avant de tirer des conclusions.",v:-3},
+      {t:"Je cherche à comprendre ce qui l'a poussé à trahir — c'est peut-être un symptôme.",v:-4},
+      {t:"Je le retourne : un traître connu peut devenir un outil précieux.",v:-2},
+      {t:"Je le confronte devant tout le groupe pour que chacun comprenne la limite.",v:6},
+      {t:"Je l'isole le temps de mener une investigation discrète.",v:-1},
+      {t:"J'en profite pour remonter jusqu'à ceux qui l'ont envoyé.",v:2}
     ]},
 
-  // Q6 — Distant (défaut S+) vs Impulsif (défaut R-)
-  { text: "Un coéquipier vient te voir, visiblement éprouvé après une séquence difficile.", ctx: "Les gens attendent des choses différentes selon les moments.",
+  // Q6
+  { text: "Quelle victoire te satisfait vraiment ?", ctx: "Toutes les victoires ne se ressemblent pas.",
     opts: [
-      {t:"Je l'écoute brièvement, puis je recentre sur ce qu'on peut faire concrètement.", s:"+2"},      // Distant fort (défaut Susaku)
-      {t:"Je réagis immédiatement — je veux l'aider à s'en sortir, là, maintenant.", s:"-2"},            // Impulsif fort (défaut Seiryu)
-      {t:"Je lui accorde du temps mais je garde une certaine distance — ce n'est pas mon rôle.", s:"+1"},// Distant faible
-      {t:"Je m'implique peut-être trop, mais je ne peux pas m'en empêcher.", s:"-1"},                    // Dépendant (défaut Seiryu)
-      {t:"Je gère la situation avec efficacité — les émotions, c'est son affaire.", s:"+1"},             // Distant faible (réserve)
-      {t:"Je reste présent sans trop savoir quoi dire, mais je ne pars pas.", s:"-1"}                   // Faible Seiryu (réserve)
+      {t:"Avoir gagné un affrontement direct alors que l'issue était incertaine.",v:7},
+      {t:"Avoir planifié si bien que la victoire était acquise avant même de commencer.",v:-6},
+      {t:"Avoir construit quelque chose qui survivra longtemps après la bataille.",v:-3},
+      {t:"Avoir aidé mes alliés à gagner autant que moi.",v:0},
+      {t:"Avoir retourné une situation qui semblait perdue.",v:5},
+      {t:"Avoir remporté une reconnaissance durable de mes pairs.",v:3}
     ]},
 
-  // Q7 — Froid (défaut S+) vs Loyal (R-)
-  { text: "Ton clan te demande de couper les liens avec quelqu'un que tu apprécies, pour des raisons stratégiques.", ctx: "La stratégie et l'affect font rarement bon ménage.",
+  // Q7
+  { text: "On te propose une trêve qui t'avantage légèrement. Tu…", ctx: "La diplomatie a ses propres calculs.",
     opts: [
-      {t:"Je coupe — les liens personnels ne doivent pas peser dans les décisions du clan.", s:"+2"},     // Froid fort (défaut Susaku)
-      {t:"Je refuse — je ne sacrifie pas une personne de confiance sur l'autel de la stratégie.", s:"-2"},// Loyal fort
-      {t:"Je prends de la distance sans rompre totalement — un compromis discret.", s:"+1"},             // Froid faible
-      {t:"J'avertis la personne en privé avant d'appliquer la décision du clan.", s:"-1"},               // Loyal faible
-      {t:"Je pose la question à froid : est-ce que cette relation coûte vraiment quelque chose ?", s:"+1"},// Froid faible (réserve)
-      {t:"Je cherche une façon de maintenir le lien sans que ça nuise au clan.", s:"-1"}                 // Faible Seiryu (réserve)
+      {t:"Je refuse — une trêve à moitié avantageuse reste une demi-mesure.",v:5},
+      {t:"J'accepte, mais je continue à me préparer en coulisses.",v:3},
+      {t:"J'accepte sincèrement — la stabilité a de la valeur en soi.",v:-4},
+      {t:"Je négocie pour en obtenir plus avant de signer quoi que ce soit.",v:-2},
+      {t:"J'évalue d'abord les motivations de celui qui me la propose.",v:-3},
+      {t:"J'accepte, puis j'utilise la trêve pour consolider mes positions.",v:2},
+      {t:"Je consulte mes alliés avant de répondre.",v:0}
     ]},
 
-  // Q8 — Sans scrupules (défaut S+) vs Naïf (défaut R-)
-  { text: "Tu pourrais obtenir un avantage décisif en utilisant une information que tu n'aurais pas dû avoir.", ctx: "La fin justifie-t-elle les moyens ?",
+  // Q8
+  { text: "Ton clan vient de subir une défaite. Quelle est ta réaction dans les heures qui suivent ?", ctx: "C'est dans l'adversité qu'on se distingue.",
     opts: [
-      {t:"Je l'utilise — dans ce contexte, refuser serait juste se désavantager inutilement.", s:"+2"},   // Sans scrupules fort
-      {t:"Je ne l'utilise pas — une victoire obtenue comme ça ne vaut rien pour moi.", s:"-2"},          // Naïf fort (défaut Seiryu assumé)
-      {t:"Je l'utilise, mais avec discrétion pour ne pas exposer comment je l'ai obtenue.", s:"+1"},     // Sans scrupules faible
-      {t:"Je la partage avec mon clan avant de décider quoi en faire.", s:"-1"},                         // Dévoué faible
-      {t:"Je m'en sers si la situation l'exige vraiment — pas par défaut.", s:"+1"},                     // Sans scrupules faible (réserve)
-      {t:"Je la garde en tête sans l'exploiter directement — juste pour anticiper.", s:"-1"}             // Faible Seiryu (réserve)
+      {t:"Je veux reprendre l'initiative rapidement — rester passif empire les choses.",v:6},
+      {t:"Je m'isole un moment pour analyser ce qui s'est vraiment passé.",v:-5},
+      {t:"Je rassemble mon équipe pour maintenir la cohésion et repartir ensemble.",v:1},
+      {t:"Je cherche à sécuriser ce qu'il reste avant de penser à la contre-attaque.",v:-3},
+      {t:"Je contacte des alliés — c'est le moment où on a besoin des autres.",v:-2},
+      {t:"Je tente de négocier pour limiter les pertes supplémentaires.",v:-4},
+      {t:"Je me concentre sur ce que je peux contrôler et ignore le reste.",v:3}
     ]},
 
-  // Q9 — Inflexible (défaut S+) vs Entêté (défaut R-)
-  { text: "Tout le monde dans ton clan pense que tu devrais changer d'approche. Tu restes convaincu d'avoir raison.", ctx: "La conviction peut être une force ou un mur.",
+  // Q9
+  { text: "Quel type de défi t'attire le plus dans un event comme celui-ci ?", ctx: "Choisis honnêtement.",
     opts: [
-      {t:"Je maintiens ma position — si j'ai tort, les faits me le prouveront.", s:"+2"},                // Inflexible fort (défaut Susaku)
-      {t:"Je tiens bon — les bonnes décisions sont souvent impopulaires au départ.", s:"-2"},            // Entêté fort (défaut Seiryu)
-      {t:"Je leur laisse une chance de me convaincre, mais mes critères sont élevés.", s:"+1"},          // Inflexible faible
-      {t:"Je reconsidère, mais je ne lâche pas sans avoir entendu des arguments solides.", s:"-1"},      // Entêté faible
-      {t:"Je m'adapte en surface tout en conservant le fond de mon analyse.", s:"+1"},                   // Inflexible faible (réserve)
-      {t:"Je demande à chacun de me convaincre individuellement — la majorité ne fait pas la vérité.", s:"-1"} // Faible Seiryu (réserve)
+      {t:"Un affrontement direct contre une équipe adverse bien organisée.",v:6},
+      {t:"Une négociation complexe où les enjeux sont élevés.",v:-5},
+      {t:"Un chantier de construction ambitieux à finir en temps limité.",v:-2},
+      {t:"Un tournoi individuel en arène, en face à face.",v:7},
+      {t:"Une mission d'exploration ou d'infiltration dans un territoire inconnu.",v:-1},
+      {t:"La gestion de ressources rares sous pression.",v:-3},
+      {t:"Une coalition à monter et maintenir sur la durée.",v:-4}
     ]},
 
-  // Q10 — Cynique (défaut S+) vs Méfiant (défaut R-)
-  { text: "Un clan inconnu vous propose spontanément une alliance avantageuse, sans contrepartie apparente.", ctx: "La générosité gratuite existe — rarement.",
+  // Q10
+  { text: "Ton chef de clan donne un ordre que tu penses contestable. Tu…", ctx: "La hiérarchie est utile jusqu'à un certain point.",
     opts: [
-      {t:"C'est un piège ou une manipulation — je joue le jeu sans jamais leur faire confiance.", s:"+2"},// Cynique fort (défaut Susaku)
-      {t:"Je n'y touche pas — je préfère perdre un avantage que de m'exposer à une trahison.", s:"-2"},  // Méfiant fort (défaut Seiryu)
-      {t:"Je l'analyse froidement : si les bénéfices sont réels, peu importe leurs motifs.", s:"+1"},    // Cynique faible
-      {t:"Je scrute chaque détail de la proposition avant de donner une réponse.", s:"-1"},              // Méfiant faible
-      {t:"Je les laisse prouver leur bonne foi par des actes concrets avant de m'engager.", s:"+1"},     // Cynique faible (réserve)
-      {t:"Je consulte mes alliés de confiance pour avoir un regard extérieur.", s:"-1"}                  // Faible Seiryu (réserve)
+      {t:"Je l'exécute — contester en pleine action fragilise tout le monde.",v:5},
+      {t:"Je lui signale mon désaccord en privé, puis j'applique sa décision.",v:-2},
+      {t:"Je lui pose des questions pour comprendre sa logique avant d'agir.",v:-3},
+      {t:"Je propose une alternative concrète et j'attends sa réponse.",v:-1},
+      {t:"Je prends l'initiative d'agir autrement si je suis convaincu d'avoir raison.",v:6},
+      {t:"Je fais appel à quelqu'un de plus haut pour trancher.",v:0},
+      {t:"J'exécute, mais je consigne mon désaccord pour qu'on en reparle après.",v:-2}
     ]},
 
-  // Q11 — Indépendant (S+) vs Dévoué (R-)
-  { text: "Tu as la possibilité de briller personnellement dans une action, mais ça implique de laisser ton clan gérer seul une situation difficile.", ctx: "Le choix entre toi et les autres se pose toujours à un moment.",
+  // Q11
+  { text: "Comment préfères-tu affronter un adversaire que tu sais redoutable ?", ctx: "Les meilleures méthodes dépendent de qui on est.",
     opts: [
-      {t:"Je saisis l'occasion — mon clan est capable de se débrouiller.", s:"+2"},                      // Indépendant fort
-      {t:"Je reste — il n'y a pas de gloire personnelle qui vaille si le clan trinque.", s:"-2"},         // Dévoué fort
-      {t:"Je fais vite ce que j'ai à faire, et je reviens aussi tôt que possible.", s:"+1"},             // Indépendant faible
-      {t:"Je renonce — même si ça me coûte, ce n'est pas le moment.", s:"-1"},                          // Dévoué faible
-      {t:"J'évalue si le clan peut vraiment tenir sans moi avant de décider.", s:"+1"},                  // Indépendant faible (réserve)
-      {t:"Je délègue l'action personnelle à quelqu'un d'autre pour rester avec le groupe.", s:"-1"}      // Faible Seiryu (réserve)
+      {t:"Je l'affronte directement — les détours perdent du temps.",v:7},
+      {t:"Je l'isole d'abord de ses soutiens, puis je frappe.",v:-3},
+      {t:"Je l'use progressivement par des actions répétées à faible risque.",v:-4},
+      {t:"Je cherche une occasion précise où il est vulnérable.",v:2},
+      {t:"Je le défie publiquement pour l'obliger à répondre sur mon terrain.",v:6},
+      {t:"Je tente de le convaincre de ne pas combattre — parfois ça marche.",v:-5}
     ]},
 
-  // Q12 — Stratège (S+) vs Résilient (R-)
-  { text: "Ton plan vient d'échouer à cause d'un facteur que tu n'avais pas anticipé.", ctx: "L'échec révèle autant que la victoire.",
+  // Q12
+  { text: "Si tu devais décrire ton style de jeu en une formule courte…", ctx: "Pas ce que tu aimerais être — ce que tu fais vraiment.",
     opts: [
-      {t:"J'intègre immédiatement la nouvelle variable et je reformule le plan.", s:"+2"},               // Stratège fort
-      {t:"J'encaisse le coup, je stabilise la situation, puis je repars pas à pas.", s:"-2"},            // Résilient fort
-      {t:"Je cherche dans l'échec les données qui me serviront pour la prochaine tentative.", s:"+1"},   // Stratège faible
-      {t:"Je ne m'attarde pas sur l'analyse — j'agis pour limiter les dégâts d'abord.", s:"-1"},        // Impulsif (défaut Seiryu)
-      {t:"Je redécoupe le problème en éléments maîtrisables et je recommence.", s:"+1"},                 // Stratège faible (réserve)
-      {t:"Je mobilise mon énergie plutôt que mes calculs — tenir, c'est déjà gagner du temps.", s:"-1"} // Faible Seiryu (réserve)
+      {t:"J'agis vite et je gère les problèmes au fur et à mesure.",v:6},
+      {t:"Je planifie longtemps, puis j'exécute rapidement.",v:-4},
+      {t:"Je m'adapte selon les événements — pas de plan figé.",v:1},
+      {t:"Je construis d'abord une base solide avant d'attaquer.",v:-3},
+      {t:"Je cherche à surprendre — la prévisibilité est une faiblesse.",v:3},
+      {t:"Je suis là où on ne m'attend pas, et je profite des ouvertures.",v:-2},
+      {t:"Je joue collectif — mes victoires personnelles dépendent de mon équipe.",v:0}
     ]},
 
-  // Q13 — Ambitieux (S+) vs Loyal (R-)
-  { text: "Tu pourrais grimper en influence dans ton clan en prenant la place de quelqu'un qui t'a aidé à tes débuts.", ctx: "La reconnaissance a-t-elle une date d'expiration ?",
+  // Q13
+  { text: "Ton élément de prédilection parmi ces quatre ?", ctx: "Certaines vérités sont plus instinctives que rationnelles.",
     opts: [
-      {t:"Si je suis plus compétent pour ce rôle, il est logique que je le prenne.", s:"+2"},            // Ambitieux fort
-      {t:"Je n'écrase pas quelqu'un qui m'a tendu la main — ce serait une trahison.", s:"-2"},           // Loyal fort
-      {t:"Je vise le rôle, mais je lui laisse la possibilité d'évoluer aussi.", s:"+1"},                 // Ambitieux faible
-      {t:"Je construis ma montée autrement — sans passer par-dessus lui.", s:"-1"},                      // Loyal faible
-      {t:"Je lui parle franchement de mes ambitions avant de faire quoi que ce soit.", s:"+1"},          // Ambitieux faible (réserve)
-      {t:"Je préfère attendre une opportunité propre plutôt que de lui faire de l'ombre.", s:"-1"}       // Faible Seiryu (réserve)
+      {t:"Le feu — impétueux, intense, difficile à éteindre une fois lancé.",v:7},
+      {t:"L'eau — persistante, adaptable, qui finit toujours par trouver son chemin.",v:-7},
+      {t:"La terre — stable, patient, qui nourrit sur le long terme.",v:-3},
+      {t:"La foudre — rapide, imprévisible, décisive.",v:5},
+      {t:"Le vent — discret, omniprésent, impossible à saisir.",v:-2},
+      {t:"La roche — impassible face à la tempête, usée seulement par le temps.",v:0}
     ]},
 
-  // Q14 — Lucide (S+) vs Intuitif (R-)
-  { text: "Une décision doit être prise vite. Tu as une analyse rationnelle et une intuition qui pointent dans des directions opposées.", ctx: "La tête ou le ventre — chacun a ses victoires.",
+  // Q14
+  { text: "Tu dois gérer un conflit interne entre deux membres importants de ton clan. Tu…", ctx: "Tout le monde n'est pas fait pour l'arbitrage.",
     opts: [
-      {t:"Je suis mon analyse — les données ne mentent pas, les émotions si.", s:"+2"},                  // Lucide fort
-      {t:"Je suis mon instinct — il agrège des informations que ma tête n'a pas encore traitées.", s:"-2"},// Intuitif fort
-      {t:"Je prends la décision rationnelle, mais je note ce que mon instinct avait dit.", s:"+1"},      // Lucide faible
-      {t:"Je fais confiance à mon ressenti et j'assume si ça tourne mal.", s:"-1"},                      // Impulsif (défaut Seiryu)
-      {t:"Je cherche si un tiers élément peut départager les deux.", s:"+1"},                            // Lucide faible (réserve)
-      {t:"Je laisse l'intuition guider la direction, la raison gérer les détails.", s:"-1"}              // Faible Seiryu (réserve)
+      {t:"Je tranche moi-même — les débats qui s'éternisent nuisent à tout le monde.",v:5},
+      {t:"Je les réunis et je facilite un dialogue jusqu'à ce qu'ils trouvent un terrain d'entente.",v:-3},
+      {t:"Je les sépare provisoirement pour éviter l'escalade, puis je traite chaque cas.",v:-2},
+      {t:"Je laisse la situation se résoudre seule si aucun des deux ne veut plier.",v:2},
+      {t:"J'analyse qui a objectivement tort, et je l'indique clairement.",v:4},
+      {t:"Je profite de cette tension pour repositionner les rôles dans l'équipe.",v:1},
+      {t:"Je consulte d'autres membres du clan pour avoir un avis extérieur.",v:-1}
     ]},
 
-  // Q15 — Déterminé (S+) vs Perspicace (R-)
-  { text: "Tout semble indiquer qu'il faut renoncer. Tout, sauf quelque chose que tu as du mal à formuler.", ctx: "L'abandon et la persévérance se ressemblent parfois.",
+  // Q15
+  { text: "On te confie une mission risquée mais qui pourrait rapporter gros. Tu…", ctx: "Le rapport risque/récompense, c'est une question de caractère.",
     opts: [
-      {t:"Je continue — si je n'ai pas de raison solide d'arrêter, j'avance.", s:"+2"},                  // Déterminé fort
-      {t:"Je creuse ce que je n'arrive pas à formuler avant de décider.", s:"-2"},                       // Perspicace fort
-      {t:"Je me fixe un dernier palier : si on ne l'atteint pas, j'arrête.", s:"+1"},                    // Déterminé faible
-      {t:"Je consulte ceux qui ont plus de recul — peut-être voient-ils ce que je rate.", s:"-1"},       // Dépendant (défaut Seiryu)
-      {t:"Je réduis la voilure mais je ne lâche pas — le renoncement total peut attendre.", s:"+1"},     // Déterminé faible (réserve)
-      {t:"J'essaie de mettre des mots sur ce ressenti — si je n'y arrive pas, je m'arrête.", s:"-1"}    // Faible Seiryu (réserve)
+      {t:"J'y vais — les meilleures opportunités comportent toujours une part de risque.",v:7},
+      {t:"J'évalue précisément les risques avant de m'engager.",v:-3},
+      {t:"Je cherche un moyen de réduire les risques sans trop diluer la récompense.",v:-2},
+      {t:"Je propose à quelqu'un d'autre de co-diriger — deux cerveaux valent mieux qu'un.",v:-1},
+      {t:"J'accepte, mais je prépare un plan de repli solide.",v:2},
+      {t:"Je demande plus d'informations avant de me décider.",v:-4},
+      {t:"Je l'accepte si je suis convaincu que l'équipe peut le faire avec moi.",v:0}
     ]},
 
-  // Q16 — Distant (défaut S+) vs Résilient (R-)
-  { text: "Après une longue période d'effort intense, tu sens que ton clan a besoin de se retrouver. Toi, tu as juste besoin de souffler.", ctx: "Les besoins collectifs et individuels divergent souvent.",
+  // Q16
+  { text: "Après un long effort, ton clan est à bout de souffle. Tu proposes…", ctx: "La résilience prend différentes formes.",
     opts: [
-      {t:"Je prends mon espace — je reviens plus efficace si je récupère à ma façon.", s:"+2"},           // Distant fort (défaut Susaku)
-      {t:"Je participe — le groupe me rechargera autant que la solitude.", s:"-2"},                      // Résilient fort
-      {t:"Je fais acte de présence sans vraiment m'impliquer — montrer que je suis là suffit.", s:"+1"}, // Distant faible
-      {t:"Je mets mes besoins de côté pour l'instant — le clan passe en premier.", s:"-1"},              // Dévoué faible
-      {t:"Je négocie : je passe un moment avec eux, puis je me réserve du temps seul.", s:"+1"},         // Distant faible (réserve)
-      {t:"Je reste présent même si c'est difficile — les liens se font dans ces moments.", s:"-1"}       // Faible Seiryu (réserve)
+      {t:"De pousser encore — c'est souvent dans les derniers instants qu'on décide tout.",v:6},
+      {t:"Une pause courte et ciblée pour récupérer avant de repartir.",v:0},
+      {t:"Une réorganisation de fond : mieux vaut prendre du recul que de s'épuiser en vain.",v:-4},
+      {t:"De déléguer certaines tâches pour répartir la charge.",v:-2},
+      {t:"D'abandonner ce qui n'est pas essentiel pour se concentrer sur l'objectif principal.",v:3},
+      {t:"De faire appel à des alliés extérieurs pour compenser notre fatigue.",v:-3}
     ]},
 
-  // Q17 — Froid (défaut S+) vs Empathique (R- perspicace/intuitif)
-  { text: "Un membre de ton clan a commis une erreur grave par excès de confiance. Il le sait et en souffre.", ctx: "Corriger et compatir sont deux choses différentes.",
+  // Q17
+  { text: "Un allié te demande de partager des ressources dont tu n'as pas tant besoin. Tu…", ctx: "La générosité n'est pas toujours désintéressée.",
     opts: [
-      {t:"Je lui montre précisément ce qui a merdé — la compassion peut attendre.", s:"+2"},             // Froid fort (défaut Susaku)
-      {t:"Je commence par m'assurer qu'il va bien avant de parler de l'erreur.", s:"-2"},                // Perspicace/Intuitif fort
-      {t:"Je suis direct sur les faits, mais sans acharnement inutile.", s:"+1"},                        // Froid faible
-      {t:"Je le laisse s'exprimer entièrement avant d'intervenir.", s:"-1"},                             // Intuitif faible
-      {t:"Je lui donne les éléments pour qu'il comprenne seul — sans que ça vienne de moi.", s:"+1"},   // Froid faible (réserve)
-      {t:"Je lui montre que l'erreur est réparable — l'analyse vient ensuite.", s:"-1"}                  // Faible Seiryu (réserve)
+      {t:"Je partage sans hésiter — les alliances se construisent dans les moments comme ça.",v:-2},
+      {t:"Je partage une partie, en gardant de la marge pour moi.",v:1},
+      {t:"Je partage en échange d'une contrepartie implicite ou explicite.",v:3},
+      {t:"Je refuse poliment — j'ai toujours besoin de réserves.",v:5},
+      {t:"Je vérifie d'abord que cet allié me sera utile avant de donner.",v:4},
+      {t:"Je lui offre de l'aide, mais sous forme d'action plutôt que de ressources.",v:0},
+      {t:"Je partage tout — je préfère miser sur la réciprocité future.",v:-4}
     ]},
 
-  // Q18 — Sans scrupules (défaut S+) vs Dévoué (R-)
-  { text: "Pour assurer la victoire de ton clan, tu dois sacrifier la réputation d'un équipier qui ne le mérite pas.", ctx: "La victoire collective a parfois des coûts individuels.",
+  // Q18
+  { text: "Une décision collective implique un vote au sein de ton clan. Tu…", ctx: "Démocratie ou efficacité : les deux ne vont pas toujours ensemble.",
     opts: [
-      {t:"Je le fais — une victoire imméritée vaut mieux qu'une défaite méritée.", s:"+2"},              // Sans scrupules fort
-      {t:"Je cherche une autre voie — je ne détruis pas quelqu'un d'innocent pour gagner.", s:"-2"},     // Dévoué fort
-      {t:"Je le fais, mais je m'arrange pour limiter les dégâts sur lui après coup.", s:"+1"},           // Sans scrupules faible
-      {t:"Je consulte l'intéressé — peut-être acceptera-t-il s'il comprend les enjeux.", s:"-1"},        // Loyal faible
-      {t:"J'évalue si la victoire justifie vraiment ce prix — si oui, je passe outre.", s:"+1"},         // Sans scrupules faible (réserve)
-      {t:"Je cherche qui d'autre pourrait endosser ce rôle de façon moins injuste.", s:"-1"}             // Faible Seiryu (réserve)
+      {t:"Je vote pour ma position et je l'assume, même si je suis minoritaire.",v:4},
+      {t:"J'essaie de convaincre les autres avant le vote.",v:-2},
+      {t:"Je vote avec la majorité pour garder la cohésion du groupe.",v:-3},
+      {t:"Je m'abstiens si je ne suis pas suffisamment informé.",v:0},
+      {t:"Je tente de reporter le vote pour avoir plus de temps d'analyse.",v:-4},
+      {t:"Je propose que la décision revienne au chef — certaines choses ne se votent pas.",v:5}
     ]},
 
-  // Q19 — Inflexible (défaut S+) vs Loyal (R-)
-  { text: "Les règles du clan t'empêchent de faire quelque chose que tu penses juste.", ctx: "Les règles protègent — elles étouffent aussi.",
+  // Q19
+  { text: "Tu découvres que ton ennemi est fragilisé par des tensions internes. Tu…", ctx: "L'occasion fait le larron — ou le stratège.",
     opts: [
-      {t:"Je fais ce qui me semble juste — les règles sont des outils, pas des lois divines.", s:"+2"},  // Inflexible (paradoxe) → Indépendant fort
-      {t:"Je respecte les règles même si ça me coûte — ma parole vaut quelque chose.", s:"-2"},          // Loyal fort
-      {t:"J'agis, mais je l'assume devant le clan en expliquant mes raisons.", s:"+1"},                  // Indépendant faible
-      {t:"Je propose formellement de modifier la règle avant de passer outre.", s:"-1"},                 // Loyal faible
-      {t:"Je cherche une interprétation de la règle qui me laisse de la marge.", s:"+1"},                // Indépendant faible (réserve)
-      {t:"Je n'agis pas — mais je milite activement pour que ça change.", s:"-1"}                        // Faible Seiryu (réserve)
+      {t:"J'attaque immédiatement pour profiter de la fenêtre.",v:7},
+      {t:"J'observe encore un peu pour m'assurer que ce n'est pas un piège.",v:-3},
+      {t:"J'exacerbe discrètement ces tensions pour les laisser s'autodétruire.",v:-5},
+      {t:"Je négocie avec la faction adverse pour les rallier ou les neutraliser.",v:-4},
+      {t:"Je prépare une offensive sans me presser — la faiblesse dure rarement.",v:3},
+      {t:"J'alerte mes alliés pour qu'on coordonne une action commune.",v:1},
+      {t:"Je me méfie — les faux points faibles sont une vieille ruse.",v:-1}
     ]},
 
-  // Q20 — Cynique (défaut S+) vs Naïf (défaut R-)
-  { text: "Un rival te félicite chaleureusement après ta victoire contre lui.", ctx: "La défaite révèle le caractère — la victoire aussi.",
+  // Q20
+  { text: "Quelle qualité est selon toi la plus utile pour survivre dans un event comme celui-ci ?", ctx: "Ce n'est pas une question de hiérarchie — juste de conviction.",
     opts: [
-      {t:"Je reçois ça avec scepticisme — les perdants félicitent rarement sans arrière-pensée.", s:"+2"},// Cynique fort
-      {t:"Je le prends au premier degré — pourquoi chercherait-il à me tromper maintenant ?", s:"-2"},  // Naïf fort (défaut Seiryu assumé)
-      {t:"Je le remercie poliment tout en restant sur mes gardes.", s:"+1"},                             // Cynique faible
-      {t:"J'y vois une ouverture possible — les anciens rivaux font parfois de bons alliés.", s:"-1"},   // Perspicace faible
-      {t:"Je décèle vite si c'est sincère ou calculé — et j'agis en conséquence.", s:"+1"},              // Cynique faible (réserve)
-      {t:"Je réponds avec la même chaleur — jusqu'à preuve du contraire, c'est suffisant.", s:"-1"}     // Faible Seiryu (réserve)
+      {t:"La rapidité d'exécution — ceux qui agissent vite dictent le rythme.",v:6},
+      {t:"La patience — les erreurs des autres finissent toujours par se payer.",v:-5},
+      {t:"L'adaptabilité — les plans parfaits ne résistent pas au terrain.",v:0},
+      {t:"La fiabilité — être quelqu'un sur qui les autres peuvent compter.",v:-2},
+      {t:"La vision d'ensemble — comprendre ce que les autres ne voient pas encore.",v:-4},
+      {t:"L'audace — les opportunités appartiennent à ceux qui osent.",v:7},
+      {t:"La résilience — tenir sous pression quand les autres craquent.",v:3}
     ]},
 
-  // Q21 — Ambitieux (S+) vs Perspicace (R-)
-  { text: "Tu remarques qu'un autre joueur est en train de monter discrètement en influence dans ton clan.", ctx: "L'influence, ça se voit rarement avant qu'il soit trop tard.",
+  // Q21
+  { text: "Comment tu abordes une rencontre avec un clan que tu ne connais pas encore ?", ctx: "La première impression est une stratégie.",
     opts: [
-      {t:"Je prends des dispositions pour rester devant — l'influence se consolide, pas se subit.", s:"+2"},// Ambitieux fort
-      {t:"J'observe comment il s'y prend — comprendre sa méthode m'intéresse autant que le stopper.", s:"-2"},// Perspicace fort
-      {t:"Je renforce ma propre position discrètement, sans confrontation directe.", s:"+1"},            // Ambitieux faible
-      {t:"Je l'approche directement pour jauger ses intentions.", s:"-1"},                               // Intuitif faible
-      {t:"Je cartographie son réseau d'influence avant de décider quoi faire.", s:"+1"},                 // Stratège faible
-      {t:"Je n'en fais rien pour l'instant — mieux vaut avoir de la visibilité avant d'agir.", s:"-1"}  // Perspicace faible (réserve)
+      {t:"J'arrive avec une posture forte — montrer qu'on ne s'effraie pas facilement.",v:5},
+      {t:"Je reste neutre et j'observe avant de me positionner.",v:-1},
+      {t:"Je cherche rapidement un terrain d'entente ou d'intérêt commun.",v:-3},
+      {t:"Je pose des questions pour comprendre ce qu'ils valent vraiment.",v:-2},
+      {t:"Je laisse parler les autres en premier — les gens révèlent beaucoup en parlant.",v:-4},
+      {t:"Je suis cordial mais je garde mes distances — la confiance se mérite.",v:2}
     ]},
 
-  // Q22 — Déterminé (S+) vs Intuitif (R-)
-  { text: "Tout le monde s'attend à ce que tu suives la voie la plus logique. Tu as envie d'essayer autre chose.", ctx: "La prévisibilité est parfois une cage.",
+  // Q22
+  { text: "Tu dois choisir entre une action risquée à fort impact ou une action sûre à impact modeste. Tu…", ctx: "Ce choix en dit long.",
     opts: [
-      {t:"Je fais ce que j'ai décidé — les attentes des autres ne définissent pas mes choix.", s:"+2"},   // Déterminé fort
-      {t:"Je suis l'envie — les meilleures décisions ont souvent un goût d'inattendu.", s:"-2"},         // Intuitif fort
-      {t:"Je teste l'autre voie en gardant la possibilité de revenir sur mes pas.", s:"+1"},              // Déterminé faible
-      {t:"Je tranche vite — hésiter entre les deux serait le pire choix.", s:"-1"},                      // Impulsif (défaut Seiryu)
-      {t:"Je m'engage dans ma direction sans en parler — les actes convaincront mieux que les mots.", s:"+1"},// Déterminé faible (réserve)
-      {t:"Je fais confiance à l'envie et je vois où ça mène — l'expérience vaut l'erreur.", s:"-1"}     // Faible Seiryu (réserve)
+      {t:"Je prends le risque — les petites actions s'accumulent trop lentement.",v:7},
+      {t:"Je choisis le sûr — mieux vaut avancer lentement que reculer.",v:-5},
+      {t:"Ça dépend de l'état de mon clan à ce moment-là.",v:0},
+      {t:"Je cherche une troisième option entre les deux.",v:-2},
+      {t:"Je prends le risque, mais avec un filet de sécurité si possible.",v:3},
+      {t:"Je délègue la décision à ceux qui seront directement impactés.",v:-1},
+      {t:"Je prends le sûr maintenant, pour pouvoir risquer gros plus tard.",v:-3}
     ]},
 
-  // Q23 — Lucide (S+) vs Loyal (R-)
-  { text: "Tu réalises que ton clan s'engage dans une direction que tu sais perdante.", ctx: "Parfois, voir clair est un fardeau.",
+  // Q23
+  { text: "Qu'est-ce qui te motive le plus à participer à cet event ?", ctx: "Pas de jugement — juste la vérité.",
     opts: [
-      {t:"Je dis ce que je vois, clairement et sans ménagement — la vérité ne se négocie pas.", s:"+2"}, // Lucide fort
-      {t:"Je reste avec eux — je les avertis, mais si ils persistent, je ne les abandonne pas.", s:"-2"},// Loyal fort
-      {t:"Je pose mon analyse sans l'imposer — à eux de décider en connaissance de cause.", s:"+1"},     // Lucide faible
-      {t:"Je soutiens la décision collective en espérant me tromper.", s:"-1"},                          // Dévoué faible
-      {t:"Je documente mon désaccord pour qu'on puisse en tirer des leçons après.", s:"+1"},             // Lucide faible (réserve)
-      {t:"Je cherche comment limiter les dégâts si ça tourne comme je le prévois.", s:"-1"}              // Perspicace faible (réserve)
+      {t:"Gagner. Clairement.",v:6},
+      {t:"Vivre quelque chose d'intense avec une communauté soudée.",v:1},
+      {t:"Relever des défis stratégiques que je ne rencontre pas ailleurs.",v:-4},
+      {t:"Construire quelque chose de beau dans un univers immersif.",v:-3},
+      {t:"Me mesurer à des gens compétents et voir où j'en suis.",v:4},
+      {t:"Contribuer à une aventure collective qui dépasse ma performance individuelle.",v:-2},
+      {t:"Tester des stratégies et voir lesquelles fonctionnent en situation réelle.",v:-1}
     ]},
 
-  // Q24 — Distant (défaut S+) vs Entêté (défaut R-)
-  { text: "Ton clan te reproche de ne pas assez partager ce que tu penses et ressens.", ctx: "L'opacité protège — elle isole aussi.",
+  // Q24
+  { text: "Une alliance de circonstance te permettrait de gagner à court terme, mais affaiblirait ta position à long terme. Tu…", ctx: "Les calculs à court et long terme entrent souvent en conflit.",
     opts: [
-      {t:"C'est ma façon d'être — je ne vais pas changer pour rassurer les autres.", s:"+2"},            // Distant fort (défaut Susaku)
-      {t:"Je l'entends, mais je ne vais pas m'ouvrir sous la pression — ça doit venir naturellement.", s:"-2"},// Entêté fort (défaut Seiryu)
-      {t:"Je fais un effort ponctuel pour partager davantage, sans que ça devienne une norme.", s:"+1"}, // Distant faible
-      {t:"Je reconnais le problème et je cherche comment m'améliorer.", s:"-1"},                         // Résilient faible
-      {t:"Je leur explique pourquoi je fonctionne ainsi — sans promettre de changer.", s:"+1"},          // Distant faible (réserve)
-      {t:"J'essaie de trouver un format qui me convient pour partager un peu plus.", s:"-1"}             // Faible Seiryu (réserve)
+      {t:"Je la prends — le long terme, on le gère quand il arrive.",v:6},
+      {t:"Je la refuse — bâtir sur du sable n'a jamais construit de château.",v:-4},
+      {t:"Je la prends, mais en limitant les engagements pour rester libre.",v:3},
+      {t:"J'essaie de renégocier pour un accord plus équilibré.",v:-2},
+      {t:"Je consulte mes alliés actuels avant de décider.",v:-1},
+      {t:"Je décline poliment en proposant une coopération ponctuelle sans engagement.",v:-3},
+      {t:"Ça dépend entièrement de ce que j'entends par «long terme» dans ce contexte.",v:0}
     ]},
 
-  // Q25 — Indépendant (S+) vs Résilient (R-)
-  { text: "L'event bat son plein. Tu réalises que tu es plus efficace seul que dans la dynamique de groupe actuelle.", ctx: "L'efficacité et l'appartenance tirent parfois dans des directions opposées.",
+  // Q25
+  { text: "Tu as la possibilité d'éliminer un adversaire affaibli, mais c'est quelqu'un qui t'a aidé par le passé. Tu…", ctx: "La gratitude est-elle une stratégie ou un frein ?",
     opts: [
-      {t:"J'agis seul — l'efficacité prime sur la forme.", s:"+2"},                                      // Indépendant fort
-      {t:"Je reste dans le groupe et je m'adapte — le collectif traverse ses phases.", s:"-2"},           // Résilient fort
-      {t:"Je prends des initiatives solo mais je rends compte au clan.", s:"+1"},                         // Indépendant faible
-      {t:"Je tiens bon dans le groupe — ma frustration est gérée, pas le problème du clan.", s:"-1"},    // Entêté (défaut Seiryu)
-      {t:"Je propose de scinder les rôles pour que chacun joue selon ses forces.", s:"+1"},              // Indépendant faible (réserve)
-      {t:"Je cherche comment ma façon d'être efficace peut nourrir le groupe plutôt que le fuir.", s:"-1"} // Faible Seiryu (réserve)
+      {t:"Je l'élimine — les sentiments n'ont pas leur place dans la guerre.",v:7},
+      {t:"Je laisse passer cette occasion — on n'efface pas un service rendu.",v:-5},
+      {t:"Je lui propose de capituler plutôt que de combattre.",v:-2},
+      {t:"Je le neutralise sans l'éliminer — on ne sait jamais.",v:2},
+      {t:"Je lui signale que notre alliance est terminée avant d'agir.",v:1},
+      {t:"Je cherche d'abord si cette alliance peut encore m'être utile.",v:3}
     ]},
 
-  // Q26 — Stratège (S+) vs Perspicace (R-)
-  { text: "À la fin de l'event, tu réalises que quelqu'un d'autre a influencé l'issue plus que toi, dans l'ombre.", ctx: "Le pouvoir visible et le pouvoir réel sont rarement les mêmes.",
+  // Q26
+  { text: "À la fin d'un long conflit, quelle place veux-tu occuper dans le récit de cet event ?", ctx: "La mémoire d'une guerre, c'est aussi une stratégie.",
     opts: [
-      {t:"Je retiens la leçon et je l'intègre dans ma façon de jouer — ça ne se reproduira pas.", s:"+2"},// Stratège fort
-      {t:"Je cherche à comprendre comment il a fait — fascinant, et utile à savoir.", s:"-2"},           // Perspicace fort
-      {t:"Je décortique rétrospectivement ses décisions pour trouver ce que j'ai raté.", s:"+1"},        // Stratège faible
-      {t:"Je l'approche directement — quelqu'un qui joue comme ça mérite qu'on se parle.", s:"-1"},      // Intuitif faible
-      {t:"Je cartographie ses leviers d'influence pour ne plus être pris par surprise.", s:"+1"},         // Stratège faible (réserve)
-      {t:"Je prends note de ses méthodes — les meilleurs enseignements viennent des adversaires.", s:"-1"} // Faible Seiryu (réserve)
+      {t:"Celui ou celle qui a dominé sur le terrain et l'a fait savoir.",v:7},
+      {t:"L'architecte silencieux dont les décisions ont tout décidé.",v:-6},
+      {t:"Quelqu'un sur qui les autres ont pu compter quand ça comptait.",v:-2},
+      {t:"Celui ou celle qui a su retourner une situation désespérée.",v:4},
+      {t:"La personne qui a construit quelque chose de beau et de durable.",v:-4},
+      {t:"Un joueur solide, ni héros ni fantôme — simplement efficace.",v:0},
+      {t:"Celui ou celle qui a forcé le respect, même des adversaires.",v:5}
     ]},
 ];
 
@@ -1632,31 +1634,13 @@ function shuffle(arr) {
   return a;
 }
 
-// Convertit le champ s ("+ 2", "-1"…) en valeur numérique
-function sToV(s) {
-  if (s === '+2') return 2;
-  if (s === '+1') return 1;
-  if (s === '-1') return -1;
-  if (s === '-2') return -2;
-  return 0;
-}
-
-// Structure garantie par question :
-//   - opts[0] = fort Susaku (+2) → toujours inclus
-//   - opts[1] = fort Seiryu (-2) → toujours inclus
-//   - opts[2..5] = faibles (+1 / -1) → on en tire 2 au hasard parmi les 4
-// Résultat : 4 options avec toujours au moins un +2 et un -2.
+// Tire 13 questions au hasard parmi 26, puis pour chacune tire 4 options au hasard parmi les 5-7
 function buildQuestions() {
-  return shuffle(QUESTIONS_BANK).slice(0, 13).map(q => {
-    const strong = q.opts.slice(0, 2);           // slots A et B garantis
-    const weak   = shuffle(q.opts.slice(2)).slice(0, 2); // 2 faibles aléatoires parmi 4
-    const four   = shuffle([...strong, ...weak]); // ordre aléatoire des 4
-    return {
-      text: q.text,
-      ctx:  q.ctx,
-      opts: four.map(o => ({ t: o.t, v: sToV(o.s) }))
-    };
-  });
+  return shuffle(QUESTIONS_BANK).slice(0, 13).map(q => ({
+    text: q.text,
+    ctx: q.ctx,
+    opts: shuffle(q.opts).slice(0, 4)
+  }));
 }
 
 // Shuffle questions order and each question's options order at test start
@@ -1706,9 +1690,15 @@ function prevQ(){if(curQ>0){curQ--;renderQ();}}
 
 function showResult(){
   switchStep('step-questions','step-result');
-  // Seuil 0 : avec la nouvelle structure garantie (toujours +2 et -2 disponibles),
-  // la distribution est parfaitement symétrique autour de 0.
-  const isSusaku = score >= 0;
+
+  // Normalisation dynamique : on calcule le min et max possibles
+  // sur les 13 questions tirées avec leurs 4 options présentées.
+  // Si le score du joueur est >= au point médian → Susaku, sinon → Seiryu.
+  // Cela garantit un équilibre 50/50 quelle que soit la combinaison de questions.
+  const minPossible = QUESTIONS.reduce((sum, q) => sum + Math.min(...q.opts.map(o => o.v)), 0);
+  const maxPossible = QUESTIONS.reduce((sum, q) => sum + Math.max(...q.opts.map(o => o.v)), 0);
+  const midpoint = (minPossible + maxPossible) / 2;
+  const isSusaku = score >= midpoint;
   const teamInternal = isSusaku ? 'Maison Susaku 炎帯' : 'Maison Seiryu 清流';
 
   // Build recap with question text + chosen answer text
@@ -1729,10 +1719,10 @@ function showResult(){
     '<div style="margin-top:1.6rem;"><button class="btn btn-ghost" style="width:auto;padding:.6rem 1.5rem;" onclick="resetTest()" type="button">↩ Recommencer</button></div>' +
     '</div>';
 
-  sendDC(playerPseudo, allyPseudo, teamInternal, score, recap);
+  sendDC(playerPseudo, allyPseudo, teamInternal, score, midpoint, recap);
 }
 
-async function sendDC(pseudo, ally, teamInternal, sc, recap){
+async function sendDC(pseudo, ally, teamInternal, sc, mid, recap){
   const WEBHOOK='https://discord.com/api/webhooks/1519822452027560180/nZEjHvjROwnBbV1Yye0WiDsseZXFX4Vzs-cNsh5Fw3Lhi5DkvGU9JtvvhnU55dQImQGK';
   const el=document.getElementById('dc-msg');
 
@@ -1761,7 +1751,7 @@ async function sendDC(pseudo, ally, teamInternal, sc, recap){
       '📋 **Nouveau questionnaire d\'équipe — Emerarudo Senso**',
       '👤 **Pseudo :** '+pseudo,
       ally ? '🤝 **Allié souhaité :** '+ally : '',
-      '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' ('+(sc>=0?'tendance Susaku 炎':'tendance Seiryu 水')+')',
+      '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' · Point médian : '+(mid>=0?'+':'')+mid.toFixed(1)+' ('+(sc>=mid?'tendance Susaku 炎':'tendance Seiryu 水')+')',
       '📝 **Réponses :**'
     ].filter(Boolean).join('\n');
 
