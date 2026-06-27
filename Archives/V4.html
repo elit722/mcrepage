@@ -1025,7 +1025,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <div class="serv-stat">
         <span class="stat-icon">⚡</span>
         <span class="stat-val" id="stat-cpu">…</span>
-        <span class="stat-label">CPU utilisé</span>
+        <span class="stat-label">CPU</span>
         <span class="stat-coming" id="stat-cpu-sub">Chargement…</span>
       </div>
       <div class="serv-stat">
@@ -1041,10 +1041,10 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <span class="stat-coming" id="stat-status-sub">Chargement…</span>
       </div>
       <div class="serv-stat">
-        <span class="stat-icon">💰</span>
-        <span class="stat-val">40.97 €</span>
-        <span class="stat-label">Prix de l'event</span>
-        <span class="stat-coming">Tarif actuel</span>
+        <span class="stat-icon">👥</span>
+        <span class="stat-val" id="stat-slots">100</span>
+        <span class="stat-label">Slots maximum</span>
+        <span class="stat-coming">Offre Gold — Lord Hosting</span>
       </div>
     </div>
 
@@ -1818,29 +1818,33 @@ function showPfStatus(cls, msg) {
   el.style.display = 'block';
 }
 
-// ── STATS SERVEUR (Cloudflare Worker → Pterodactyl + Query) ─────────────
+// ── STATS SERVEUR (Cloudflare Worker → Pterodactyl) ──────────────────────
 const WORKER_URL = 'https://emerarudo-serv-api.refugeemeraudien-direction.workers.dev/';
 
 async function fetchServStats() {
   const ids = ['stat-players','stat-ram','stat-cpu','stat-disk','stat-status'];
-  ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '…'; });
+  // Show loading state
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '…';
+  });
   try {
     const r = await fetch(WORKER_URL);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
 
-    // Joueurs co / slots max
+    // Joueurs — null pour l'instant, on affiche une note
     const pEl = document.getElementById('stat-players');
     const pSub = document.getElementById('stat-players-sub');
-    if (d.players && d.players.current !== null && d.players.current !== undefined) {
-      pEl.textContent = d.players.current + ' / ' + (d.players.max || 50);
+    if (d.players && d.players.current !== null) {
+      pEl.textContent = d.players.current;
       pSub.textContent = 'En ce moment';
     } else {
-      pEl.textContent = '— / ' + (d.players && d.players.max ? d.players.max : 50);
-      pSub.textContent = 'Query en attente';
+      pEl.textContent = '—';
+      pSub.textContent = 'Query non activé';
     }
 
-    // RAM : X.X Go / Y Go
+    // RAM
     const ramEl = document.getElementById('stat-ram');
     const ramSub = document.getElementById('stat-ram-sub');
     if (d.ram) {
@@ -1850,23 +1854,21 @@ async function fetchServStats() {
       ramSub.textContent = 'sur ' + max + ' Go alloués';
     }
 
-    // CPU : X % / 100 %
+    // CPU
     const cpuEl = document.getElementById('stat-cpu');
     const cpuSub = document.getElementById('stat-cpu-sub');
     if (d.cpu_percent !== undefined) {
-      const cpuMax = d.cpu_limit || 100;
       cpuEl.textContent = d.cpu_percent + ' %';
-      cpuSub.textContent = 'sur ' + cpuMax + ' % alloués';
+      cpuSub.textContent = d.cpu_percent < 50 ? 'Charge normale' : d.cpu_percent < 80 ? 'Charge élevée' : '⚠️ Charge critique';
     }
 
-    // Disque : X.X Go / Y Go
+    // Disque
     const diskEl = document.getElementById('stat-disk');
     const diskSub = document.getElementById('stat-disk-sub');
     if (d.disk_mb !== undefined) {
-      const usedGb = (d.disk_mb / 1024).toFixed(1);
-      const maxGb  = d.disk_limit_mb ? (d.disk_limit_mb / 1024).toFixed(0) : null;
-      diskEl.textContent = usedGb + ' Go';
-      diskSub.textContent = maxGb ? 'sur ' + maxGb + ' Go alloués' : 'utilisés';
+      const gb = (d.disk_mb / 1024).toFixed(1);
+      diskEl.textContent = gb + ' Go';
+      diskSub.textContent = 'données du serveur';
     }
 
     // Status
@@ -1881,16 +1883,21 @@ async function fetchServStats() {
     }
 
   } catch(e) {
-    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
     const sub = document.getElementById('stat-status-sub');
     if (sub) sub.textContent = 'Erreur de connexion';
     console.warn('ServStats fetch error:', e);
   }
 }
 
+// Charge au démarrage + toutes les 30 secondes
 fetchServStats();
 setInterval(fetchServStats, 30000);
 
+// Recharge aussi quand on navigue vers la page Info Serveur
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
