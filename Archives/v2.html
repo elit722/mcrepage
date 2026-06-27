@@ -1362,49 +1362,22 @@ function showResult(){
 
 async function sendDC(pseudo, ally, teamInternal, sc, recap){
   const WEBHOOK='https://discord.com/api/webhooks/1519822452027560180/nZEjHvjROwnBbV1Yye0WiDsseZXFX4Vzs-cNsh5Fw3Lhi5DkvGU9JtvvhnU55dQImQGK';
-  const el=document.getElementById('dc-msg');
-
-  function chunkText(text, maxLen) {
-    const chunks = [];
-    const lines = text.split('\n');
-    let current = '';
-    for (const line of lines) {
-      if ((current + '\n' + line).length > maxLen && current) {
-        chunks.push(current.trim());
-        current = line;
-      } else {
-        current = current ? current + '\n' + line : line;
-      }
-    }
-    if (current.trim()) chunks.push(current.trim());
-    return chunks;
-  }
-
-  async function post(content) {
-    return fetch(WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content, username:'Emerarudo Senso — Test Équipe'})});
-  }
-
-  try {
-    const header = [
-      '📋 **Nouveau questionnaire d\'équipe — Emerarudo Senso**',
-      '👤 **Pseudo :** '+pseudo,
-      ally ? '🤝 **Allié souhaité :** '+ally : '',
-      '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' ('+(sc>=0?'tendance Susaku 炎':'tendance Seiryu 水')+')',
-      '📝 **Réponses :**'
-    ].filter(Boolean).join('\n');
-
-    const r1 = await post(header);
-    if (!r1.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi échoué ('+r1.status+'). Contacte directement le staff sur Discord.'; return; }
-
-    const chunks = chunkText(recap, 1900);
-    for (const chunk of chunks) {
-      const r = await post(chunk);
-      if (!r.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi partiel échoué ('+r.status+'). Contacte directement le staff sur Discord.'; return; }
-      await new Promise(res => setTimeout(res, 600));
-    }
-
-    el.className='dc-status dc-sent'; el.textContent='✅ Réponses transmises au staff avec succès !';
-  } catch(e) {
+  const lines=[
+    '📋 **Nouveau questionnaire d\'équipe — Emerarudo Senso**',
+    '👤 **Pseudo :** '+pseudo,
+    ally ? '🤝 **Allié souhaité :** '+ally : '',
+    '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' ('+(sc>=0?'tendance Susaku 炎':'tendance Seiryu 水')+')',
+    '',
+    '📝 **Réponses détaillées :**',
+    recap
+  ].filter(Boolean).join('\n');
+  try{
+    const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:lines,username:'Emerarudo Senso — Test Équipe'})});
+    const el=document.getElementById('dc-msg');
+    if(r.ok){el.className='dc-status dc-sent';el.textContent='✅ Réponses transmises au staff avec succès !';}
+    else{el.className='dc-status dc-error';el.textContent='❌ Envoi échoué ('+r.status+'). Contacte directement le staff sur Discord.';}
+  }catch(e){
+    const el=document.getElementById('dc-msg');
     el.className='dc-status dc-error';
     el.textContent='❌ Connexion impossible. Contacte directement le staff sur Discord.';
   }
