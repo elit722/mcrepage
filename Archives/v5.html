@@ -1690,15 +1690,7 @@ function prevQ(){if(curQ>0){curQ--;renderQ();}}
 
 function showResult(){
   switchStep('step-questions','step-result');
-
-  // Normalisation dynamique : on calcule le min et max possibles
-  // sur les 13 questions tirées avec leurs 4 options présentées.
-  // Si le score du joueur est >= au point médian → Susaku, sinon → Seiryu.
-  // Cela garantit un équilibre 50/50 quelle que soit la combinaison de questions.
-  const minPossible = QUESTIONS.reduce((sum, q) => sum + Math.min(...q.opts.map(o => o.v)), 0);
-  const maxPossible = QUESTIONS.reduce((sum, q) => sum + Math.max(...q.opts.map(o => o.v)), 0);
-  const midpoint = (minPossible + maxPossible) / 2;
-  const isSusaku = score >= midpoint;
+  const isSusaku = score >= 0;
   const teamInternal = isSusaku ? 'Maison Susaku 炎帯' : 'Maison Seiryu 清流';
 
   // Build recap with question text + chosen answer text
@@ -1719,10 +1711,10 @@ function showResult(){
     '<div style="margin-top:1.6rem;"><button class="btn btn-ghost" style="width:auto;padding:.6rem 1.5rem;" onclick="resetTest()" type="button">↩ Recommencer</button></div>' +
     '</div>';
 
-  sendDC(playerPseudo, allyPseudo, teamInternal, score, midpoint, recap);
+  sendDC(playerPseudo, allyPseudo, teamInternal, score, recap);
 }
 
-async function sendDC(pseudo, ally, teamInternal, sc, mid, recap){
+async function sendDC(pseudo, ally, teamInternal, sc, recap){
   const WEBHOOK='https://discord.com/api/webhooks/1519822452027560180/nZEjHvjROwnBbV1Yye0WiDsseZXFX4Vzs-cNsh5Fw3Lhi5DkvGU9JtvvhnU55dQImQGK';
   const el=document.getElementById('dc-msg');
 
@@ -1751,7 +1743,7 @@ async function sendDC(pseudo, ally, teamInternal, sc, mid, recap){
       '📋 **Nouveau questionnaire d\'équipe — Emerarudo Senso**',
       '👤 **Pseudo :** '+pseudo,
       ally ? '🤝 **Allié souhaité :** '+ally : '',
-      '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' · Point médian : '+(mid>=0?'+':'')+mid.toFixed(1)+' ('+(sc>=mid?'tendance Susaku 炎':'tendance Seiryu 水')+')',
+      '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' ('+(sc>=0?'tendance Susaku 炎':'tendance Seiryu 水')+')',
       '📝 **Réponses :**'
     ].filter(Boolean).join('\n');
 
