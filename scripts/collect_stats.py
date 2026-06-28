@@ -16,7 +16,7 @@ import os, json, gzip, io, requests
 import nbtlib
 
 PTERO_URL    = os.environ['PTERO_URL']
-PTERO_KEY    = os.environ['PTERO_KEY']
+PTERO_API_KEY    = os.environ['PTERO_API_KEY']
 PTERO_SERVER = os.environ['PTERO_SERVER']
 WORKER_URL   = os.environ['WORKER_URL']
 STATS_SECRET = os.environ['STATS_SECRET']

@@ -25,7 +25,7 @@ jobs:
       - name: Run collector
         env:
           PTERO_URL:    ${{ secrets.PTERO_URL }}
-          PTERO_KEY:    ${{ secrets.PTERO_KEY }}
+          PTERO_API_KEY:    ${{ secrets.PTERO_API_KEY }}
           PTERO_SERVER: ${{ secrets.PTERO_SERVER }}
           WORKER_URL:   ${{ secrets.WORKER_URL }}
           STATS_SECRET: ${{ secrets.STATS_SECRET }}
