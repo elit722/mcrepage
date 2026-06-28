@@ -10,19 +10,29 @@
  * SERVEUR MINECRAFT
  *   GET  /server         stats Pterodactyl + mcstatus.io
  *
- * CLASSEMENTS
+ * CLASSEMENTS JOUEURS
  *   POST /stats          X-Stats-Secret → { players: [...] }
  *   GET  /leaderboard?type=kills|blocs_poses|fortune&limit=10
  *
- * ── MIGRATION D1 REQUISE (à exécuter une seule fois) ──────────────────────
+ * CLANS
+ *   POST /clans-sync     X-Stats-Secret → { clans: [...] }
+ *   GET  /clans
+ *
+ * ── MIGRATIONS D1 (à exécuter une seule fois) ─────────────────────────────
  *   ALTER TABLE player_stats ADD COLUMN dynasty TEXT;
+ *
+ *   CREATE TABLE IF NOT EXISTS kv_store (
+ *     key        TEXT PRIMARY KEY,
+ *     value      TEXT NOT NULL,
+ *     updated_at TEXT
+ *   );
  * ──────────────────────────────────────────────────────────────────────────
  */
 
-const PANEL     = 'https://game.lordhosting.fr';
-const SERVER_ID = '1798a4bf';
-const MC_HOST   = 'gm1.lordhosting.fr';
-const MC_PORT   = 2062;
+const PANEL       = 'https://game.lordhosting.fr';
+const SERVER_ID   = '1798a4bf';
+const MC_HOST     = 'gm1.lordhosting.fr';
+const MC_PORT     = 2062;
 const DISCORD_API = 'https://discord.com/api/v10';
 
 // ── CORS ──────────────────────────────────────────────────────────────────
@@ -214,9 +224,8 @@ async function handleServer(env, origin) {
   }, 200, origin);
 }
 
-// ── Handler STATS (reçoit les données du script Python) ───────────────────
+// ── Handler STATS joueurs (reçoit les données du script Python) ───────────
 async function handlePostStats(request, env, origin) {
-  // Vérification du secret partagé
   const secret = request.headers.get('X-Stats-Secret') || '';
   if (!env.STATS_SECRET || secret !== env.STATS_SECRET)
     return json({ error: 'Non autorisé' }, 401, origin);
@@ -225,7 +234,6 @@ async function handlePostStats(request, env, origin) {
   if (!Array.isArray(players) || players.length === 0)
     return json({ error: 'Payload invalide' }, 400, origin);
 
-  // Upsert de chaque joueur en batch
   const stmt = env.relinkdb.prepare(
     `INSERT INTO player_stats (uuid, pseudo, kills, blocs_poses, fortune, dynasty, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
@@ -246,7 +254,7 @@ async function handlePostStats(request, env, origin) {
   return json({ ok: true, updated: players.length }, 200, origin);
 }
 
-// ── Handler LEADERBOARD ───────────────────────────────────────────────────
+// ── Handler LEADERBOARD joueurs ───────────────────────────────────────────
 async function handleLeaderboard(request, env, origin) {
   const url   = new URL(request.url);
   const type  = url.searchParams.get('type') || 'kills';
@@ -271,6 +279,36 @@ async function handleLeaderboard(request, env, origin) {
   }, 200, origin);
 }
 
+// ── Handler CLANS — sync (reçoit les données du script Python) ────────────
+async function handlePostClans(request, env, origin) {
+  const secret = request.headers.get('X-Stats-Secret') || '';
+  if (!env.STATS_SECRET || secret !== env.STATS_SECRET)
+    return json({ error: 'Non autorisé' }, 401, origin);
+
+  const { clans } = await request.json();
+  if (!Array.isArray(clans) || clans.length === 0)
+    return json({ error: 'Payload invalide' }, 400, origin);
+
+  await env.relinkdb.prepare(
+    `INSERT INTO kv_store (key, value, updated_at)
+     VALUES ('clans', ?, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET
+       value      = excluded.value,
+       updated_at = excluded.updated_at`
+  ).bind(JSON.stringify(clans)).run();
+
+  return json({ ok: true, updated: clans.length }, 200, origin);
+}
+
+// ── Handler CLANS — lecture (site web) ───────────────────────────────────
+async function handleGetClans(request, env, origin) {
+  const row = await env.relinkdb.prepare(
+    `SELECT value, updated_at FROM kv_store WHERE key = 'clans'`
+  ).first();
+  if (!row) return json([], 200, origin);
+  return json(JSON.parse(row.value), 200, origin);
+}
+
 // ── Router ────────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env, ctx) {
@@ -288,6 +326,8 @@ export default {
       if (request.method === 'GET'  && pathname === '/server')        return await handleServer(env, origin);
       if (request.method === 'POST' && pathname === '/stats')         return await handlePostStats(request, env, origin);
       if (request.method === 'GET'  && pathname === '/leaderboard')   return await handleLeaderboard(request, env, origin);
+      if (request.method === 'POST' && pathname === '/clans-sync')    return await handlePostClans(request, env, origin);
+      if (request.method === 'GET'  && pathname === '/clans')         return await handleGetClans(request, env, origin);
       return json({ error: 'Route inconnue' }, 404, origin);
     } catch(e) {
       console.error(e);

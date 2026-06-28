@@ -1,6 +1,6 @@
 """
 collect_stats.py
-Lit les fichiers stats Minecraft + playerdata NBT + FTBTeams + ClanMod via l'API Pterodactyl
+Lit les fichiers stats Minecraft + playerdata NBT + FTBTeams via l'API Pterodactyl
 et envoie les classements au Worker Cloudflare.
 
 Dépendances : pip install requests nbtlib
@@ -15,11 +15,11 @@ Variables d'environnement (GitHub Secrets) :
 import os, json, io, gzip, re, requests
 import nbtlib
 
-PTERO_URL     = os.environ['PTERO_URL']
+PTERO_URL    = os.environ['PTERO_URL']
 PTERO_API_KEY = os.environ['PTERO_API_KEY']
-PTERO_SERVER  = os.environ['PTERO_SERVER']
-WORKER_URL    = os.environ['WORKER_URL']
-STATS_SECRET  = os.environ['STATS_SECRET']
+PTERO_SERVER = os.environ['PTERO_SERVER']
+WORKER_URL   = os.environ['WORKER_URL']
+STATS_SECRET = os.environ['STATS_SECRET']
 
 # Noms reconnus comme dynasties (insensible à la casse, correspondance partielle)
 DYNASTY_SUSAKU = 'susaku'
@@ -69,6 +69,7 @@ def parse_snbt(text: str) -> dict:
     ranks_m = re.search(r'\branks\s*:\s*\{([^}]*)\}', text, re.DOTALL)
     if ranks_m:
         ranks_block = ranks_m.group(1)
+        # Chaque entrée : <uuid>: "<role>"
         uuids = re.findall(
             r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
             ranks_block
@@ -112,6 +113,7 @@ def get_dynasty_map() -> dict:
             elif DYNASTY_SEIRYU in name_lower:
                 dynasty = 'seiryu'
             else:
+                # Équipe inconnue → on l'ignore complètement
                 print(f'  [FTBTEAMS] Équipe ignorée : "{info["display_name"]}" ({fname})')
                 continue
 
@@ -179,22 +181,6 @@ def get_numismatic_balance(uuid: str) -> int:
         return 0
 
 
-# ── ClanMod : lecture de clans.json ─────────────────────────────────────────
-
-def get_clans() -> list:
-    """
-    Lit /config/clanmod/clans.json et retourne la liste brute des clans.
-    """
-    try:
-        data = ptero_file('/config/clanmod/clans.json')
-        clans = json.loads(data)
-        print(f'  [CLANS] {len(clans)} clan(s) trouvé(s).')
-        return clans
-    except Exception as e:
-        print(f'[WARN] clans.json inaccessible : {e}')
-        return []
-
-
 # ── Collecte principale ──────────────────────────────────────────────────────
 
 def collect():
@@ -212,7 +198,6 @@ def collect():
         print(f'[ERROR] Impossible de lister world/stats : {e}')
         return
 
-    # ── Joueurs ──
     players = []
     for f in files:
         name = f['attributes']['name']
@@ -222,6 +207,7 @@ def collect():
         uuid   = name.replace('.json', '')
         pseudo = usercache.get(uuid, uuid[:8])
 
+        # dynasty : 'susaku', 'seiryu', ou None si pas encore dans une équipe
         dynasty = dynasty_map.get(uuid, None)
         dynasty_label = {
             'susaku': 'Susaku',
@@ -240,44 +226,25 @@ def collect():
             'kills':       mc['kills'],
             'blocs_poses': mc['blocs_poses'],
             'fortune':     fortune,
-            'dynasty':     dynasty,
+            'dynasty':     dynasty,   # None si pas d'équipe → le Worker stocke NULL
         })
 
     if not players:
         print('[WARN] Aucun joueur trouvé.')
-    else:
-        print(f'→ Envoi de {len(players)} joueur(s) au Worker…')
-        r = requests.post(
-            f'{WORKER_URL}/stats',
-            json={'players': players},
-            headers={
-                'Content-Type': 'application/json',
-                'X-Stats-Secret': STATS_SECRET,
-            },
-            timeout=15,
-        )
-        r.raise_for_status()
-        print(f'✅ Stats joueurs — Worker répond : {r.json()}')
+        return
 
-    # ── Clans ──
-    print('→ Lecture de clans.json (ClanMod)…')
-    clans = get_clans()
-
-    if not clans:
-        print('[WARN] Aucun clan trouvé, sync ignorée.')
-    else:
-        print(f'→ Envoi de {len(clans)} clan(s) au Worker…')
-        r2 = requests.post(
-            f'{WORKER_URL}/clans-sync',
-            json={'clans': clans},
-            headers={
-                'Content-Type': 'application/json',
-                'X-Stats-Secret': STATS_SECRET,
-            },
-            timeout=15,
-        )
-        r2.raise_for_status()
-        print(f'✅ Clans — Worker répond : {r2.json()}')
+    print(f'→ Envoi de {len(players)} joueur(s) au Worker…')
+    r = requests.post(
+        f'{WORKER_URL}/stats',
+        json={'players': players},
+        headers={
+            'Content-Type': 'application/json',
+            'X-Stats-Secret': STATS_SECRET,
+        },
+        timeout=15,
+    )
+    r.raise_for_status()
+    print(f'✅ Worker répond : {r.json()}')
 
 
 if __name__ == '__main__':
