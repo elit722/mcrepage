@@ -12,7 +12,7 @@ Variables d'environnement (GitHub Secrets) :
   STATS_SECRET    clé secrète partagée avec le Worker
 """
 
-import os, json, io, gzip, requests
+import os, json, io, requests
 import nbtlib
 
 PTERO_URL    = os.environ['PTERO_URL']
@@ -30,18 +30,21 @@ BASE = f'{PTERO_URL}/api/client/servers/{PTERO_SERVER}'
 
 
 def ptero_file(path: str) -> bytes:
+    """Télécharge un fichier depuis le serveur via l'API Pterodactyl."""
     r = requests.get(f'{BASE}/files/contents', params={'file': path}, headers=HEADERS, timeout=15)
     r.raise_for_status()
     return r.content
 
 
 def ptero_list(path: str) -> list:
+    """Liste les fichiers d'un dossier."""
     r = requests.get(f'{BASE}/files/list', params={'directory': path}, headers=HEADERS, timeout=15)
     r.raise_for_status()
     return r.json()['data']
 
 
 def get_usercache() -> dict:
+    """Retourne un dict uuid → pseudo depuis usercache.json."""
     try:
         data = ptero_file('/usercache.json')
         cache = json.loads(data)
@@ -52,12 +55,20 @@ def get_usercache() -> dict:
 
 
 def get_mc_stats(uuid: str) -> dict:
+    """
+    Lit world/stats/UUID.json et retourne kills + blocs_poses.
+    """
     try:
         data = ptero_file(f'/world/stats/{uuid}.json')
         stats = json.loads(data).get('stats', {})
+
+        # Kills joueurs
         kills = stats.get('minecraft:killed', {}).get('minecraft:player', 0)
+
+        # Blocs posés = somme de minecraft:used
         used = stats.get('minecraft:used', {})
         blocs_poses = sum(used.values())
+
         return {'kills': kills, 'blocs_poses': blocs_poses}
     except Exception as e:
         print(f'[WARN] Stats {uuid} : {e}')
@@ -67,29 +78,28 @@ def get_mc_stats(uuid: str) -> dict:
 def get_numismatic_balance(uuid: str) -> int:
     """
     Lit world/playerdata/UUID.dat (NBT gzip) et extrait la balance Numismatic.
-    nbtlib 2.x : utilise nbtlib.File.parse() sur un BytesIO décompressé.
+    Compatible nbtlib 2.x : utilise nbtlib.read() au lieu de nbtlib.read_nbt().
+    Cherche dans cardinal_components → numismatic-overhaul:currency → Value
     """
     try:
         raw = ptero_file(f'/world/playerdata/{uuid}.dat')
+        # nbtlib 2.x : nbtlib.read() remplace nbtlib.read_nbt()
+        nbt = nbtlib.read(io.BytesIO(raw))
 
-        # Décompresse manuellement si gzip
-        try:
-            raw = gzip.decompress(raw)
-        except Exception:
-            pass  # Pas gzip, on utilise les bytes bruts
+        # Le tag racine peut être un Compound avec ou sans nom
+        # nbtlib.read() retourne directement le compound racine
+        root = nbt
 
-        nbt = nbtlib.File.parse(io.BytesIO(raw))
+        # Cherche cardinal_components (peut être imbriqué sous une clé vide "")
+        if '' in root:
+            root = root['']
 
-        # Affiche les clés pour debug
-        print(f'  [NBT] clés racine : {list(nbt.keys())[:8]}')
-
-        components = nbt.get('cardinal_components', {})
-        if components:
-            print(f'  [NBT] clés cardinal_components : {list(components.keys())}')
-        currency = components.get('numismatic-overhaul:currency', {})
-        value = int(currency.get('Value', 0))
-        print(f'  [NBT] fortune={value}')
-        return value
+        components = root.get('cardinal_components', {})
+        currency   = components.get('numismatic-overhaul:currency', {})
+        value      = currency.get('Value', 0)
+        result     = int(value)
+        print(f'  [NBT] fortune={result}')
+        return result
 
     except Exception as e:
         print(f'[WARN] NBT {uuid} : {e}')
@@ -147,3 +157,23 @@ def collect():
 
 if __name__ == '__main__':
     collect()
+
+def debug_nbt(uuid: str):
+    try:
+        raw = ptero_file(f'/world/playerdata/{uuid}.dat')
+        nbt = nbtlib.read(io.BytesIO(raw))
+        root = nbt
+        if '' in root:
+            root = root['']
+        print(f'[DEBUG] Clés racine : {list(root.keys())}')
+        if 'cardinal_components' in root:
+            cc = root['cardinal_components']
+            print(f'[DEBUG] Clés cardinal_components : {list(cc.keys())}')
+            if 'numismatic-overhaul:currency' in cc:
+                print(f'[DEBUG] currency : {dict(cc["numismatic-overhaul:currency"])}')
+            else:
+                print(f'[DEBUG] numismatic-overhaul:currency ABSENT')
+        else:
+            print(f'[DEBUG] cardinal_components ABSENT')
+    except Exception as e:
+        print(f'[ERROR] debug_nbt : {e}')
