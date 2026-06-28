@@ -157,3 +157,23 @@ def collect():
 
 if __name__ == '__main__':
     collect()
+
+def debug_nbt(uuid: str):
+    try:
+        raw = ptero_file(f'/world/playerdata/{uuid}.dat')
+        nbt = nbtlib.read(io.BytesIO(raw))
+        root = nbt
+        if '' in root:
+            root = root['']
+        print(f'[DEBUG] Clés racine : {list(root.keys())}')
+        if 'cardinal_components' in root:
+            cc = root['cardinal_components']
+            print(f'[DEBUG] Clés cardinal_components : {list(cc.keys())}')
+            if 'numismatic-overhaul:currency' in cc:
+                print(f'[DEBUG] currency : {dict(cc["numismatic-overhaul:currency"])}')
+            else:
+                print(f'[DEBUG] numismatic-overhaul:currency ABSENT')
+        else:
+            print(f'[DEBUG] cardinal_components ABSENT')
+    except Exception as e:
+        print(f'[ERROR] debug_nbt : {e}')
