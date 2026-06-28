@@ -1335,6 +1335,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <!-- Clan leaderboards (global, séparés des leaderboards Info Serveur) -->
     <div class="divider"></div>
     <p class="serv-section-title">🏆 Classements des Clans</p>
+    <p style="font-size:.8rem;color:rgba(201,168,76,.5);font-style:italic;margin-bottom:1.3rem;">Ces classements sont basés sur les statistiques cumulées des membres de chaque clan (données issues de clans.json).</p>
     <div class="clan-lb-grid">
       <div class="clan-lb-block">
         <div class="clan-lb-title">⚔️ Kills totaux</div>
@@ -2700,26 +2701,34 @@ async function loadDynastyMap() {
 // ── Calcul de la dynastie d'un clan ──────────────────────────
 
 function computeClanDynasty(clan) {
+  // Tous les membres (leader + officers + members)
   const allUuids = [
     clan.leader,
     ...(clan.officers || []),
     ...(clan.members  || []),
   ].filter(Boolean);
 
-  let susaku = 0, seiryu = 0;
+  let susaku = 0, seiryu = 0, unknown = 0;
   allUuids.forEach(uuid => {
     const d = DYNASTY_UUID_MAP[uuid];
     if (d === 'susaku') susaku++;
     else if (d === 'seiryu') seiryu++;
+    else unknown++;
   });
 
   const total = allUuids.length;
-  if (total === 0 || (susaku === 0 && seiryu === 0))
-    return { dynasty: null, label: 'Non assignée', cls: 'clan-dynasty-none' };
+  if (total === 0) return { dynasty: null, label: 'Aucun membre', cls: 'clan-dynasty-none', pct: null };
 
-  if (susaku >= seiryu)
-    return { dynasty: 'susaku', label: '炎 Susaku', cls: 'clan-dynasty-susaku' };
-  return { dynasty: 'seiryu', label: '清 Seiryu', cls: 'clan-dynasty-seiryu' };
+  if (susaku === total)  return { dynasty: 'susaku', label: '炎 Susaku', cls: 'clan-dynasty-susaku', pct: '100%' };
+  if (seiryu === total)  return { dynasty: 'seiryu', label: '清 Seiryu', cls: 'clan-dynasty-seiryu', pct: '100%' };
+  if (susaku === 0 && seiryu === 0) return { dynasty: null, label: 'Non assignée', cls: 'clan-dynasty-none', pct: null };
+
+  // Mixte : on indique la répartition
+  const sPct = Math.round(susaku / total * 100);
+  const rPct = Math.round(seiryu / total * 100);
+  const dominant = susaku >= seiryu ? 'susaku' : 'seiryu';
+  const label = `炎 ${sPct}% · 清 ${rPct}%`;
+  return { dynasty: 'mix', label, cls: 'clan-dynasty-mix', pct: null };
 }
 
 // ── Rang d'un membre dans un clan ────────────────────────────
@@ -2778,37 +2787,14 @@ function renderClanLb(clans, key, fmtFn, containerId) {
     </table>`;
 }
 
-function clanBankMoney(c) {
-  // Trésor en banque : bronze + silver*100 + gold*10000 (ou utilise storedSilver comme valeur principale)
-  return (c.storedGold || 0) * 10000 + (c.storedSilver || 0) * 100 + (c.storedBronze || 0);
-}
-
 function renderAllClanLbs(clans) {
   renderClanLb(clans, 'totalKills',        fmtNum,     'clb-kills');
-  // Fortune = argent en banque (storedGold/Silver/Bronze), pas totalMoney
-  const sorted = [...clans].sort((a, b) => clanBankMoney(b) - clanBankMoney(a));
-  const medals = ['🥇','🥈','🥉'];
-  const moneyRows = sorted.map((c, i) => {
-    const rank = i + 1;
-    const rankCell = rank <= 3
-      ? `<span class="clan-lb-rank clan-lb-rank-${rank}">${medals[i]}</span>`
-      : `<span class="clan-lb-rank">#${rank}</span>`;
-    const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${clanColorCss(c.color)};margin-right:.45rem;vertical-align:middle;"></span>`;
-    return `<tr><td>${rankCell}</td><td>${dot}${esc(c.name)}</td><td>${fmtNum(clanBankMoney(c))} ryō</td></tr>`;
-  }).join('');
-  document.getElementById('clb-money').innerHTML = `
-    <table class="clan-lb-table">
-      <thead><tr><th>#</th><th>Clan</th><th>Banque</th></tr></thead>
-      <tbody>${moneyRows}</tbody>
-    </table>`;
+  renderClanLb(clans, 'totalMoney',        v => fmtNum(v) + ' ryō', 'clb-money');
   renderClanLb(clans, 'totalPlaytime',     fmtPlaytime,'clb-playtime');
   renderClanLb(clans, 'totalBlocksPlaced', fmtNum,     'clb-blocks');
 }
 
 // ── Rendu de la liste des clans ──────────────────────────────
-
-// Map globale index → clan pour éviter le JSON inline dans onclick
-let CLAN_INDEX_MAP = {};
 
 function renderClanList(clans, query) {
   const q = (query || '').trim().toLowerCase();
@@ -2824,14 +2810,10 @@ function renderClanList(clans, query) {
     return;
   }
 
-  // Rebuild index map
-  CLAN_INDEX_MAP = {};
-  filtered.forEach((c, i) => { CLAN_INDEX_MAP[i] = c; });
-
-  listEl.innerHTML = filtered.map((c, i) => {
+  listEl.innerHTML = filtered.map(c => {
     const dy = computeClanDynasty(c);
     const memberCount = 1 + (c.officers || []).length + (c.members || []).length;
-    return `<div class="clan-card" onclick="clanShowDetail(${i})" data-clan-name="${esc(c.name)}">
+    return `<div class="clan-card" onclick="clanShowDetail(${JSON.stringify(JSON.stringify(c))})" data-clan-name="${esc(c.name)}">
       <span class="clan-color-dot" style="background:${clanColorCss(c.color)}"></span>
       <span class="clan-card-name">${esc(c.name)}</span>
       <span class="clan-card-meta">
@@ -2845,9 +2827,8 @@ function renderClanList(clans, query) {
 
 // ── Affichage du détail d'un clan ────────────────────────────
 
-function clanShowDetail(idx) {
-  const c = CLAN_INDEX_MAP[idx];
-  if (!c) return;
+function clanShowDetail(clanJson) {
+  const c = JSON.parse(clanJson);
   const detailEl = document.getElementById('clan-detail');
   detailEl.classList.add('visible');
 
@@ -2889,8 +2870,8 @@ function clanShowDetail(idx) {
         <span class="csm-lbl">Kills</span>
       </div>
       <div class="clan-stat-mini">
-        <span class="csm-val">💰 ${fmtNum(clanBankMoney(c))} ryō</span>
-        <span class="csm-lbl">Banque</span>
+        <span class="csm-val">💰 ${fmtNum(c.totalMoney)} ryō</span>
+        <span class="csm-lbl">Fortune</span>
       </div>
       <div class="clan-stat-mini">
         <span class="csm-val">⏱️ ${fmtPlaytime(c.totalPlaytime)}</span>
