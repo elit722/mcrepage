@@ -581,13 +581,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .rl-profile-card img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(201,168,76,.2);flex-shrink:0;}
 .rl-profile-card .pc-pseudo{font-family:'Cinzel Decorative',serif;font-size:.72rem;color:var(--white-jade);}
 .rl-profile-card .pc-email{font-size:.7rem;color:var(--mist);margin-top:.15rem;}
-.rl-profile-card .pc-meta{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem;margin-top:.32rem;}
-.rl-profile-card .pc-clan{font-size:.64rem;color:var(--gold);font-family:'Source Code Pro',monospace;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.22);padding:.08rem .38rem;border-radius:2px;}
-.rl-profile-card .pc-kills{font-size:.64rem;color:#E07070;font-family:'Source Code Pro',monospace;}
-.rl-profile-card .pc-dynasty{font-size:.6rem;padding:.08rem .38rem;border-radius:2px;font-family:'Cinzel Decorative',serif;letter-spacing:.04em;}
-.pc-dynasty-susaku{background:rgba(192,57,43,.2);color:#E07070;border:1px solid rgba(192,57,43,.3);}
-.pc-dynasty-seiryu{background:rgba(44,75,160,.2);color:#70A0E0;border:1px solid rgba(44,75,160,.3);}
-.pc-dynasty-unknown{background:rgba(255,255,255,.05);color:var(--mist);border:1px solid rgba(255,255,255,.1);}
 .rl-empty{text-align:center;padding:2rem;color:var(--mist);font-size:.82rem;font-style:italic;}
 
 </style>
@@ -740,7 +733,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   <div class="page-inner">
     <p class="section-eyebrow">Téléchargement</p>
     <h2 class="section-title"><span class="kanji">改造</span>Modpack</h2>
-    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">Choisissez la version adaptée à votre machine. Disponibles sur Modrinth et en téléchargement direct.</p>
+    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">Choisissez la version adaptée à votre machine. Disponibles sur Modrinth et CurseForge.</p>
     <div class="modpack-grid">
       <div class="modpack-card">
         <span class="pack-badge badge-low">FAIBLE CONFIG</span>
@@ -749,7 +742,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <p>Version ultra-allégée pour les petites configurations. Mods optimisation uniquement.</p>
         <div class="btn-grp">
           <a href="#" class="btn btn-gold">⬇ Modrinth</a>
-          <a href="#" class="btn btn-ghost">⬇ .zip</a>
+          <a href="#" class="btn btn-ghost">⬇ CurseForge</a>
         </div>
       </div>
       <div class="modpack-card">
@@ -759,7 +752,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <p>Version complète avec tous les mods de gameplay et visuels. Expérience optimale.</p>
         <div class="btn-grp">
           <a href="#" class="btn btn-gold">⬇ Modrinth</a>
-          <a href="#" class="btn btn-ghost">⬇ .zip</a>
+          <a href="#" class="btn btn-ghost">⬇ CurseForge</a>
         </div>
       </div>
       <div class="modpack-card">
@@ -769,7 +762,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <p>Version ultime avec shaders et mods visuels avancés. Requiert une machine puissante.</p>
         <div class="btn-grp">
           <a href="#" class="btn btn-gold">⬇ Modrinth</a>
-          <a href="#" class="btn btn-ghost">⬇ .zip</a>
+          <a href="#" class="btn btn-ghost">⬇ CurseForge</a>
         </div>
       </div>
       <div class="modpack-card">
@@ -779,7 +772,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <p>Pack serveur officiel. Réservé au staff technique pour le déploiement.</p>
         <div class="btn-grp">
           <a href="#" class="btn btn-gold">⬇ Modrinth</a>
-          <a href="#" class="btn btn-ghost">⬇ .zip</a>
+          <a href="#" class="btn btn-ghost">⬇ CurseForge</a>
         </div>
       </div>
     </div>
@@ -2395,34 +2388,15 @@ function rlSearch(q) {
       if (!d.results || !d.results.length) {
         res.innerHTML = '<div class="rl-empty">Aucun profil trouvé.</div>'; return;
       }
-      res.innerHTML = d.results.map(u => {
-        // Dynasty badge
-        let dyBadge = '';
-        if (u.dynasty) {
-          const dl = String(u.dynasty).toLowerCase();
-          const cls = dl.includes('suzaku') || dl.includes('susaku') ? 'pc-dynasty-susaku'
-                    : dl.includes('seiryu') || dl.includes('seiryū') ? 'pc-dynasty-seiryu'
-                    : 'pc-dynasty-unknown';
-          dyBadge = `<span class="pc-dynasty ${cls}">${esc(u.dynasty)}</span>`;
-        }
-        // Kills
-        const killsBadge = (u.kills !== undefined && u.kills !== null)
-          ? `<span class="pc-kills">⚔️ ${fmtNum(u.kills)}</span>` : '';
-        // Clan
-        const clanBadge = u.clan ? `<span class="pc-clan">🏯 ${esc(u.clan)}</span>` : '';
-        // Meta row (only if at least one field)
-        const meta = (dyBadge || killsBadge || clanBadge)
-          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}</div>` : '';
-        return `
+      res.innerHTML = d.results.map(u => `
         <div class="rl-profile-card">
           <img src="${esc(u.avatar_url)}" alt="Avatar">
           <div>
             <div class="pc-pseudo">${esc(u.pseudo)}</div>
             ${u.email ? `<div class="pc-email">${esc(u.email)}</div>` : ''}
-            ${meta}
           </div>
-        </div>`;
-      }).join('');
+        </div>
+      `).join('');
     } catch(e) {
       document.getElementById('rl-search-results').innerHTML = '<div class="rl-empty">❌ Erreur de connexion.</div>';
     }
