@@ -2300,7 +2300,7 @@ function esc(s) {
 // ══════════════════════════════════════════════════════════════
 // LEADERBOARD SYSTEM
 // ══════════════════════════════════════════════════════════════
-const LB_API_BASE = 'https://relink-auth.refugeemeraudien-direction.workers.dev/leaderboard';
+const LB_API_BASE = '/leaderboard';
 
 // Cache: { kills: { data, ts }, fortune: { data, ts }, blocs_poses: { data, ts } }
 const lbCache = {};
@@ -2361,7 +2361,7 @@ function lbRenderTable(type, rows) {
         </div>
       </td>
       <td><span class="${dotCls}" style="display:inline-block;margin-right:.4rem"></span>${esc(dynasty)}</td>
-      <td>${lbFmt(type, p[type] ?? 0)}</td>
+      <td>${lbFmt(type, p.value ?? p.kills ?? p.fortune ?? p.blocs_poses ?? 0)}</td>
     </tr>`;
   }).join('');
   return header + body + '</tbody></table>';
@@ -2385,15 +2385,14 @@ async function lbLoad(type) {
   footerEl.textContent = '';
 
   try {
-    const res = await fetch(`${LB_API_BASE}?type=${encodeURIComponent(type)}&limit=50`);
+    const res = await fetch(`${LB_API_BASE}?type=${encodeURIComponent(type)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
+    const json = await res.json();
 
-    // Worker renvoie { type, updated_at, results: [...] }
-    const rows      = Array.isArray(payload) ? payload : (payload.results ?? payload.data ?? payload.players ?? []);
-    const serverTs  = payload.updated_at || null;
+    // Accepte { data: [...] } ou directement un tableau
+    const rows = Array.isArray(json) ? json : (json.data ?? json.players ?? json.leaderboard ?? []);
 
-    lbCache[type] = { data: rows, ts: Date.now(), serverTs };
+    lbCache[type] = { data: rows, ts: Date.now() };
     const searchVal = document.getElementById(`lb-${type}-search`)?.value || '';
     lbApplyFilter(type, rows, searchVal, bodyEl, footerEl);
   } catch (err) {
@@ -2425,16 +2424,10 @@ function lbApplyFilter(type, rows, query, bodyEl, footerEl) {
       })
     : rows;
   bodyEl.innerHTML = lbRenderTable(type, filtered);
-  const cached = lbCache[type];
-  if (cached) {
-    const parts = [];
-    if (cached.serverTs) {
-      // updated_at vient du Worker (format SQLite datetime 'now' = UTC sans Z)
-      const d = new Date(cached.serverTs.includes('Z') ? cached.serverTs : cached.serverTs + 'Z');
-      parts.push(`Serveur : ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`);
-    }
-    parts.push(`${filtered.length} joueur${filtered.length !== 1 ? 's' : ''}`);
-    footerEl.textContent = parts.join(' · ');
+  const ts = lbCache[type]?.ts;
+  if (ts) {
+    const d = new Date(ts);
+    footerEl.textContent = `Mis à jour à ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})} · ${filtered.length} joueur${filtered.length > 1 ? 's' : ''}`;
   }
 }
 
