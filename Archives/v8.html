@@ -345,37 +345,12 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .serv-stat .stat-coming{font-size:.68rem;color:rgba(201,168,76,.4);font-style:italic;margin-top:.3rem;display:block;}
 .serv-section-title{font-family:'Cinzel Decorative',serif;font-size:.82rem;color:var(--gold);margin:2.5rem 0 1rem;letter-spacing:.08em;display:flex;align-items:center;gap:.8rem;}
 .serv-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.25),transparent);}
-/* ── LEADERBOARD ── */
-.lb-wrap{margin-top:.8rem;}
-.lb-search{display:flex;gap:.6rem;margin-bottom:1rem;}
-.lb-search input{flex:1;padding:.55rem .9rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:2px;color:var(--white-jade);font-family:'Noto Serif JP',serif;font-size:.83rem;outline:none;transition:border-color .2s;}
-.lb-search input:focus{border-color:var(--gold);}
-.lb-search input::placeholder{color:rgba(255,255,255,.2);}
-.lb-search button{padding:.55rem 1rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:2px;color:var(--gold);font-family:'Cinzel Decorative',serif;font-size:.58rem;cursor:pointer;letter-spacing:.07em;transition:background .2s;}
-.lb-search button:hover{background:rgba(201,168,76,.2);}
-.lb-table{width:100%;border-collapse:collapse;}
-.lb-table thead tr{border-bottom:1px solid rgba(201,168,76,.2);}
-.lb-table th{font-family:'Cinzel Decorative',serif;font-size:.6rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;padding:.55rem .8rem;text-align:left;}
-.lb-table th:last-child{text-align:right;}
-.lb-table td{padding:.62rem .8rem;font-size:.83rem;color:var(--mist);border-bottom:1px solid rgba(255,255,255,.04);}
-.lb-table td:last-child{text-align:right;font-family:'Source Code Pro',monospace;color:var(--gold-light);}
-.lb-table tr:hover td{background:rgba(201,168,76,.04);}
-.lb-rank{font-family:'Cinzel Decorative',serif;font-size:.72rem;width:2rem;color:rgba(201,168,76,.5);}
-.lb-rank-1{color:#FFD700;font-size:.82rem;}
-.lb-rank-2{color:#C0C0C0;font-size:.78rem;}
-.lb-rank-3{color:#CD7F32;font-size:.75rem;}
-.lb-player{display:flex;align-items:center;gap:.6rem;}
-.lb-avatar{width:26px;height:26px;border-radius:3px;image-rendering:pixelated;background:rgba(255,255,255,.06);}
-.lb-dynasty-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.lb-dynasty-susaku{background:#C0392B;}
-.lb-dynasty-seiryu{background:#2C4BA0;}
-.lb-state{padding:2rem;text-align:center;font-size:.82rem;color:rgba(201,168,76,.4);font-style:italic;}
-.lb-state .lb-icon{font-size:2rem;display:block;margin-bottom:.6rem;opacity:.35;}
-.lb-error{color:#E07070;background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.18);border-radius:4px;padding:1rem;font-size:.82rem;text-align:center;}
-.lb-footer{text-align:right;font-size:.68rem;color:rgba(201,168,76,.3);font-style:italic;margin-top:.55rem;}
 .leaderboard-placeholder{background:rgba(255,255,255,.02);border:1px dashed rgba(201,168,76,.18);border-radius:4px;padding:2.5rem;text-align:center;margin-top:.8rem;}
 .leaderboard-placeholder .lb-icon{font-size:2.2rem;margin-bottom:.8rem;opacity:.35;}
 .leaderboard-placeholder p{font-size:.82rem;color:rgba(201,168,76,.4);font-style:italic;}
+.lb-search{display:flex;gap:.6rem;margin-bottom:1rem;opacity:.4;pointer-events:none;}
+.lb-search input{flex:1;padding:.55rem .9rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:2px;color:var(--white-jade);font-family:'Noto Serif JP',serif;font-size:.83rem;outline:none;}
+.lb-search button{padding:.55rem 1rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:2px;color:var(--gold);font-family:'Cinzel Decorative',serif;font-size:.58rem;cursor:not-allowed;letter-spacing:.07em;}
 
 /* ── QUI SOMMES NOUS ── */
 .about-block{max-width:720px;margin:0 auto;}
@@ -1170,7 +1145,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   <div class="page-inner">
     <p class="section-eyebrow">Infrastructure — Emerarudo Senso</p>
     <h2 class="section-title"><span class="kanji">鯖</span>Info Serveur</h2>
-    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">État technique du serveur et classements de l'event en temps réel. Données actualisées toutes les 60 secondes.</p>
+    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">État technique du serveur et données de l'event en temps réel. Les leaderboards seront mis en ligne au lancement.</p>
 
     <!-- STATS TECHNIQUES -->
     <p class="serv-section-title">⚙️ Caractéristiques techniques</p>
@@ -1215,35 +1190,35 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 
     <!-- LEADERBOARD KILLS -->
     <p class="serv-section-title">⚔️ Classement des Kills</p>
-    <div class="lb-wrap">
-      <div class="lb-search">
-        <input type="text" id="lb-kills-search" placeholder="Filtrer un joueur…" oninput="lbFilter('kills',this.value)">
-        <button onclick="lbLoad('kills')">↺ Actualiser</button>
-      </div>
-      <div id="lb-kills-body"><div class="lb-state"><span class="lb-icon">⚔️</span>Chargement…</div></div>
-      <div class="lb-footer" id="lb-kills-footer"></div>
+    <div class="lb-search">
+      <input type="text" placeholder="Rechercher un joueur…" disabled>
+      <button disabled>Chercher</button>
+    </div>
+    <div class="leaderboard-placeholder">
+      <div class="lb-icon">⚔️</div>
+      <p>Classement des kills disponible au lancement de l'event</p>
     </div>
 
-    <!-- LEADERBOARD FORTUNE -->
+    <!-- LEADERBOARD ARGENT -->
     <p class="serv-section-title">💰 Classement de la Fortune</p>
-    <div class="lb-wrap">
-      <div class="lb-search">
-        <input type="text" id="lb-fortune-search" placeholder="Filtrer un joueur…" oninput="lbFilter('fortune',this.value)">
-        <button onclick="lbLoad('fortune')">↺ Actualiser</button>
-      </div>
-      <div id="lb-fortune-body"><div class="lb-state"><span class="lb-icon">💰</span>Chargement…</div></div>
-      <div class="lb-footer" id="lb-fortune-footer"></div>
+    <div class="lb-search">
+      <input type="text" placeholder="Rechercher un joueur…" disabled>
+      <button disabled>Chercher</button>
+    </div>
+    <div class="leaderboard-placeholder">
+      <div class="lb-icon">💰</div>
+      <p>Classement des fortunes disponible au lancement de l'event</p>
     </div>
 
     <!-- LEADERBOARD BLOCS -->
     <p class="serv-section-title">🧱 Classement des Bâtisseurs</p>
-    <div class="lb-wrap">
-      <div class="lb-search">
-        <input type="text" id="lb-blocs_poses-search" placeholder="Filtrer un joueur…" oninput="lbFilter('blocs_poses',this.value)">
-        <button onclick="lbLoad('blocs_poses')">↺ Actualiser</button>
-      </div>
-      <div id="lb-blocs_poses-body"><div class="lb-state"><span class="lb-icon">🧱</span>Chargement…</div></div>
-      <div class="lb-footer" id="lb-blocs_poses-footer"></div>
+    <div class="lb-search">
+      <input type="text" placeholder="Rechercher un joueur…" disabled>
+      <button disabled>Chercher</button>
+    </div>
+    <div class="leaderboard-placeholder">
+      <div class="lb-icon">🧱</div>
+      <p>Classement des blocs posés disponible au lancement de l'event</p>
     </div>
 
   </div>
@@ -1468,11 +1443,6 @@ function showPage(id) {
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.target === id);
   });
-  if (id === 'page-servinfo') {
-    ['kills','fortune','blocs_poses'].forEach(t => {
-      if (typeof lbLoad === 'function') lbLoad(t);
-    });
-  }
 }
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => showPage(item.dataset.target));
@@ -2296,156 +2266,6 @@ function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-// ══════════════════════════════════════════════════════════════
-// LEADERBOARD SYSTEM
-// ══════════════════════════════════════════════════════════════
-const LB_API_BASE = '/leaderboard';
-
-// Cache: { kills: { data, ts }, fortune: { data, ts }, blocs_poses: { data, ts } }
-const lbCache = {};
-const LB_CACHE_TTL = 60_000; // 60s avant de re-fetch
-
-const LB_CONFIG = {
-  kills:      { icon:'⚔️', label:'Kills',        unit:'kill',      col:'Kills' },
-  fortune:    { icon:'💰', label:'Fortune',       unit:'ryō',       col:'Fortune' },
-  blocs_poses:{ icon:'🧱', label:'Blocs posés',  unit:'bloc',      col:'Blocs posés' }
-};
-
-const DYNASTY_LABEL = { susaku:'炎 Susaku', seiryu:'清 Seiryu' };
-
-// Rank medal ou numéro
-function lbRankCell(rank) {
-  const medals = ['🥇','🥈','🥉'];
-  const cls = rank <= 3 ? `lb-rank lb-rank-${rank}` : 'lb-rank';
-  return `<td class="${cls}">${rank <= 3 ? medals[rank-1] : '#'+rank}</td>`;
-}
-
-// Format de valeur selon le type
-function lbFmt(type, val) {
-  if (typeof val !== 'number') return val;
-  if (type === 'fortune') return val.toLocaleString('fr-FR') + ' ryō';
-  if (type === 'blocs_poses') return val.toLocaleString('fr-FR');
-  return val.toLocaleString('fr-FR');
-}
-
-// Génère le tableau HTML à partir des données (filtrées ou non)
-function lbRenderTable(type, rows) {
-  const cfg = LB_CONFIG[type];
-  if (!rows || rows.length === 0) {
-    return `<div class="lb-state"><span class="lb-icon">${cfg.icon}</span>Aucun joueur trouvé.</div>`;
-  }
-  const header = `
-    <table class="lb-table">
-      <thead><tr>
-        <th>#</th>
-        <th>Joueur</th>
-        <th>Dynastie</th>
-        <th>${cfg.col}</th>
-      </tr></thead>
-      <tbody>
-  `;
-  const body = rows.map((p, i) => {
-    const rank = p.rank ?? (i + 1);
-    const dynasty = p.dynasty ? (DYNASTY_LABEL[p.dynasty] || p.dynasty) : '—';
-    const dotCls = p.dynasty ? `lb-dynasty-dot lb-dynasty-${p.dynasty}` : 'lb-dynasty-dot';
-    const avatar = p.avatar_url
-      ? `<img class="lb-avatar" src="${esc(p.avatar_url)}" alt="" loading="lazy">`
-      : `<span class="lb-avatar" style="display:inline-block"></span>`;
-    return `<tr>
-      ${lbRankCell(rank)}
-      <td>
-        <div class="lb-player">
-          ${avatar}
-          <span>${esc(p.pseudo || p.username || p.name || 'Joueur')}</span>
-        </div>
-      </td>
-      <td><span class="${dotCls}" style="display:inline-block;margin-right:.4rem"></span>${esc(dynasty)}</td>
-      <td>${lbFmt(type, p.value ?? p.kills ?? p.fortune ?? p.blocs_poses ?? 0)}</td>
-    </tr>`;
-  }).join('');
-  return header + body + '</tbody></table>';
-}
-
-// Charge les données depuis l'API et met à jour l'UI
-async function lbLoad(type) {
-  const bodyEl   = document.getElementById(`lb-${type}-body`);
-  const footerEl = document.getElementById(`lb-${type}-footer`);
-  const cfg      = LB_CONFIG[type];
-
-  // Vérifie le cache
-  const cached = lbCache[type];
-  const now = Date.now();
-  if (cached && (now - cached.ts) < LB_CACHE_TTL) {
-    lbRenderFromCache(type);
-    return;
-  }
-
-  bodyEl.innerHTML = `<div class="lb-state"><span class="lb-icon">${cfg.icon}</span>Chargement…</div>`;
-  footerEl.textContent = '';
-
-  try {
-    const res = await fetch(`${LB_API_BASE}?type=${encodeURIComponent(type)}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-
-    // Accepte { data: [...] } ou directement un tableau
-    const rows = Array.isArray(json) ? json : (json.data ?? json.players ?? json.leaderboard ?? []);
-
-    lbCache[type] = { data: rows, ts: Date.now() };
-    const searchVal = document.getElementById(`lb-${type}-search`)?.value || '';
-    lbApplyFilter(type, rows, searchVal, bodyEl, footerEl);
-  } catch (err) {
-    bodyEl.innerHTML = `<div class="lb-error">
-      ${cfg.icon} Impossible de charger le classement.<br>
-      <span style="font-size:.75rem;opacity:.7">${esc(err.message)}</span>
-    </div>`;
-    footerEl.textContent = '';
-  }
-}
-
-// Rend depuis le cache (en re-appliquant le filtre actif)
-function lbRenderFromCache(type) {
-  const cached = lbCache[type];
-  if (!cached) return;
-  const bodyEl   = document.getElementById(`lb-${type}-body`);
-  const footerEl = document.getElementById(`lb-${type}-footer`);
-  const searchVal = document.getElementById(`lb-${type}-search`)?.value || '';
-  lbApplyFilter(type, cached.data, searchVal, bodyEl, footerEl);
-}
-
-// Filtre et affiche
-function lbApplyFilter(type, rows, query, bodyEl, footerEl) {
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? rows.filter(p => {
-        const name = (p.pseudo || p.username || p.name || '').toLowerCase();
-        return name.includes(q);
-      })
-    : rows;
-  bodyEl.innerHTML = lbRenderTable(type, filtered);
-  const ts = lbCache[type]?.ts;
-  if (ts) {
-    const d = new Date(ts);
-    footerEl.textContent = `Mis à jour à ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})} · ${filtered.length} joueur${filtered.length > 1 ? 's' : ''}`;
-  }
-}
-
-// Callback du champ de recherche (debounce léger)
-let _lbFilterTimers = {};
-function lbFilter(type, val) {
-  clearTimeout(_lbFilterTimers[type]);
-  _lbFilterTimers[type] = setTimeout(() => {
-    const cached = lbCache[type];
-    if (!cached) return;
-    const bodyEl   = document.getElementById(`lb-${type}-body`);
-    const footerEl = document.getElementById(`lb-${type}-footer`);
-    lbApplyFilter(type, cached.data, val, bodyEl, footerEl);
-  }, 200);
-}
-
-
-// ══════════════════════════════════════════════════════════════
 
 </script>
 </html>
