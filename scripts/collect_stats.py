@@ -145,3 +145,12 @@ def collect():
 
 if __name__ == '__main__':
     collect()
+
+def debug_nbt(uuid: str):
+    try:
+        raw = ptero_file(f'/world/playerdata/{uuid}.dat')
+        nbt = nbtlib.read_nbt(io.BytesIO(raw))
+        print(f'[DEBUG] Structure NBT {uuid}:')
+        print(json.dumps(nbt, indent=2, default=str))
+    except Exception as e:
+        print(f'[ERROR] {e}')
