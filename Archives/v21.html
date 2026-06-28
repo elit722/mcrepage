@@ -739,10 +739,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <span class="nav-icon">択</span>
       <span class="nav-label"><span class="nav-label-fr">Mon Équipe</span></span>
     </button>
-    <button class="nav-item" data-target="page-aide" type="button">
-      <span class="nav-icon">援</span>
-      <span class="nav-label"><span class="nav-label-fr">Aide</span></span>
-    </button>
   </div>
   <div class="nav-footer">
     <div class="nav-footer-logos">
@@ -1659,83 +1655,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   </div>
 </div>
 
-<!-- ══ AIDE ══════════════════════════════════════════════════════════════ -->
-<div id="page-aide" class="page-section">
-  <div class="page-inner">
-    <p class="section-eyebrow">Support — Emerarudo Senso</p>
-    <h2 class="section-title"><span class="kanji">援</span>Demande d'Aide</h2>
-
-    <div class="law-preamble" style="max-width:680px;margin:0 auto 2.5rem;">
-      <p class="law-preamble-title">⛩️ Contact Staff</p>
-      <p style="font-size:.85rem;color:var(--mist);line-height:1.85;font-style:italic;">
-        Vous rencontrez un problème en jeu, un bug, un litige ou avez une question pour le staff ?
-        Remplissez le formulaire ci-dessous. Votre demande sera transmise directement au staff sur Discord.
-        <strong style="color:var(--gold-light);">Une seule demande par tranche de 24 heures.</strong>
-      </p>
-    </div>
-
-    <!-- État : cooldown actif -->
-    <div id="aide-cooldown-notice" style="display:none;max-width:600px;margin:0 auto 2rem;background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.28);border-radius:4px;padding:1.4rem 1.8rem;text-align:center;">
-      <p style="font-size:1.6rem;margin-bottom:.5rem;">⏳</p>
-      <p style="font-family:'Cinzel Decorative',serif;font-size:.8rem;color:#E07070;margin-bottom:.45rem;">Demande déjà envoyée</p>
-      <p style="font-size:.82rem;color:var(--mist);line-height:1.75;">Vous avez déjà soumis une demande d'aide récemment. Vous pourrez en envoyer une nouvelle dans :</p>
-      <p id="aide-cooldown-timer" style="font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold-light);margin-top:.7rem;">…</p>
-    </div>
-
-    <!-- Formulaire -->
-    <div id="aide-form-wrap" style="max-width:660px;margin:0 auto;">
-      <div class="partner-form-grid" style="grid-template-columns:1fr 1fr;gap:.9rem;">
-
-        <div class="pf-field">
-          <label for="aide-pseudo">Pseudo Minecraft</label>
-          <input type="text" id="aide-pseudo" placeholder="Votre pseudo en jeu" maxlength="64">
-        </div>
-
-        <div class="pf-field">
-          <label for="aide-discord">Discord (tag ou @)</label>
-          <input type="text" id="aide-discord" placeholder="ex : Elit722 ou #1234" maxlength="64">
-        </div>
-
-        <div class="pf-field" style="grid-column:1/-1;">
-          <label for="aide-type">Catégorie du problème</label>
-          <select id="aide-type" onchange="aideOnTypeChange()">
-            <option value="">— Choisir —</option>
-            <option value="Bug / Glitch en jeu">🐛 Bug / Glitch en jeu</option>
-            <option value="Litige PvP">⚔️ Litige PvP</option>
-            <option value="Grief / Vol">🏚️ Grief / Vol</option>
-            <option value="Problème technique">⚙️ Problème technique (serveur)</option>
-            <option value="Question règlement">📜 Question règlement</option>
-            <option value="Problème avec le site">🌐 Problème avec le site</option>
-            <option value="Autre">❓ Autre</option>
-          </select>
-        </div>
-
-        <div class="pf-field" style="grid-column:1/-1;">
-          <label for="aide-desc" id="aide-desc-label">Description du problème</label>
-          <textarea id="aide-desc" rows="5" placeholder="Décrivez votre problème avec le plus de détails possible (coordonnées, joueurs impliqués, heure approximative…)"></textarea>
-          <p id="aide-site-hint" style="display:none;margin-top:.45rem;font-size:.75rem;color:rgba(201,168,76,.6);font-style:italic;">
-            💡 Pour un bug site : précisez la section concernée, le navigateur utilisé, et si possible joignez une capture d'écran dans un message Discord.
-          </p>
-        </div>
-
-      </div>
-
-      <div id="aide-status" class="pf-status" style="display:none;margin-top:.9rem;"></div>
-
-      <div style="margin-top:1.2rem;text-align:center;">
-        <button class="btn btn-gold" style="max-width:300px;margin:0 auto;" onclick="submitAideForm()" type="button">
-          ⛩️ Envoyer la demande au staff
-        </button>
-      </div>
-
-      <p style="text-align:center;font-size:.72rem;color:rgba(201,168,76,.38);margin-top:1rem;font-style:italic;">
-        Aucun compte requis · Cooldown de 24h par navigateur
-      </p>
-    </div>
-
-  </div>
-</div>
-
   </div>
 </div>
 
@@ -2502,7 +2421,7 @@ async function submitPartnerForm() {
   // 2) Le verrou serveur est posé : on envoie maintenant au webhook Discord.
   const WEBHOOK = 'https://discord.com/api/webhooks/1520223937001291929/I0yw4SsSLWxP8UMQrqa-gKFr_LnwwRfxqdhvfQ5IrrQt-4VAbRpX1-Jpx1-eJHh3NWqD';
   const content = [
-    '<@&1330940567852683295> 🤝 **Nouvelle candidature partenaire — Emerarudo Senso**',
+    '🤝 **Nouvelle candidature partenaire — Emerarudo Senso**',
     '👤 **Pseudo / Nom :** ' + name,
     '💬 **Discord :** ' + discord,
     '🔑 **Compte connecté :** ' + (rlUser.pseudo || '?') + ' (ID: ' + rlUser.discord_id + ')',
@@ -3507,136 +3426,6 @@ async function clanInit() {
 const CLAN_STATIC_DEMO = [{"storedBronze":1,"storedSilver":125,"storedGold":0,"passiveSilver":36,"name":"CLAN TEST","leader":"0ade39a7-f418-4586-a428-c5304b13c606","bonus":"beni_des_dieux","color":"green","totalMoney":30924,"totalKills":9,"totalBlocksPlaced":21558,"totalPlaytime":174472,"totalBlocksBroken":10072,"lastIncomeTick":0,"lastSpyTime":0,"chestTier":2,"chestItems":[],"officers":["b62aec39-78fa-43b1-8f08-2f2812196cbf"],"members":["e60206b0-7764-4e40-8e2f-25c4524257ac"],"contributions":{"e60206b0-7764-4e40-8e2f-25c4524257ac":1406,"fe9f71b6-ca38-4f11-8976-a05489292943":451,"0ade39a7-f418-4586-a428-c5304b13c606":719,"b62aec39-78fa-43b1-8f08-2f2812196cbf":3118},"playerNames":{"0ade39a7-f418-4586-a428-c5304b13c606":"nkinglifetwx","b62aec39-78fa-43b1-8f08-2f2812196cbf":"Elit722","e60206b0-7764-4e40-8e2f-25c4524257ac":"panda_gameur"}},{"storedBronze":0,"storedSilver":0,"storedGold":0,"passiveSilver":4,"name":"AZE","leader":"fe9f71b6-ca38-4f11-8976-a05489292943","color":"white","totalMoney":4,"totalKills":0,"totalBlocksPlaced":414,"totalPlaytime":10381,"totalBlocksBroken":126,"lastIncomeTick":0,"lastSpyTime":0,"chestTier":1,"chestItems":[],"officers":[],"members":[],"contributions":{"fe9f71b6-ca38-4f11-8976-a05489292943":3181},"playerNames":{"fe9f71b6-ca38-4f11-8976-a05489292943":"Nocturno_"}}];
 
 // ══════════════════════════════════════════════════════════════
-
-// ── AIDE FORM ────────────────────────────────────────────────
-const AIDE_WEBHOOK = 'https://discord.com/api/webhooks/1520840813750386718/snsxHPg8abPF-YGIgS2TWdra1wtxJiNxZlDvCHC2pYJ1Dyx8tP3DvaG2EE1EI-5zUu0g';
-const AIDE_CD_KEY  = 'aide_last_sent';
-const AIDE_CD_MS   = 24 * 60 * 60 * 1000; // 24h
-let aideTimerInterval = null;
-
-function aideGetCooldownLeft() {
-  try {
-    const last = parseInt(localStorage.getItem(AIDE_CD_KEY) || '0', 10);
-    if (!last) return 0;
-    const elapsed = Date.now() - last;
-    return Math.max(0, AIDE_CD_MS - elapsed);
-  } catch(e) { return 0; }
-}
-
-function aideFormatRemaining(ms) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-}
-
-function aideCheckCooldown() {
-  const left = aideGetCooldownLeft();
-  const notice  = document.getElementById('aide-cooldown-notice');
-  const formWrap = document.getElementById('aide-form-wrap');
-  const timer   = document.getElementById('aide-cooldown-timer');
-  if (!notice || !formWrap) return;
-
-  if (left > 0) {
-    notice.style.display  = 'block';
-    formWrap.style.display = 'none';
-    timer.textContent = aideFormatRemaining(left);
-    if (!aideTimerInterval) {
-      aideTimerInterval = setInterval(() => {
-        const rem = aideGetCooldownLeft();
-        if (rem <= 0) {
-          clearInterval(aideTimerInterval); aideTimerInterval = null;
-          aideCheckCooldown();
-        } else {
-          timer.textContent = aideFormatRemaining(rem);
-        }
-      }, 1000);
-    }
-  } else {
-    notice.style.display  = 'none';
-    formWrap.style.display = 'block';
-    if (aideTimerInterval) { clearInterval(aideTimerInterval); aideTimerInterval = null; }
-  }
-}
-
-function showAideStatus(cls, msg) {
-  const el = document.getElementById('aide-status');
-  el.className = 'pf-status ' + cls;
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function aideOnTypeChange() {
-  const type = document.getElementById('aide-type').value;
-  const hint = document.getElementById('aide-site-hint');
-  const desc = document.getElementById('aide-desc');
-  const label = document.getElementById('aide-desc-label');
-  const isSite = type === 'Problème avec le site';
-
-  hint.style.display = isSite ? 'block' : 'none';
-
-  if (isSite) {
-    desc.placeholder = 'Décrivez le problème rencontré sur le site : section concernée, comportement observé, navigateur/appareil utilisé…';
-    label.textContent = 'Description du problème (site)';
-  } else {
-    desc.placeholder = 'Décrivez votre problème avec le plus de détails possible (coordonnées, joueurs impliqués, heure approximative…)';
-    label.textContent = 'Description du problème';
-  }
-}
-
-async function submitAideForm() {
-  // Vérification cooldown avant tout
-  if (aideGetCooldownLeft() > 0) { aideCheckCooldown(); return; }
-
-  const pseudo  = document.getElementById('aide-pseudo').value.trim();
-  const discord = document.getElementById('aide-discord').value.trim();
-  const type    = document.getElementById('aide-type').value;
-  const desc    = document.getElementById('aide-desc').value.trim();
-
-  if (!pseudo || !desc) {
-    showAideStatus('pf-error', '⚠️ Merci de remplir au moins votre pseudo et la description du problème.');
-    return;
-  }
-
-  showAideStatus('pf-sending', '⏳ Envoi de votre demande au staff…');
-
-  const content = [
-    '<@&1330940567852683295> 🆘 **Nouvelle demande d\'aide — Emerarudo Senso**',
-    '👤 **Pseudo Minecraft :** ' + pseudo,
-    discord ? '💬 **Discord :** ' + discord : '',
-    type    ? '🏷️ **Catégorie :** ' + type   : '',
-    '\n📝 **Description :**\n' + desc,
-  ].filter(Boolean).join('\n');
-
-  try {
-    const r = await fetch(AIDE_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, username: 'Emerarudo Senso — Aide Staff' })
-    });
-
-    if (r.ok) {
-      try { localStorage.setItem(AIDE_CD_KEY, String(Date.now())); } catch(e) {}
-      showAideStatus('pf-sent', '✅ Demande envoyée ! Le staff vous répondra sur Discord. (Cooldown 24h actif)');
-      // Vider le formulaire
-      ['aide-pseudo','aide-discord','aide-desc'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-      document.getElementById('aide-type').value = '';
-      // Afficher le notice cooldown après 1,5s
-      setTimeout(aideCheckCooldown, 1500);
-    } else {
-      showAideStatus('pf-error', '❌ Envoi échoué (' + r.status + '). Contactez directement le staff sur Discord.');
-    }
-  } catch(e) {
-    showAideStatus('pf-error', '❌ Connexion impossible. Contactez directement le staff sur Discord.');
-  }
-}
-
-// Initialiser le cooldown quand on arrive sur la page Aide
-document.querySelectorAll('.nav-item').forEach(item => {
-  if (item.dataset.target === 'page-aide') {
-    item.addEventListener('click', () => setTimeout(aideCheckCooldown, 50));
-  }
-});
 
 </script>
 </html>
