@@ -6,7 +6,7 @@ et envoie les classements au Worker Cloudflare.
 Dépendances : pip install requests nbtlib
 Variables d'environnement (GitHub Secrets) :
   PTERO_URL       https://game.lordhosting.fr
-  PTERO_KEY       ptlc_...
+  PTERO_API_KEY       ptlc_...
   PTERO_SERVER    1798a4bf
   WORKER_URL      https://relink-auth.refugeemeraudien-direction.workers.dev
   STATS_SECRET    clé secrète partagée avec le Worker
@@ -22,7 +22,7 @@ WORKER_URL   = os.environ['WORKER_URL']
 STATS_SECRET = os.environ['STATS_SECRET']
 
 HEADERS = {
-    'Authorization': f'Bearer {PTERO_KEY}',
+    'Authorization': f'Bearer {PTERO_API_KEY}',
     'Accept': 'application/vnd.pterodactyl.v1+json',
 }
 
