@@ -12,7 +12,7 @@ Variables d'environnement (GitHub Secrets) :
   STATS_SECRET    clé secrète partagée avec le Worker
 """
 
-import os, json, io, requests
+import os, json, gzip, io, requests
 import nbtlib
 
 PTERO_URL    = os.environ['PTERO_URL']
@@ -57,6 +57,7 @@ def get_usercache() -> dict:
 def get_mc_stats(uuid: str) -> dict:
     """
     Lit world/stats/UUID.json et retourne kills + blocs_poses.
+    Les stats sont sous minecraft:custom / minecraft:mined / minecraft:used.
     """
     try:
         data = ptero_file(f'/world/stats/{uuid}.json')
@@ -65,7 +66,8 @@ def get_mc_stats(uuid: str) -> dict:
         # Kills joueurs
         kills = stats.get('minecraft:killed', {}).get('minecraft:player', 0)
 
-        # Blocs posés = somme de minecraft:used
+        # Blocs posés = somme de minecraft:used (items placés = blocs)
+        # Minecraft stocke les blocs posés dans minecraft:used par item
         used = stats.get('minecraft:used', {})
         blocs_poses = sum(used.values())
 
@@ -78,29 +80,15 @@ def get_mc_stats(uuid: str) -> dict:
 def get_numismatic_balance(uuid: str) -> int:
     """
     Lit world/playerdata/UUID.dat (NBT gzip) et extrait la balance Numismatic.
-    Compatible nbtlib 2.x : utilise nbtlib.read() au lieu de nbtlib.read_nbt().
-    Cherche dans cardinal_components → numismatic-overhaul:currency → Value
+    Clé : cardinal_components → numismatic-overhaul:currency → Value
     """
     try:
         raw = ptero_file(f'/world/playerdata/{uuid}.dat')
-        # nbtlib 2.x : nbtlib.read() remplace nbtlib.read_nbt()
-        nbt = nbtlib.read(io.BytesIO(raw))
-
-        # Le tag racine peut être un Compound avec ou sans nom
-        # nbtlib.read() retourne directement le compound racine
-        root = nbt
-
-        # Cherche cardinal_components (peut être imbriqué sous une clé vide "")
-        if '' in root:
-            root = root['']
-
-        components = root.get('cardinal_components', {})
+        # nbtlib gère automatiquement le gzip
+        nbt = nbtlib.read_nbt(io.BytesIO(raw))
+        components = nbt.get('cardinal_components', {})
         currency   = components.get('numismatic-overhaul:currency', {})
-        value      = currency.get('Value', 0)
-        result     = int(value)
-        print(f'  [NBT] fortune={result}')
-        return result
-
+        return int(currency.get('Value', 0))
     except Exception as e:
         print(f'[WARN] NBT {uuid} : {e}')
         return 0
@@ -123,10 +111,10 @@ def collect():
         if not name.endswith('.json'):
             continue
         uuid = name.replace('.json', '')
-        pseudo = usercache.get(uuid, uuid[:8])
+        pseudo = usercache.get(uuid, uuid[:8])  # fallback sur début UUID
 
         print(f'  · {pseudo} ({uuid})')
-        mc      = get_mc_stats(uuid)
+        mc    = get_mc_stats(uuid)
         fortune = get_numismatic_balance(uuid)
 
         players.append({
@@ -157,3 +145,12 @@ def collect():
 
 if __name__ == '__main__':
     collect()
+
+def debug_nbt(uuid: str):
+    try:
+        raw = ptero_file(f'/world/playerdata/{uuid}.dat')
+        nbt = nbtlib.read_nbt(io.BytesIO(raw))
+        print(f'[DEBUG] Structure NBT {uuid}:')
+        print(json.dumps(nbt, indent=2, default=str))
+    except Exception as e:
+        print(f'[ERROR] {e}')
