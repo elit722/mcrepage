@@ -2368,6 +2368,34 @@ function rlLogout() {
 }
 
 // ── Search ──
+// Prefetch kills LB + clans pour enrichir les cartes de recherche sans dépendre des pages LB/Clans
+let rlPrefetchDone = false;
+async function rlPrefetchContext() {
+  if (rlPrefetchDone) return;
+  rlPrefetchDone = true;
+  // 1. leaderboard kills → dynasty + kills par pseudo
+  if (!lbCache.kills) {
+    try {
+      const r = await fetch(`${LB_API_BASE}?type=kills&limit=200`);
+      if (r.ok) {
+        const payload = await r.json();
+        const rows = Array.isArray(payload) ? payload : (payload.results ?? payload.data ?? []);
+        lbCache.kills = { data: rows, ts: Date.now(), serverTs: payload.updated_at || null };
+      }
+    } catch(e) { console.warn('[Search] prefetch kills:', e); }
+  }
+  // 2. clans → clan name par pseudo (via playerNames)
+  if (!CLAN_DATA) {
+    try {
+      const r = await fetch(`${CLAN_WORKER_BASE}/clans`, { signal: AbortSignal.timeout(8000) });
+      if (r.ok) {
+        const d = await r.json();
+        if (Array.isArray(d) && d.length) CLAN_DATA = d;
+      }
+    } catch(e) { console.warn('[Search] prefetch clans:', e); }
+  }
+}
+
 function rlOpenSearch() {
   rlSetTitle('Chercher un profil');
   rlSetModalBody(`
@@ -2377,6 +2405,7 @@ function rlOpenSearch() {
     </div>
   `);
   rlOpen();
+  rlPrefetchContext(); // fire-and-forget : prêt avant que l'user finisse de taper
 }
 
 let rlSearchTimer = null;
@@ -2395,24 +2424,52 @@ function rlSearch(q) {
       if (!d.results || !d.results.length) {
         res.innerHTML = '<div class="rl-empty">Aucun profil trouvé.</div>'; return;
       }
+      // Croisement avec lbCache.kills (pseudo → dynasty + kills)
+      const lbRows = (lbCache && lbCache.kills && lbCache.kills.data) ? lbCache.kills.data : [];
+      const lbByPseudo = {};
+      lbRows.forEach(p => {
+        const key = (p.pseudo || p.username || p.name || '').toLowerCase();
+        if (key) lbByPseudo[key] = p;
+      });
+
+      // Croisement avec CLAN_DATA (pseudo → clan name via playerNames)
+      const clanByPseudo = {};
+      if (CLAN_DATA) {
+        CLAN_DATA.forEach(c => {
+          Object.entries(c.playerNames || {}).forEach(([uuid, name]) => {
+            clanByPseudo[name.toLowerCase()] = c.name;
+          });
+        });
+      }
+
       res.innerHTML = d.results.map(u => {
-        // Dynasty badge
+        const key = (u.pseudo || '').toLowerCase();
+        const lb  = lbByPseudo[key] || {};
+
+        // Dynasty depuis lbCache
         let dyBadge = '';
-        if (u.dynasty) {
-          const dl = String(u.dynasty).toLowerCase();
-          const cls = dl.includes('suzaku') || dl.includes('susaku') ? 'pc-dynasty-susaku'
-                    : dl.includes('seiryu') || dl.includes('seiryū') ? 'pc-dynasty-seiryu'
+        const dynasty = lb.dynasty || null;
+        if (dynasty) {
+          const dl = dynasty.toLowerCase();
+          const cls = dl === 'susaku' ? 'pc-dynasty-susaku'
+                    : dl === 'seiryu' ? 'pc-dynasty-seiryu'
                     : 'pc-dynasty-unknown';
-          dyBadge = `<span class="pc-dynasty ${cls}">${esc(u.dynasty)}</span>`;
+          const label = DYNASTY_LABEL[dl] || dynasty;
+          dyBadge = `<span class="pc-dynasty ${cls}">${esc(label)}</span>`;
         }
-        // Kills
-        const killsBadge = (u.kills !== undefined && u.kills !== null)
-          ? `<span class="pc-kills">⚔️ ${fmtNum(u.kills)}</span>` : '';
-        // Clan
-        const clanBadge = u.clan ? `<span class="pc-clan">🏯 ${esc(u.clan)}</span>` : '';
-        // Meta row (only if at least one field)
+
+        // Kills depuis lbCache
+        const kills = lb.kills ?? lb[`kills`] ?? null;
+        const killsBadge = kills !== null
+          ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
+
+        // Clan depuis CLAN_DATA
+        const clanName = clanByPseudo[key] || null;
+        const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
+
         const meta = (dyBadge || killsBadge || clanBadge)
           ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}</div>` : '';
+
         return `
         <div class="rl-profile-card">
           <img src="${esc(u.avatar_url)}" alt="Avatar">
