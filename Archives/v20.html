@@ -308,8 +308,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .result-banner.neutral-result{background:linear-gradient(135deg,rgba(20,15,5,.6),rgba(50,40,15,.3));border:2px solid rgba(201,168,76,.35);}
 .result-banner.neutral-result .result-name{color:var(--gold-light);}
 .result-banner.neutral-result .result-kanji{color:var(--gold);opacity:.7;}
-.fun-only-badge{display:inline-block;font-family:'Source Code Pro',monospace;font-size:.58rem;letter-spacing:.1em;padding:.22rem .65rem;border-radius:2px;background:rgba(88,101,242,.18);border:1px solid rgba(88,101,242,.45);color:#9BA8F5;text-transform:uppercase;margin-bottom:.9rem;}
-.fun-only-notice{margin-top:1.3rem;padding:.85rem;border-radius:4px;font-size:.8rem;text-align:center;background:rgba(88,101,242,.07);border:1px solid rgba(88,101,242,.22);color:#9BA8F5;}
 .result-banner.seiryu{background:linear-gradient(135deg,rgba(26,42,90,.38),rgba(44,75,160,.12));border:2px solid rgba(44,75,160,.45);}
 .result-kanji{font-size:3.5rem;margin-bottom:.45rem;}
 .result-name{font-family:'Cinzel Decorative',serif;font-size:1.5rem;margin-bottom:.45rem;}
@@ -1274,12 +1272,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <span class="lk-kanji">🔒</span>
       <div class="lk-title">Questionnaire déjà envoyé</div>
       <p class="lk-desc">Tu as déjà répondu à ce questionnaire avec ce compte Discord. Tes réponses sont définitives et ont été transmises au staff.<br>Pour toute correction, contacte le staff directement sur Discord.</p>
-      <div style="margin-top:1.4rem;">
-        <button class="btn btn-ghost btn-sm" onclick="startFunTest()" style="margin:0 auto;display:inline-flex;gap:.5rem;align-items:center;">
-          🎮 Refaire le test en mode <strong style="color:var(--gold-light);margin-left:.25rem;">Fun Only</strong>
-        </button>
-        <p style="font-size:.7rem;color:rgba(201,168,76,.45);font-style:italic;margin-top:.6rem;">Tes résultats seront affichés directement — aucun envoi au staff.</p>
-      </div>
     </div>
 
     <div class="test-container" id="team-test-container">
@@ -2095,7 +2087,6 @@ function buildQuestions() {
 let QUESTIONS = [];
 let LETTERS = ['A','B','C','D'];
 let curQ=0, score=0, answers=[], playerPseudo='', allyPseudo='';
-let funOnlyMode = false; // true = mode fun, résultats affichés sans envoi au staff
 
 // ── Verrou questionnaire équipe (envoi unique, par discord_id) ──
 // Source de vérité : le Worker (table D1 `submissions`). Un cache local en
@@ -2130,14 +2121,6 @@ async function teamApplyGate() {
   const submitted = await teamCheckSubmitted();
   locked.style.display    = submitted ? 'block' : 'none';
   container.style.display = submitted ? 'none'  : 'block';
-  // Si on revenait d'un Fun Only, s'assurer que step-intro est bien actif
-  if (submitted) {
-    const stepResult = document.getElementById('step-result');
-    const stepIntro  = document.getElementById('step-intro');
-    if (stepResult) stepResult.classList.remove('active');
-    if (stepIntro)  stepIntro.classList.add('active');
-    funOnlyMode = false;
-  }
 }
 
 function switchStep(from,to){document.getElementById(from).classList.remove('active');document.getElementById(to).classList.add('active');}
@@ -2145,26 +2128,12 @@ function switchStep(from,to){document.getElementById(from).classList.remove('act
 async function startTest(){
   if (!rlUser) { rlOpenLogin(); return; }
   if (await teamCheckSubmitted()) { teamApplyGate(); return; }
-  funOnlyMode = false;
   playerPseudo=document.getElementById('pseudo-player').value.trim();
   if(!playerPseudo){document.getElementById('pseudo-player').style.borderColor='#C0392B';document.getElementById('pseudo-player').focus();return;}
   allyPseudo=document.getElementById('pseudo-ally').value.trim();
   // Build 13 random questions from bank of 26, each with 4 random options
   QUESTIONS = buildQuestions();
   curQ=0; score=0; answers=[];
-  switchStep('step-intro','step-questions');
-  renderQ();
-}
-
-function startFunTest(){
-  funOnlyMode = true;
-  playerPseudo = rlUser ? (rlUser.pseudo || '') : '';
-  allyPseudo = '';
-  QUESTIONS = buildQuestions();
-  curQ=0; score=0; answers=[];
-  // Masquer le bloc locked, afficher le container
-  document.getElementById('team-locked').style.display = 'none';
-  document.getElementById('team-test-container').style.display = 'block';
   switchStep('step-intro','step-questions');
   renderQ();
 }
@@ -2209,43 +2178,19 @@ function showResult(){
     return (i+1)+'. '+q.text+'\n   → '+(opt ? opt.t : '?');
   }).join('\n');
 
-  if (funOnlyMode) {
-    // Mode Fun Only : affichage direct du résultat, aucun envoi au staff
-    const dynasty = isSusaku
-      ? { cls: 'susaku', kanji: '炎', name: 'Maison Susaku', color: '#E07070',
-          desc: 'Le feu guide tes pas. Tu tends vers la maîtrise, l\'ambition et la lucidité. Ta force est stratégique.' }
-      : { cls: 'seiryu', kanji: '水', name: 'Maison Seiryu', color: '#70A0E0',
-          desc: 'L\'eau façonne ta nature. Tu incarnes la loyauté, la résilience et l\'intuition. Ta force est collective.' };
+  document.getElementById('result-content').innerHTML =
+    '<div class="result-panel">' +
+    '<div class="result-banner neutral-result">' +
+    '<div class="result-kanji">巻</div>' +
+    '<div class="result-name">Questionnaire pris en compte</div>' +
+    '<p class="result-desc">Découvrez dans quelle équipe vous êtes au lancement de l\'event ! Le staff analysera vos réponses et composera les équipes de manière équilibrée.</p>' +
+    '</div>' +
+    '<p class="result-warning">⚠️ Les équipes seront composées et annoncées par le staff avant le lancement de l\'event.</p>' +
+    '<div class="final-warning">🔒 Ce questionnaire est désormais définitif et ne peut plus être renvoyé avec ce compte, sauf intervention d\'un administrateur.</div>' +
+    '<div class="dc-status dc-sending" id="dc-msg">⏳ Envoi de tes réponses vers le Discord du staff…</div>' +
+    '</div>';
 
-    document.getElementById('result-content').innerHTML =
-      '<div class="result-panel">' +
-      '<div class="fun-only-badge">🎮 Mode Fun Only</div>' +
-      '<div class="result-banner ' + dynasty.cls + '">' +
-      '<div class="result-kanji">' + dynasty.kanji + '</div>' +
-      '<div class="result-name">' + dynasty.name + '</div>' +
-      '<p class="result-desc">' + dynasty.desc + '</p>' +
-      '</div>' +
-      '<p class="result-warning">Score : <strong style="color:var(--gold-light)">' + (score >= 0 ? '+' : '') + score + '</strong> — ' + (isSusaku ? 'tendance Susaku 炎' : 'tendance Seiryu 水') + '</p>' +
-      '<div class="fun-only-notice">🔒 Ces résultats sont pour toi uniquement — aucun envoi au staff effectué.</div>' +
-      '<div style="text-align:center;margin-top:1.6rem;">' +
-      '<button class="btn btn-ghost btn-sm" onclick="resetTestFun()" style="display:inline-flex;">↩ Refaire le test</button>' +
-      '</div>' +
-      '</div>';
-  } else {
-    document.getElementById('result-content').innerHTML =
-      '<div class="result-panel">' +
-      '<div class="result-banner neutral-result">' +
-      '<div class="result-kanji">巻</div>' +
-      '<div class="result-name">Questionnaire pris en compte</div>' +
-      '<p class="result-desc">Découvrez dans quelle équipe vous êtes au lancement de l\'event ! Le staff analysera vos réponses et composera les équipes de manière équilibrée.</p>' +
-      '</div>' +
-      '<p class="result-warning">⚠️ Les équipes seront composées et annoncées par le staff avant le lancement de l\'event.</p>' +
-      '<div class="final-warning">🔒 Ce questionnaire est désormais définitif et ne peut plus être renvoyé avec ce compte, sauf intervention d\'un administrateur.</div>' +
-      '<div class="dc-status dc-sending" id="dc-msg">⏳ Envoi de tes réponses vers le Discord du staff…</div>' +
-      '</div>';
-
-    sendDC(playerPseudo, allyPseudo, teamInternal, score, recap);
-  }
+  sendDC(playerPseudo, allyPseudo, teamInternal, score, recap);
 }
 
 async function sendDC(pseudo, ally, teamInternal, sc, recap){
@@ -2330,15 +2275,7 @@ async function sendDC(pseudo, ally, teamInternal, sc, recap){
   }
 }
 
-function resetTest(){curQ=0;score=0;answers=[];funOnlyMode=false;document.getElementById('pseudo-player').value='';document.getElementById('pseudo-ally').value='';switchStep('step-result','step-intro');}
-
-// Réinitialise le mode Fun Only : retour au bloc locked (pas à l'intro)
-function resetTestFun(){
-  curQ=0; score=0; answers=[]; funOnlyMode=false;
-  document.getElementById('team-test-container').style.display='none';
-  document.getElementById('team-locked').style.display='block';
-  switchStep('step-result','step-intro'); // remet step-intro actif pour le prochain démarrage
-}
+function resetTest(){curQ=0;score=0;answers=[];document.getElementById('pseudo-player').value='';document.getElementById('pseudo-ally').value='';switchStep('step-result','step-intro');}
 
 // ── PARTNER FORM ─────────────────────────────────────────────────────────
 // Source de vérité : le Worker (table D1 `submissions`). Même principe que
