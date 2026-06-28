@@ -1218,6 +1218,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div class="lb-wrap">
       <div class="lb-search">
         <input type="text" id="lb-kills-search" placeholder="Filtrer un joueur…" oninput="lbFilter('kills',this.value)">
+        <button onclick="lbLoad('kills')">↺ Actualiser</button>
       </div>
       <div id="lb-kills-body"><div class="lb-state"><span class="lb-icon">⚔️</span>Chargement…</div></div>
       <div class="lb-footer" id="lb-kills-footer"></div>
@@ -1228,6 +1229,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div class="lb-wrap">
       <div class="lb-search">
         <input type="text" id="lb-fortune-search" placeholder="Filtrer un joueur…" oninput="lbFilter('fortune',this.value)">
+        <button onclick="lbLoad('fortune')">↺ Actualiser</button>
       </div>
       <div id="lb-fortune-body"><div class="lb-state"><span class="lb-icon">💰</span>Chargement…</div></div>
       <div class="lb-footer" id="lb-fortune-footer"></div>
@@ -1238,6 +1240,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div class="lb-wrap">
       <div class="lb-search">
         <input type="text" id="lb-blocs_poses-search" placeholder="Filtrer un joueur…" oninput="lbFilter('blocs_poses',this.value)">
+        <button onclick="lbLoad('blocs_poses')">↺ Actualiser</button>
       </div>
       <div id="lb-blocs_poses-body"><div class="lb-state"><span class="lb-icon">🧱</span>Chargement…</div></div>
       <div class="lb-footer" id="lb-blocs_poses-footer"></div>
