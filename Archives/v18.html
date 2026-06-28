@@ -2310,22 +2310,12 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token }
   // Récupérer token stocké
   const stored = localStorage.getItem('rl_user');
   if (stored) {
-    try { rlUser = JSON.parse(stored); } catch(e) { localStorage.removeItem('rl_user'); rlUser = null; }
+    try { rlUser = JSON.parse(stored); rlUpdateUI(); } catch(e) { localStorage.removeItem('rl_user'); }
   }
-  // Callback OAuth Discord (code dans l'URL) — vérifie le state
+  // Callback OAuth Discord (code dans l'URL)
   const params = new URLSearchParams(location.search);
-  const code  = params.get('code');
-  const state = params.get('state');
-  if (code && state && state === localStorage.getItem('rl_oauth_state')) {
-    // OAuth valide : rlHandleOAuthCallback gère l'UI lui-même
-    rlHandleOAuthCallback(code);
-  } else {
-    // Pas de callback valide : nettoyer l'URL si des params traînent, puis appliquer l'état actuel
-    if (code || state) {
-      history.replaceState({}, document.title, location.pathname);
-      localStorage.removeItem('rl_oauth_state');
-    }
-    rlUpdateUI(); // applique les gates (locked si rlUser null, unlocked sinon)
+  if (params.get('code') && params.get('state') === localStorage.getItem('rl_oauth_state')) {
+    rlHandleOAuthCallback(params.get('code'));
   }
 })();
 
