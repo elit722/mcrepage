@@ -1,0 +1,32 @@
+name: Minecraft Stats Collector
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # toutes les 10 minutes
+  workflow_dispatch:          # déclenchement manuel depuis l'UI GitHub
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests nbtlib
+
+      - name: Run collector
+        env:
+          PTERO_URL:    ${{ secrets.PTERO_URL }}
+          PTERO_KEY:    ${{ secrets.PTERO_KEY }}
+          PTERO_SERVER: ${{ secrets.PTERO_SERVER }}
+          WORKER_URL:   ${{ secrets.WORKER_URL }}
+          STATS_SECRET: ${{ secrets.STATS_SECRET }}
+        run: python scripts/collect_stats.py
