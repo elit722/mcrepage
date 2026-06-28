@@ -319,21 +319,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .dc-sent{background:rgba(39,174,96,.09);border:1px solid rgba(39,174,96,.28);color:#2ECC71;}
 .dc-error{background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.28);color:#E07070;}
 
-/* ── AVERTISSEMENT DÉFINITIF + ÉTAT VERROUILLÉ (formulaires à envoi unique) ── */
-.final-warning{
-  margin-bottom:1.2rem;padding:.75rem 1rem;border-radius:4px;
-  background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);
-  font-size:.78rem;color:#E07070;line-height:1.6;text-align:center;
-}
-.final-warning strong{color:#FF9A9A;}
-.locked-submission{
-  text-align:center;padding:2.2rem 1.5rem;border-radius:6px;
-  background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);
-}
-.locked-submission .lk-kanji{font-size:2.2rem;display:block;margin-bottom:.6rem;opacity:.75;}
-.locked-submission .lk-title{font-family:'Cinzel Decorative',serif;font-size:.9rem;color:var(--gold-light);margin-bottom:.6rem;letter-spacing:.06em;}
-.locked-submission .lk-desc{font-size:.82rem;color:var(--mist);line-height:1.75;}
-
 @media(max-width:640px){
   .side-nav{width:60px;}.nav-brand span,.nav-item span:not(.nav-icon),.nav-kanji{display:none;}
   .nav-item{justify-content:center;padding:.65rem;}.nav-brand{justify-content:center;padding:.8rem 0;}
@@ -1185,27 +1170,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <div class="partner-cta-inner">
         <h3>Devenir partenaire ?</h3>
         <p>Vous êtes créateur de contenu, studio ou communauté intéressé par un partenariat avec l'Emerarudo Senso ? Remplissez ce formulaire, nous vous répondrons rapidement.</p>
-
-        <!-- Gate de connexion local : affiché si l'utilisateur n'est pas connecté -->
-        <div class="auth-gate-card" id="pf-login-gate" style="display:none;max-width:420px;margin:0 auto;">
-          <span class="auth-gate-kanji">⛩️</span>
-          <div class="auth-gate-title">Connexion requise</div>
-          <p class="auth-gate-desc">Pour garantir le suivi de votre candidature et éviter les envois multiples, vous devez être connecté avec Discord.</p>
-          <button class="auth-gate-btn" onclick="rlOpenLogin()">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.003.028.017.056.035.073a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-            Se connecter avec Discord
-          </button>
-        </div>
-
-        <!-- État verrouillé : déjà candidaté -->
-        <div class="locked-submission" id="pf-locked" style="display:none;">
-          <span class="lk-kanji">🔒</span>
-          <div class="lk-title">Candidature déjà envoyée</div>
-          <p class="lk-desc">Vous avez déjà soumis une candidature partenaire avec ce compte Discord. Elle est définitive et ne peut pas être renvoyée ou modifiée.<br>Pour toute correction, contactez le staff directement sur Discord.</p>
-        </div>
-
-        <div id="partner-form-wrap" style="display:none;">
-          <div class="final-warning">⚠️ <strong>Cette candidature est définitive.</strong> Une fois envoyée, elle ne peut plus être modifiée ni renvoyée, sauf intervention manuelle d'un administrateur.</div>
+        <div id="partner-form-wrap">
           <div class="partner-form-grid">
             <div class="pf-field">
               <label>Pseudo / Nom</label>
@@ -1266,19 +1231,10 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <p class="section-eyebrow">Quel guerrier es-tu ?</p>
     <h2 class="section-title"><span class="kanji">選択</span>Choisir mon équipe</h2>
     <p style="text-align:center;font-size:.83rem;color:var(--mist);margin-bottom:2.5rem;">Réponds à ces questions pour découvrir ta destinée. Les équipes peuvent être rééquilibrées par le staff.</p>
-
-    <!-- État verrouillé : questionnaire déjà soumis avec ce compte -->
-    <div class="locked-submission" id="team-locked" style="display:none;">
-      <span class="lk-kanji">🔒</span>
-      <div class="lk-title">Questionnaire déjà envoyé</div>
-      <p class="lk-desc">Tu as déjà répondu à ce questionnaire avec ce compte Discord. Tes réponses sont définitives et ont été transmises au staff.<br>Pour toute correction, contacte le staff directement sur Discord.</p>
-    </div>
-
-    <div class="test-container" id="team-test-container">
+    <div class="test-container">
       <div class="test-step active" id="step-intro">
         <h3 style="font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold-light);text-align:center;margin-bottom:.5rem;">Avant de commencer…</h3>
         <p style="text-align:center;font-size:.83rem;color:var(--mist);margin-bottom:1.8rem;">Entre ton pseudo et celui d'un ami avec qui tu veux absolument être dans la même équipe.</p>
-        <div class="final-warning">⚠️ <strong>Ce questionnaire ne peut être envoyé qu'une seule fois.</strong> Tes réponses seront définitives, sauf intervention manuelle d'un administrateur.</div>
         <div class="test-fields">
           <div class="test-field"><label>Ton pseudo Minecraft</label><input type="text" id="pseudo-player" placeholder="Ton pseudo..." maxlength="16"></div>
           <div class="test-field"><label>Pseudo de ton allié (optionnel)</label><input type="text" id="pseudo-ally" placeholder="Pseudo de ton allié..." maxlength="16"></div>
@@ -1296,7 +1252,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         </div>
       </div>
       <div class="test-step" id="step-result"><div id="result-content"></div></div>
-    </div><!-- end #team-test-container -->
+    </div>
   </div>
 </div>
 
@@ -2088,46 +2044,9 @@ let QUESTIONS = [];
 let LETTERS = ['A','B','C','D'];
 let curQ=0, score=0, answers=[], playerPseudo='', allyPseudo='';
 
-// ── Verrou questionnaire équipe (envoi unique, par discord_id) ──
-// Source de vérité : le Worker (table D1 `submissions`). Un cache local en
-// mémoire (teamSubmittedCache) évite de re-interroger le serveur à chaque
-// clic, mais le serveur tranche toujours en dernier ressort à l'envoi.
-let teamSubmittedCache = null; // null = pas encore vérifié, true/false = connu
-
-async function teamCheckSubmitted() {
-  if (!rlUser) { teamSubmittedCache = false; return false; }
-  try {
-    const r = await fetch(`${RL_API}/submission/team`, {
-      headers: { 'Authorization': `Bearer ${rlUser.access_token}` }
-    });
-    const d = await r.json();
-    teamSubmittedCache = !!d.submitted;
-  } catch(e) {
-    console.warn('[Team] Vérification soumission impossible :', e.message);
-    teamSubmittedCache = teamSubmittedCache === true; // garde l'état connu si déjà vrai, sinon false
-  }
-  return teamSubmittedCache;
-}
-
-async function teamApplyGate() {
-  const locked = document.getElementById('team-locked');
-  const container = document.getElementById('team-test-container');
-  if (!locked || !container) return; // page pas encore rendue
-  if (!rlUser) {
-    locked.style.display = 'none';
-    container.style.display = 'block';
-    return;
-  }
-  const submitted = await teamCheckSubmitted();
-  locked.style.display    = submitted ? 'block' : 'none';
-  container.style.display = submitted ? 'none'  : 'block';
-}
-
 function switchStep(from,to){document.getElementById(from).classList.remove('active');document.getElementById(to).classList.add('active');}
 
-async function startTest(){
-  if (!rlUser) { rlOpenLogin(); return; }
-  if (await teamCheckSubmitted()) { teamApplyGate(); return; }
+function startTest(){
   playerPseudo=document.getElementById('pseudo-player').value.trim();
   if(!playerPseudo){document.getElementById('pseudo-player').style.borderColor='#C0392B';document.getElementById('pseudo-player').focus();return;}
   allyPseudo=document.getElementById('pseudo-ally').value.trim();
@@ -2186,8 +2105,8 @@ function showResult(){
     '<p class="result-desc">Découvrez dans quelle équipe vous êtes au lancement de l\'event ! Le staff analysera vos réponses et composera les équipes de manière équilibrée.</p>' +
     '</div>' +
     '<p class="result-warning">⚠️ Les équipes seront composées et annoncées par le staff avant le lancement de l\'event.</p>' +
-    '<div class="final-warning">🔒 Ce questionnaire est désormais définitif et ne peut plus être renvoyé avec ce compte, sauf intervention d\'un administrateur.</div>' +
     '<div class="dc-status dc-sending" id="dc-msg">⏳ Envoi de tes réponses vers le Discord du staff…</div>' +
+    '<div style="margin-top:1.6rem;"><button class="btn btn-ghost" style="width:auto;padding:.6rem 1.5rem;" onclick="resetTest()" type="button">↩ Recommencer</button></div>' +
     '</div>';
 
   sendDC(playerPseudo, allyPseudo, teamInternal, score, recap);
@@ -2217,107 +2136,36 @@ async function sendDC(pseudo, ally, teamInternal, sc, recap){
     return fetch(WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content, username:'Emerarudo Senso — Test Équipe'})});
   }
 
-  // 1) Réservation côté serveur AVANT l'envoi Discord : garantit qu'un même
-  //    discord_id ne peut pas valider deux fois (même en cas de double clic
-  //    ou d'onglets multiples), peu importe l'appareil utilisé.
-  try {
-    const reserve = await fetch(`${RL_API}/submission/team`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ pseudo, ally, score: sc })
-    });
-    if (reserve.status === 409) {
-      el.className='dc-status dc-error';
-      el.textContent='⚠️ Ce questionnaire a déjà été envoyé avec ce compte.';
-      teamSubmittedCache = true;
-      setTimeout(teamApplyGate, 1000);
-      return;
-    }
-    if (!reserve.ok) {
-      el.className='dc-status dc-error';
-      el.textContent='❌ Impossible de valider l\'envoi côté serveur. Contacte directement le staff sur Discord.';
-      return;
-    }
-  } catch(e) {
-    el.className='dc-status dc-error';
-    el.textContent='❌ Connexion au serveur impossible. Contacte directement le staff sur Discord.';
-    return;
-  }
-
-  // 2) Le verrou serveur est posé : on envoie maintenant au webhook Discord.
   try {
     const header = [
       '📋 **Nouveau questionnaire d\'équipe — Emerarudo Senso**',
       '👤 **Pseudo :** '+pseudo,
-      '🔑 **Compte Discord :** '+(rlUser ? (rlUser.pseudo || '?') + ' (ID: ' + rlUser.discord_id + ')' : 'inconnu'),
       ally ? '🤝 **Allié souhaité :** '+ally : '',
       '📊 **Score brut :** '+(sc>=0?'+':'')+sc+' ('+(sc>=0?'tendance Susaku 炎':'tendance Seiryu 水')+')',
       '📝 **Réponses :**'
     ].filter(Boolean).join('\n');
 
     const r1 = await post(header);
-    if (!r1.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi échoué ('+r1.status+'). Contacte directement le staff sur Discord.'; teamSubmittedCache = true; return; }
+    if (!r1.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi échoué ('+r1.status+'). Contacte directement le staff sur Discord.'; return; }
 
     const chunks = chunkText(recap, 1900);
     for (const chunk of chunks) {
       const r = await post(chunk);
-      if (!r.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi partiel échoué ('+r.status+'). Contacte directement le staff sur Discord.'; teamSubmittedCache = true; return; }
+      if (!r.ok) { el.className='dc-status dc-error'; el.textContent='❌ Envoi partiel échoué ('+r.status+'). Contacte directement le staff sur Discord.'; return; }
       await new Promise(res => setTimeout(res, 600));
     }
 
     el.className='dc-status dc-sent'; el.textContent='✅ Réponses transmises au staff avec succès !';
-    teamSubmittedCache = true;
-    setTimeout(teamApplyGate, 1200);
   } catch(e) {
     el.className='dc-status dc-error';
     el.textContent='❌ Connexion impossible. Contacte directement le staff sur Discord.';
-    teamSubmittedCache = true; // la réservation serveur a déjà eu lieu, le questionnaire reste verrouillé
   }
 }
 
 function resetTest(){curQ=0;score=0;answers=[];document.getElementById('pseudo-player').value='';document.getElementById('pseudo-ally').value='';switchStep('step-result','step-intro');}
 
 // ── PARTNER FORM ─────────────────────────────────────────────────────────
-// Source de vérité : le Worker (table D1 `submissions`). Même principe que
-// pour le questionnaire équipe : réservation serveur avant l'envoi Discord.
-let pfSubmittedCache = null;
-
-async function pfCheckSubmitted() {
-  if (!rlUser) { pfSubmittedCache = false; return false; }
-  try {
-    const r = await fetch(`${RL_API}/submission/partner`, {
-      headers: { 'Authorization': `Bearer ${rlUser.access_token}` }
-    });
-    const d = await r.json();
-    pfSubmittedCache = !!d.submitted;
-  } catch(e) {
-    console.warn('[Partner] Vérification soumission impossible :', e.message);
-    pfSubmittedCache = pfSubmittedCache === true;
-  }
-  return pfSubmittedCache;
-}
-
-async function pfApplyGate() {
-  const loginGate = document.getElementById('pf-login-gate');
-  const locked    = document.getElementById('pf-locked');
-  const formWrap  = document.getElementById('partner-form-wrap');
-  if (!loginGate || !locked || !formWrap) return; // page pas encore rendue
-
-  if (!rlUser) {
-    loginGate.style.display = 'block';
-    locked.style.display    = 'none';
-    formWrap.style.display  = 'none';
-    return;
-  }
-  const submitted = await pfCheckSubmitted();
-  loginGate.style.display = 'none';
-  locked.style.display    = submitted ? 'block' : 'none';
-  formWrap.style.display  = submitted ? 'none'  : 'block';
-}
-
 async function submitPartnerForm() {
-  if (!rlUser) { showPfStatus('pf-error', '⚠️ Vous devez être connecté avec Discord pour candidater.'); pfApplyGate(); return; }
-
   const name = document.getElementById('pf-name').value.trim();
   const discord = document.getElementById('pf-discord').value.trim();
   const type = document.getElementById('pf-type').value;
@@ -2332,36 +2180,11 @@ async function submitPartnerForm() {
 
   showPfStatus('pf-sending', '⏳ Envoi de votre candidature…');
 
-  // 1) Réservation côté serveur AVANT l'envoi Discord : empêche tout double
-  //    envoi avec le même discord_id, peu importe l'appareil utilisé.
-  try {
-    const reserve = await fetch(`${RL_API}/submission/partner`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ name, discord, type, platform, link })
-    });
-    if (reserve.status === 409) {
-      showPfStatus('pf-error', '⚠️ Une candidature a déjà été envoyée avec ce compte.');
-      pfSubmittedCache = true;
-      setTimeout(pfApplyGate, 1000);
-      return;
-    }
-    if (!reserve.ok) {
-      showPfStatus('pf-error', '❌ Impossible de valider l\'envoi côté serveur. Contactez-nous directement sur Discord.');
-      return;
-    }
-  } catch(e) {
-    showPfStatus('pf-error', '❌ Connexion au serveur impossible. Contactez-nous directement sur Discord.');
-    return;
-  }
-
-  // 2) Le verrou serveur est posé : on envoie maintenant au webhook Discord.
   const WEBHOOK = 'https://discord.com/api/webhooks/1520223937001291929/I0yw4SsSLWxP8UMQrqa-gKFr_LnwwRfxqdhvfQ5IrrQt-4VAbRpX1-Jpx1-eJHh3NWqD';
   const content = [
     '🤝 **Nouvelle candidature partenaire — Emerarudo Senso**',
     '👤 **Pseudo / Nom :** ' + name,
     '💬 **Discord :** ' + discord,
-    '🔑 **Compte connecté :** ' + (rlUser.pseudo || '?') + ' (ID: ' + rlUser.discord_id + ')',
     type ? '🏷️ **Type :** ' + type : '',
     platform ? '📺 **Plateforme :** ' + platform : '',
     link ? '🔗 **Lien :** ' + link : '',
@@ -2374,15 +2197,14 @@ async function submitPartnerForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content, username: 'Emerarudo Senso — Candidature Partenaire' })
     });
-    pfSubmittedCache = true; // la réservation serveur a eu lieu, quoi qu'il arrive ci-dessous
     if (r.ok) {
-      showPfStatus('pf-sent', '✅ Candidature envoyée ! Elle est désormais définitive. Nous vous répondrons via Discord très prochainement.');
-      setTimeout(pfApplyGate, 1200);
+      showPfStatus('pf-sent', '✅ Candidature envoyée ! Nous vous répondrons via Discord très prochainement.');
+      ['pf-name','pf-discord','pf-platform','pf-link','pf-why'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('pf-type').value = '';
     } else {
       showPfStatus('pf-error', '❌ Envoi échoué (' + r.status + '). Contactez-nous directement sur Discord.');
     }
   } catch(e) {
-    pfSubmittedCache = true;
     showPfStatus('pf-error', '❌ Connexion impossible. Contactez-nous directement sur Discord.');
   }
 }
@@ -2476,8 +2298,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   // Applique les gates dès que le DOM est prêt (cas : jamais connecté, retour OAuth invalide)
   rlApplyGates();
-  pfApplyGate();
-  teamApplyGate();
 });
 
 // ── RELINK AUTH SYSTEM ──────────────────────────────────────────────────────
@@ -2538,8 +2358,6 @@ function rlUpdateUI() {
     avatarTop.style.display  = 'none';
   }
   rlApplyGates();
-  pfApplyGate();
-  teamApplyGate();
 }
 
 // ── OAuth Discord ──
