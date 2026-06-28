@@ -2296,6 +2296,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btn.dataset.target === 'page-clans') clanInit();
     });
   });
+  // Applique les gates dès que le DOM est prêt (cas : jamais connecté, retour OAuth invalide)
+  rlApplyGates();
 });
 
 // ── RELINK AUTH SYSTEM ──────────────────────────────────────────────────────
@@ -2310,26 +2312,18 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token }
   // Récupérer token stocké
   const stored = localStorage.getItem('rl_user');
   if (stored) {
-    try { rlUser = JSON.parse(stored); } catch(e) { localStorage.removeItem('rl_user'); rlUser = null; }
+    try { rlUser = JSON.parse(stored); rlUpdateUI(); } catch(e) { localStorage.removeItem('rl_user'); }
   }
-
   // Callback OAuth Discord (code dans l'URL)
   const params = new URLSearchParams(location.search);
-  const oauthCode  = params.get('code');
+  const oauthCode = params.get('code');
   const oauthState = params.get('state');
-
-  if (oauthCode && oauthState && oauthState === localStorage.getItem('rl_oauth_state')) {
-    // Callback valide → rlHandleOAuthCallback appellera rlUpdateUI lui-même
+  if (oauthCode && oauthState === localStorage.getItem('rl_oauth_state')) {
     rlHandleOAuthCallback(oauthCode);
-  } else {
-    // Pas de callback valide (1ère visite, retour arrière, URL directe…)
-    // Nettoyer l'URL si des params OAuth traînent
-    if (oauthCode || oauthState) {
-      history.replaceState({}, document.title, location.pathname);
-      localStorage.removeItem('rl_oauth_state');
-    }
-    // Toujours appliquer l'état actuel (verrouille les gates si non connecté)
-    rlUpdateUI();
+  } else if (oauthCode || oauthState) {
+    // Retour arrière / state invalide : nettoyer l'URL sans toucher à rlUser
+    history.replaceState({}, document.title, location.pathname);
+    localStorage.removeItem('rl_oauth_state');
   }
 })();
 
