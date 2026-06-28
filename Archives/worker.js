@@ -13,6 +13,10 @@
  * CLASSEMENTS
  *   POST /stats          X-Stats-Secret → { players: [...] }
  *   GET  /leaderboard?type=kills|blocs_poses|fortune&limit=10
+ *
+ * ── MIGRATION D1 REQUISE (à exécuter une seule fois) ──────────────────────
+ *   ALTER TABLE player_stats ADD COLUMN dynasty TEXT;
+ * ──────────────────────────────────────────────────────────────────────────
  */
 
 const PANEL     = 'https://game.lordhosting.fr';
@@ -223,18 +227,19 @@ async function handlePostStats(request, env, origin) {
 
   // Upsert de chaque joueur en batch
   const stmt = env.relinkdb.prepare(
-    `INSERT INTO player_stats (uuid, pseudo, kills, blocs_poses, fortune, updated_at)
-     VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO player_stats (uuid, pseudo, kills, blocs_poses, fortune, dynasty, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(uuid) DO UPDATE SET
        pseudo      = excluded.pseudo,
        kills       = excluded.kills,
        blocs_poses = excluded.blocs_poses,
        fortune     = excluded.fortune,
+       dynasty     = excluded.dynasty,
        updated_at  = excluded.updated_at`
   );
 
   const batch = players.map(p =>
-    stmt.bind(p.uuid, p.pseudo, p.kills || 0, p.blocs_poses || 0, p.fortune || 0)
+    stmt.bind(p.uuid, p.pseudo, p.kills || 0, p.blocs_poses || 0, p.fortune || 0, p.dynasty || null)
   );
   await env.relinkdb.batch(batch);
 
@@ -251,9 +256,11 @@ async function handleLeaderboard(request, env, origin) {
   if (!allowed.includes(type)) return json({ error: 'Type invalide' }, 400, origin);
 
   const rows = await env.relinkdb.prepare(
-    `SELECT uuid, pseudo, kills, blocs_poses, fortune, updated_at
-     FROM player_stats
-     ORDER BY ${type} DESC
+    `SELECT ps.uuid, ps.pseudo, ps.kills, ps.blocs_poses, ps.fortune, ps.dynasty, ps.updated_at,
+            u.avatar_url
+     FROM player_stats ps
+     LEFT JOIN users u ON LOWER(u.pseudo) = LOWER(ps.pseudo)
+     ORDER BY ps.${type} DESC
      LIMIT ?`
   ).bind(limit).all();
 

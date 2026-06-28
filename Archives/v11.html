@@ -1323,8 +1323,8 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div class="staff-section">
       <p class="serv-section-title">🛠️ Équipe de Création</p>
       <div class="staff-grid">
-        <div class="staff-card" data-staff-pseudo="Elit722">
-          <div class="staff-avatar" id="staff-avatar-Elit722">刃</div>
+        <div class="staff-card">
+          <div class="staff-avatar">刃</div>
           <p class="staff-name">Elit722</p>
           <p class="staff-role">Fondateur & Directeur</p>
           <p class="staff-sub">Vision, lore, règlement</p>
@@ -2293,58 +2293,6 @@ function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-// ══════════════════════════════════════════════════════════════
-// STAFF AVATARS — cherche les PP Discord des membres connectés
-// ══════════════════════════════════════════════════════════════
-async function loadStaffAvatars() {
-  const cards = document.querySelectorAll('.staff-card');
-  for (const card of cards) {
-    const nameEl = card.querySelector('.staff-name');
-    if (!nameEl) continue;
-    const pseudo = nameEl.textContent.trim();
-    if (!pseudo || pseudo.startsWith('—')) continue; // carte non remplie
-
-    const avatarEl = card.querySelector('.staff-avatar');
-    if (!avatarEl) continue;
-
-    try {
-      const r = await fetch(`${RL_API}/search?q=${encodeURIComponent(pseudo)}`);
-      if (!r.ok) continue;
-      const d = await r.json();
-      // Cherche une correspondance exacte (insensible à la casse)
-      const match = (d.results || []).find(u =>
-        (u.pseudo || '').toLowerCase() === pseudo.toLowerCase()
-      );
-      if (match && match.avatar_url) {
-        // Remplace le kanji par la photo Discord
-        avatarEl.innerHTML = '';
-        avatarEl.style.cssText += ';background:none;border:2px solid rgba(201,168,76,.45);padding:0;overflow:hidden;';
-        const img = document.createElement('img');
-        img.src = match.avatar_url;
-        img.alt = pseudo;
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
-        avatarEl.appendChild(img);
-      }
-    } catch(e) { /* pas connecté ou erreur réseau → on garde le kanji */ }
-  }
-}
-
-// Lance le chargement des avatars quand on navigue vers page-staff
-(function() {
-  function hookStaffPage() {
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.dataset.target === 'page-staff') loadStaffAvatars();
-      });
-    });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hookStaffPage);
-  } else {
-    hookStaffPage();
-  }
-})();
 
 // ══════════════════════════════════════════════════════════════
 // LEADERBOARD SYSTEM

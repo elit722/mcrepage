@@ -1,25 +1,29 @@
 """
 collect_stats.py
-Lit les fichiers stats Minecraft + playerdata NBT via l'API Pterodactyl
+Lit les fichiers stats Minecraft + playerdata NBT + FTBTeams via l'API Pterodactyl
 et envoie les classements au Worker Cloudflare.
 
 Dépendances : pip install requests nbtlib
 Variables d'environnement (GitHub Secrets) :
   PTERO_URL       https://game.lordhosting.fr
-  PTERO_API_KEY       ptlc_...
+  PTERO_API_KEY   ptlc_...
   PTERO_SERVER    1798a4bf
   WORKER_URL      https://relink-auth.refugeemeraudien-direction.workers.dev
   STATS_SECRET    clé secrète partagée avec le Worker
 """
 
-import os, json, io, gzip, requests
+import os, json, io, gzip, re, requests
 import nbtlib
 
 PTERO_URL    = os.environ['PTERO_URL']
-PTERO_API_KEY    = os.environ['PTERO_API_KEY']
+PTERO_API_KEY = os.environ['PTERO_API_KEY']
 PTERO_SERVER = os.environ['PTERO_SERVER']
 WORKER_URL   = os.environ['WORKER_URL']
 STATS_SECRET = os.environ['STATS_SECRET']
+
+# Noms reconnus comme dynasties (insensible à la casse, correspondance partielle)
+DYNASTY_SUSAKU = 'susaku'
+DYNASTY_SEIRYU = 'seiryu'
 
 HEADERS = {
     'Authorization': f'Bearer {PTERO_API_KEY}',
@@ -28,6 +32,8 @@ HEADERS = {
 
 BASE = f'{PTERO_URL}/api/client/servers/{PTERO_SERVER}'
 
+
+# ── API Pterodactyl ──────────────────────────────────────────────────────────
 
 def ptero_file(path: str) -> bytes:
     r = requests.get(f'{BASE}/files/contents', params={'file': path}, headers=HEADERS, timeout=15)
@@ -40,6 +46,88 @@ def ptero_list(path: str) -> list:
     r.raise_for_status()
     return r.json()['data']
 
+
+# ── Parser SNBT maison ───────────────────────────────────────────────────────
+# Le format SNBT de FTBTeams n'est pas du JSON standard (pas de guillemets sur
+# les clés UUID, suffixes de type NBT comme 0b / 1000L, etc.).
+# On extrait uniquement les deux champs dont on a besoin par regex.
+
+def parse_snbt(text: str) -> dict:
+    """
+    Extrait depuis un fichier SNBT FTBTeams :
+      - display_name  : valeur de "ftbteams:display_name"
+      - member_uuids  : liste des UUID présents dans le bloc ranks { ... }
+    """
+    result = {'display_name': None, 'member_uuids': []}
+
+    # display_name
+    m = re.search(r'"ftbteams:display_name"\s*:\s*"([^"]*)"', text)
+    if m:
+        result['display_name'] = m.group(1)
+
+    # ranks { uuid: "role"  uuid: "role" ... }
+    ranks_m = re.search(r'\branks\s*:\s*\{([^}]*)\}', text, re.DOTALL)
+    if ranks_m:
+        ranks_block = ranks_m.group(1)
+        # Chaque entrée : <uuid>: "<role>"
+        uuids = re.findall(
+            r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
+            ranks_block
+        )
+        result['member_uuids'] = uuids
+
+    return result
+
+
+# ── FTBTeams : construction de la map uuid → dynasty ────────────────────────
+
+def get_dynasty_map() -> dict:
+    """
+    Lit tous les fichiers .snbt dans world/ftbteams/party/,
+    identifie les équipes Susaku et Seiryu,
+    et retourne un dict { uuid: 'susaku' | 'seiryu' }.
+    Tous les UUID absents de ce dict n'ont pas de dynasty (None).
+    """
+    dynasty_map = {}
+
+    try:
+        party_files = ptero_list('/world/ftbteams/party')
+    except Exception as e:
+        print(f'[WARN] Impossible de lister world/ftbteams/party : {e}')
+        return dynasty_map
+
+    for f in party_files:
+        fname = f['attributes']['name']
+        if not fname.endswith('.snbt'):
+            continue
+
+        try:
+            raw = ptero_file(f'/world/ftbteams/party/{fname}')
+            text = raw.decode('utf-8', errors='replace')
+            info = parse_snbt(text)
+
+            name_lower = (info['display_name'] or '').lower()
+
+            if DYNASTY_SUSAKU in name_lower:
+                dynasty = 'susaku'
+            elif DYNASTY_SEIRYU in name_lower:
+                dynasty = 'seiryu'
+            else:
+                # Équipe inconnue → on l'ignore complètement
+                print(f'  [FTBTEAMS] Équipe ignorée : "{info["display_name"]}" ({fname})')
+                continue
+
+            print(f'  [FTBTEAMS] {fname} → {dynasty} ({len(info["member_uuids"])} membre(s))')
+            for uuid in info['member_uuids']:
+                dynasty_map[uuid] = dynasty
+
+        except Exception as e:
+            print(f'  [WARN] Lecture party/{fname} : {e}')
+
+    return dynasty_map
+
+
+# ── Stats Minecraft ──────────────────────────────────────────────────────────
 
 def get_usercache() -> dict:
     try:
@@ -67,12 +155,10 @@ def get_mc_stats(uuid: str) -> dict:
 def get_numismatic_balance(uuid: str) -> int:
     """
     Lit world/playerdata/UUID.dat (NBT gzip) et extrait la balance Numismatic.
-    nbtlib 2.x : utilise nbtlib.File.parse() sur un BytesIO décompressé.
     """
     try:
         raw = ptero_file(f'/world/playerdata/{uuid}.dat')
 
-        # Décompresse manuellement si gzip
         try:
             raw = gzip.decompress(raw)
         except Exception:
@@ -80,7 +166,6 @@ def get_numismatic_balance(uuid: str) -> int:
 
         nbt = nbtlib.File.parse(io.BytesIO(raw))
 
-        # Affiche les clés pour debug
         print(f'  [NBT] clés racine : {list(nbt.keys())[:8]}')
 
         components = nbt.get('cardinal_components', {})
@@ -96,9 +181,15 @@ def get_numismatic_balance(uuid: str) -> int:
         return 0
 
 
+# ── Collecte principale ──────────────────────────────────────────────────────
+
 def collect():
     print('→ Récupération de usercache.json…')
     usercache = get_usercache()
+
+    print('→ Lecture des équipes FTBTeams…')
+    dynasty_map = get_dynasty_map()
+    print(f'  {len(dynasty_map)} joueur(s) assigné(s) à une dynasty.')
 
     print('→ Listage de world/stats/…')
     try:
@@ -112,10 +203,20 @@ def collect():
         name = f['attributes']['name']
         if not name.endswith('.json'):
             continue
-        uuid = name.replace('.json', '')
+
+        uuid   = name.replace('.json', '')
         pseudo = usercache.get(uuid, uuid[:8])
 
-        print(f'  · {pseudo} ({uuid})')
+        # dynasty : 'susaku', 'seiryu', ou None si pas encore dans une équipe
+        dynasty = dynasty_map.get(uuid, None)
+        dynasty_label = {
+            'susaku': 'Susaku',
+            'seiryu': 'Seiryu',
+            None:     'Sans équipe',
+        }[dynasty]
+
+        print(f'  · {pseudo} ({uuid}) — {dynasty_label}')
+
         mc      = get_mc_stats(uuid)
         fortune = get_numismatic_balance(uuid)
 
@@ -125,6 +226,7 @@ def collect():
             'kills':       mc['kills'],
             'blocs_poses': mc['blocs_poses'],
             'fortune':     fortune,
+            'dynasty':     dynasty,   # None si pas d'équipe → le Worker stocke NULL
         })
 
     if not players:
