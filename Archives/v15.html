@@ -2872,6 +2872,8 @@ function clanShowDetail(idx) {
     </div>`;
   }).join('');
 
+  const bonus = c.bonus ? `<div style="font-size:.72rem;color:rgba(201,168,76,.55);margin-top:.35rem;">🎁 Bonus : <span style="color:var(--gold-light)">${esc(c.bonus.replace(/_/g,' '))}</span></div>` : '';
+
   detailEl.innerHTML = `
     <div class="clan-detail-header">
       <span class="clan-detail-color" style="background:${clanColorCss(c.color)}"></span>
@@ -2879,6 +2881,7 @@ function clanShowDetail(idx) {
       <span class="clan-dynasty-badge ${dy.cls}">${dy.label}</span>
       <button class="clan-close-btn" onclick="clanCloseDetail()" type="button">✕ Fermer</button>
     </div>
+    ${bonus}
 
     <div class="clan-stats-row">
       <div class="clan-stat-mini">
