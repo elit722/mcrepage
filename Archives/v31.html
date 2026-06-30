@@ -2785,11 +2785,6 @@ function rlOpenSettings(isNewUser = false) {
       <p class="rl-hint">Modifiable à tout moment.</p>
     </div>
     <div class="rl-field">
-      <label>Pseudo Minecraft <span style="color:var(--mist);font-size:.58rem">(optionnel)</span></label>
-      <input type="text" id="rl-input-mc" value="${esc(rlUser.pseudo_minecraft || '')}" placeholder="Ton pseudo en jeu…" maxlength="32">
-      <p class="rl-hint">Permet de lier ton profil à ta carte staff et au leaderboard.</p>
-    </div>
-    <div class="rl-field">
       <label>Email <span style="color:var(--mist);font-size:.58rem">(optionnel)</span></label>
       <input type="email" id="rl-input-email" value="${esc(rlUser.email || '')}" placeholder="ton@email.com">
       <p class="rl-hint">Jamais affiché publiquement.</p>
@@ -2807,22 +2802,20 @@ function rlOpenSettings(isNewUser = false) {
 
 async function rlSaveProfile() {
   if (!rlUser) return;
-  const pseudo    = document.getElementById('rl-input-pseudo').value.trim();
-  const email     = document.getElementById('rl-input-email').value.trim();
-  const pseudo_mc = (document.getElementById('rl-input-mc')?.value || '').trim();
-  const st        = document.getElementById('rl-settings-status');
+  const pseudo = document.getElementById('rl-input-pseudo').value.trim();
+  const email  = document.getElementById('rl-input-email').value.trim();
+  const st     = document.getElementById('rl-settings-status');
   if (!pseudo) { st.className='rl-status err'; st.textContent='⚠️ Le pseudo est requis.'; return; }
   st.className='rl-status loading'; st.textContent='⏳ Enregistrement…';
   try {
     const r = await fetch(`${RL_API}/profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ pseudo, email, pseudo_minecraft: pseudo_mc })
+      body: JSON.stringify({ pseudo, email })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Erreur');
     rlUser.pseudo = pseudo; rlUser.email = email;
-    if (pseudo_mc) rlUser.pseudo_minecraft = pseudo_mc;
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
     st.className='rl-status ok'; st.textContent='✅ Profil mis à jour !';
   } catch(e) {
@@ -3010,14 +3003,8 @@ function findClosestPseudo(target, results) {
   const targetNorm = normPseudo(target);
   const targetBase = basePseudo(target);
 
-  // 0. correspondance via pseudo_minecraft explicitement renseigné (lien manuel)
-  let match = results.find(u => normPseudo(u.pseudo_minecraft) === targetNorm);
-  if (match) return match;
-  match = results.find(u => basePseudo(u.pseudo_minecraft) === targetBase && targetBase.length >= 3);
-  if (match) return match;
-
   // 1. correspondance exacte
-  match = results.find(u => (u.pseudo || '').toLowerCase() === targetLower);
+  let match = results.find(u => (u.pseudo || '').toLowerCase() === targetLower);
   if (match) return match;
 
   // 2. correspondance normalisée exacte (Nocturno vs Nocturno__)
@@ -3029,6 +3016,7 @@ function findClosestPseudo(target, results) {
     const baseMatches = results.filter(u => basePseudo(u.pseudo) === targetBase);
     if (baseMatches.length === 1) return baseMatches[0];
     if (baseMatches.length > 1) {
+      // parmi les candidats, prendre celui dont le normPseudo est le plus proche
       return baseMatches.reduce((best, u) =>
         levenshtein(targetNorm, normPseudo(u.pseudo)) <
         levenshtein(targetNorm, normPseudo(best.pseudo)) ? u : best
@@ -3042,6 +3030,7 @@ function findClosestPseudo(target, results) {
     const uNorm = normPseudo(u.pseudo);
     if (!uNorm) continue;
     const dist = levenshtein(targetBase, basePseudo(u.pseudo));
+    // tolérance proportionnelle à la longueur du pseudo (max 30%, au moins 1)
     const maxAllowed = Math.max(1, Math.floor(Math.max(targetBase.length, basePseudo(u.pseudo).length) * 0.3));
     if (dist <= maxAllowed && dist < bestDist) {
       best = u; bestDist = dist;
@@ -3062,26 +3051,11 @@ async function loadStaffAvatars() {
     if (!avatarEl) continue;
 
     try {
-      // On cherche avec le pseudo tel quel, ET avec sa base (sans chiffres finaux ni underscores)
-      // pour trouver "Elit" quand la carte dit "Elit722" et vice-versa
-      const pseudoBase = basePseudo(pseudo);
-      const queries = [pseudo];
-      if (pseudoBase && pseudoBase !== normPseudo(pseudo)) queries.push(pseudoBase);
-
-      const allResults = [];
-      const seen = new Set();
-      for (const q of queries) {
-        const r = await fetch(`${RL_API}/search?q=${encodeURIComponent(q)}`);
-        if (!r.ok) continue;
-        const d = await r.json();
-        for (const u of (d.results || [])) {
-          const uid = u.discord_id || u.pseudo;
-          if (uid && !seen.has(uid)) { seen.add(uid); allResults.push(u); }
-        }
-      }
-
+      const r = await fetch(`${RL_API}/search?q=${encodeURIComponent(pseudo)}`);
+      if (!r.ok) continue;
+      const d = await r.json();
       // Cherche une correspondance tolérante (exacte, puis normalisée, puis la plus proche)
-      const match = findClosestPseudo(pseudo, allResults);
+      const match = findClosestPseudo(pseudo, d.results || []);
       if (match && match.avatar_url) {
         // Remplace le kanji par la photo Discord
         avatarEl.innerHTML = '';
