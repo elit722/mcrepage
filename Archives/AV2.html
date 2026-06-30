@@ -465,10 +465,7 @@ function confirm(title, body, btnClass = 'btn-confirm-danger') {
     document.getElementById('modal-overlay').classList.add('open');
   });
 }
-function modalConfirmCallback() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  if (modalResolve) { modalResolve(true); modalResolve = null; }
-}
+function modalConfirmCallback() { closeModal(); if (modalResolve) { modalResolve(true); modalResolve = null; } }
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   if (modalResolve) { modalResolve(false); modalResolve = null; }
