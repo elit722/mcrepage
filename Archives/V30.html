@@ -2969,12 +2969,6 @@ function normPseudo(s) {
     .replace(/[^a-z0-9]/g, '');
 }
 
-// Retire en plus les chiffres en fin de pseudo (ex: "Elit722" → "elit")
-// pour lier "Elit" et "Elit722"
-function basePseudo(s) {
-  return normPseudo(s).replace(/\d+$/, '');
-}
-
 // Distance de Levenshtein simple (pour trouver le pseudo le plus proche)
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
@@ -3001,7 +2995,6 @@ function findClosestPseudo(target, results) {
   if (!target || !results || !results.length) return null;
   const targetLower = target.toLowerCase();
   const targetNorm = normPseudo(target);
-  const targetBase = basePseudo(target);
 
   // 1. correspondance exacte
   let match = results.find(u => (u.pseudo || '').toLowerCase() === targetLower);
@@ -3011,27 +3004,14 @@ function findClosestPseudo(target, results) {
   match = results.find(u => normPseudo(u.pseudo) === targetNorm);
   if (match) return match;
 
-  // 2b. correspondance par base (Elit vs Elit722 : chiffres finaux ignorés)
-  if (targetBase.length >= 3) {
-    const baseMatches = results.filter(u => basePseudo(u.pseudo) === targetBase);
-    if (baseMatches.length === 1) return baseMatches[0];
-    if (baseMatches.length > 1) {
-      // parmi les candidats, prendre celui dont le normPseudo est le plus proche
-      return baseMatches.reduce((best, u) =>
-        levenshtein(targetNorm, normPseudo(u.pseudo)) <
-        levenshtein(targetNorm, normPseudo(best.pseudo)) ? u : best
-      );
-    }
-  }
-
   // 3. pseudo normalisé le plus proche (tolère fautes de frappe / variantes)
   let best = null, bestDist = Infinity;
   for (const u of results) {
     const uNorm = normPseudo(u.pseudo);
     if (!uNorm) continue;
-    const dist = levenshtein(targetBase, basePseudo(u.pseudo));
+    const dist = levenshtein(targetNorm, uNorm);
     // tolérance proportionnelle à la longueur du pseudo (max 30%, au moins 1)
-    const maxAllowed = Math.max(1, Math.floor(Math.max(targetBase.length, basePseudo(u.pseudo).length) * 0.3));
+    const maxAllowed = Math.max(1, Math.floor(Math.max(targetNorm.length, uNorm.length) * 0.3));
     if (dist <= maxAllowed && dist < bestDist) {
       best = u; bestDist = dist;
     }
