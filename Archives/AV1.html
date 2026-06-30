@@ -346,14 +346,7 @@
     <!-- ── Page Flags ── -->
     <div id="page-flags" class="page">
       <div class="page-header">
-        <h2>Visibilit&#233; &amp; acc&#232;s</h2>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-        <button class="btn-action btn-unban" style="font-size:13px;padding:8px 16px;" onclick="unlockAll()">
-          &#128275; Tout d&#233;verrouiller
-        </button>
-        <span style="font-size:12px;color:var(--muted);">D&#233;sactive la connexion obligatoire globale et affiche toutes les sections.</span>
+        <h2>Visibilité & accès</h2>
       </div>
 
       <div class="card">
@@ -641,23 +634,17 @@ async function unlockSub(discordId, pseudo, type) {
 // ── Page Flags ────────────────────────────────────────────────────────────
 const FLAG_META = {
   'flag:require_auth': {
-    label: 'Connexion obligatoire (globale)',
-    desc: 'Force tous les visiteurs a se connecter pour voir n\'importe quelle section',
+    label: 'Connexion obligatoire',
+    desc: 'Force tous les visiteurs à se connecter avec Discord',
     container: 'flags-auth',
   },
-  'flag:section:home':        { label: 'Informations',    desc: 'Infos generales du serveur',          container: 'flags-sections' },
-  'flag:section:modpack':     { label: 'Modpack',         desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
-  'flag:section:lore':        { label: 'Lore',            desc: 'Histoire et univers du serveur',      container: 'flags-sections' },
-  'flag:section:reglement':   { label: 'Reglement',       desc: 'Regles de la communaute',             container: 'flags-sections' },
-  'flag:section:partenaires': { label: 'Partenaires',     desc: 'Candidature partenaire',              container: 'flags-sections' },
-  'flag:section:ajouts':      { label: 'Ajouts recents',  desc: 'Nouveautes et mises a jour',          container: 'flags-sections' },
-  'flag:section:server':      { label: 'Info Serveur',    desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
-  'flag:section:clans':       { label: 'Clans',           desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
-  'flag:section:team':        { label: 'Mon Equipe',      desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
-  'flag:section:about':       { label: 'A propos',        desc: 'Presentation du projet',              container: 'flags-sections' },
-  'flag:section:staff':       { label: 'Staff',           desc: 'Equipe de moderation',                container: 'flags-sections' },
-  'flag:section:aide':        { label: 'Aide',            desc: 'FAQ et support',                      container: 'flags-sections' },
-}
+  'flag:section:home':        { label: 'Section Accueil',      desc: 'Page d\'accueil principale',         container: 'flags-sections' },
+  'flag:section:server':      { label: 'Section Serveur',      desc: 'Statut et infos du serveur MC',     container: 'flags-sections' },
+  'flag:section:clans':       { label: 'Section Clans',        desc: 'Liste et classement des clans',     container: 'flags-sections' },
+  'flag:section:leaderboard': { label: 'Section Classement',   desc: 'Leaderboard kills/blocs/fortune',   container: 'flags-sections' },
+  'flag:section:partner':     { label: 'Section Partenaires',  desc: 'Formulaire de candidature partenaire', container: 'flags-sections' },
+  'flag:section:team':        { label: 'Section Équipe',       desc: 'Formulaire de recrutement équipe',   container: 'flags-sections' },
+};
 
 async function loadFlags() {
   const data = await apiFetch('/admin/flags');
@@ -720,35 +707,6 @@ function esc(s) {
   urlInput.addEventListener('input', () => localStorage.setItem('relink_worker_url', urlInput.value.trim()));
   authCard.insertBefore(urlInput, input.nextSibling);
 })();
-// ── Tout déverrouiller ──────────────────────────────────────────────────
-async function unlockAll() {
-  const ok = await confirm(
-    'Tout deverrouiller',
-    'Desactiver la connexion obligatoire globale et rendre toutes les sections visibles ? Les protections individuelles du site (modpack, servinfo, clans, equipe) restent gerees par le site lui-meme.',
-    'btn-confirm-ok'
-  );
-  if (!ok) return;
-  const keys = [
-    'flag:require_auth',
-    'flag:section:home', 'flag:section:modpack', 'flag:section:lore',
-    'flag:section:reglement', 'flag:section:partenaires', 'flag:section:ajouts',
-    'flag:section:server', 'flag:section:clans', 'flag:section:team',
-    'flag:section:about', 'flag:section:staff', 'flag:section:aide',
-  ];
-  let errors = 0;
-  for (const key of keys) {
-    const val = key === 'flag:require_auth' ? 'false' : 'true';
-    const d = await apiFetch('/admin/flags', 'POST', { key, value: val });
-    if (!d.ok) errors++;
-  }
-  if (errors === 0) {
-    toast('Tout deverrouille avec succes.', 'success');
-  } else {
-    toast(errors + ' erreur(s) lors du deverrouillage.', 'error');
-  }
-  loadFlags();
-}
-
 </script>
 </body>
 </html>
