@@ -2771,7 +2771,6 @@ function rlOpenLogin() {
 function rlOpenSettings(isNewUser = false) {
   if (!rlUser) { rlOpenLogin(); return; }
   rlSetTitle('Paramètres du compte');
-  const mcLinked = rlUser.minecraft_uuid;
   rlSetModalBody(`
     <div class="rl-avatar-row">
       <div class="rl-avatar-wrap">
@@ -2795,91 +2794,10 @@ function rlOpenSettings(isNewUser = false) {
       <p class="rl-hint" style="margin-top:0">Synchronisée depuis Discord — non modifiable.</p>
     </div>
     <button class="rl-save-btn" onclick="rlSaveProfile()">💾 Enregistrer</button>
-    <div class="divider" style="margin:1.2rem 0"></div>
-    <div class="rl-field">
-      <label>Compte Minecraft (Mojang)</label>
-      ${mcLinked ? `
-        <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:3px;">
-          <img src="https://crafatar.com/avatars/${esc(rlUser.minecraft_uuid)}?size=32&overlay" style="width:32px;height:32px;border-radius:3px;" alt="Skin">
-          <span style="font-size:.82rem;color:var(--white-jade);">✅ Lié à <strong>${esc(rlUser.minecraft_pseudo || '')}</strong></span>
-        </div>
-        <p class="rl-hint">Ce lien associe ton UUID Minecraft à ton compte Discord pour éviter toute usurpation de pseudo.</p>
-      ` : `
-        <p class="rl-hint" style="margin-top:0">Lie ton pseudo Minecraft à ton compte Discord pour sécuriser ton profil et éviter qu'un tiers usurpe ton pseudo dans les classements.</p>
-        <div style="display:flex;gap:.5rem;margin-top:.4rem;">
-          <input type="text" id="rl-input-mc-pseudo" placeholder="Pseudo Minecraft…" maxlength="16" style="flex:1">
-          <button class="rl-dc-btn" style="white-space:nowrap;padding:.55rem 1rem;" onclick="rlLookupMojang()">🔎 Vérifier</button>
-        </div>
-        <div id="rl-mojang-preview"></div>
-      `}
-      <div class="rl-status" id="rl-mojang-status"></div>
-    </div>
     <button class="rl-logout-btn" onclick="rlLogout()">Déconnexion</button>
     <div class="rl-status" id="rl-settings-status"></div>
   `);
   rlOpen();
-}
-
-// ── Liaison Mojang (anti-usurpation) ──
-// Récupère l'UUID Mojang officiel correspondant au pseudo saisi, affiche le skin
-// pour confirmation visuelle, puis envoie la liaison au Worker.
-// ⚠️ Le Worker (`PUT /profile`) doit refuser (409) si cet UUID est déjà lié
-// à un AUTRE compte Discord, afin d'empêcher qu'un pseudo soit usurpé.
-let rlPendingMojang = null;
-async function rlLookupMojang() {
-  const input = document.getElementById('rl-input-mc-pseudo');
-  const st = document.getElementById('rl-mojang-status');
-  const preview = document.getElementById('rl-mojang-preview');
-  const pseudoMc = (input?.value || '').trim();
-  if (!pseudoMc) { st.className = 'rl-status err'; st.textContent = '⚠️ Entre un pseudo Minecraft.'; return; }
-  st.className = 'rl-status loading'; st.textContent = '⏳ Recherche du compte Mojang…';
-  preview.innerHTML = '';
-  rlPendingMojang = null;
-  try {
-    const r = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(pseudoMc)}`);
-    if (r.status === 404) { st.className = 'rl-status err'; st.textContent = '❌ Aucun compte Minecraft avec ce pseudo.'; return; }
-    if (!r.ok) throw new Error('Service Mojang indisponible');
-    const d = await r.json(); // { id, name }
-    rlPendingMojang = { uuid: d.id, pseudo: d.name };
-    st.className = 'rl-status'; st.textContent = '';
-    preview.innerHTML = `
-      <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:3px;">
-        <img src="https://crafatar.com/avatars/${esc(d.id)}?size=32&overlay" style="width:32px;height:32px;border-radius:3px;" alt="Skin">
-        <span style="font-size:.82rem;flex:1;">C'est bien <strong>${esc(d.name)}</strong> ?</span>
-        <button class="rl-save-btn" style="margin:0;padding:.4rem .8rem;font-size:.7rem;" onclick="rlConfirmMojangLink()">✅ Lier ce compte</button>
-      </div>`;
-  } catch (e) {
-    st.className = 'rl-status err'; st.textContent = '❌ ' + e.message;
-  }
-}
-
-async function rlConfirmMojangLink() {
-  if (!rlUser || !rlPendingMojang) return;
-  const st = document.getElementById('rl-mojang-status');
-  st.className = 'rl-status loading'; st.textContent = '⏳ Liaison en cours…';
-  try {
-    const r = await fetch(`${RL_API}/profile`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({
-        pseudo: rlUser.pseudo,
-        email: rlUser.email,
-        minecraft_uuid: rlPendingMojang.uuid,
-        minecraft_pseudo: rlPendingMojang.pseudo
-      })
-    });
-    const d = await r.json().catch(() => ({}));
-    if (r.status === 409) throw new Error('Ce compte Minecraft est déjà lié à un autre profil Discord.');
-    if (!r.ok) throw new Error(d.error || 'Erreur serveur');
-    rlUser.minecraft_uuid = rlPendingMojang.uuid;
-    rlUser.minecraft_pseudo = rlPendingMojang.pseudo;
-    localStorage.setItem('rl_user', JSON.stringify(rlUser));
-    rlPendingMojang = null;
-    st.className = 'rl-status ok'; st.textContent = '✅ Compte Minecraft lié avec succès !';
-    rlOpenSettings(false);
-  } catch (e) {
-    st.className = 'rl-status err'; st.textContent = '❌ ' + e.message;
-  }
 }
 
 async function rlSaveProfile() {
@@ -2893,11 +2811,7 @@ async function rlSaveProfile() {
     const r = await fetch(`${RL_API}/profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({
-        pseudo, email,
-        minecraft_uuid: rlUser.minecraft_uuid || undefined,
-        minecraft_pseudo: rlUser.minecraft_pseudo || undefined
-      })
+      body: JSON.stringify({ pseudo, email })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Erreur');
@@ -2975,24 +2889,26 @@ function rlSearch(q) {
         res.innerHTML = '<div class="rl-empty">Aucun profil trouvé.</div>'; return;
       }
       // Croisement avec lbCache.kills (pseudo → dynasty + kills)
-      // Tolérant aux variantes de pseudo (Nocturno_ / Nocturno__ / Nocturn0…)
       const lbRows = (lbCache && lbCache.kills && lbCache.kills.data) ? lbCache.kills.data : [];
+      const lbByPseudo = {};
+      lbRows.forEach(p => {
+        const key = (p.pseudo || p.username || p.name || '').toLowerCase();
+        if (key) lbByPseudo[key] = p;
+      });
 
       // Croisement avec CLAN_DATA (pseudo → clan name via playerNames)
-      const clanEntries = [];
+      const clanByPseudo = {};
       if (CLAN_DATA) {
         CLAN_DATA.forEach(c => {
           Object.entries(c.playerNames || {}).forEach(([uuid, name]) => {
-            clanEntries.push({ pseudo: name, clanName: c.name });
+            clanByPseudo[name.toLowerCase()] = c.name;
           });
         });
       }
 
       res.innerHTML = d.results.map(u => {
-        const target = u.pseudo || '';
-        // Lien le plus proche, pas seulement une égalité exacte
-        const lbMatch = findClosestPseudo(target, lbRows, p => p.pseudo || p.username || p.name || '');
-        const lb = lbMatch || {};
+        const key = (u.pseudo || '').toLowerCase();
+        const lb  = lbByPseudo[key] || {};
 
         // Dynasty depuis lbCache
         let dyBadge = '';
@@ -3011,9 +2927,8 @@ function rlSearch(q) {
         const killsBadge = kills !== null
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
 
-        // Clan depuis CLAN_DATA (correspondance tolérante)
-        const clanMatch = findClosestPseudo(target, clanEntries, c => c.pseudo);
-        const clanName = clanMatch ? clanMatch.clanName : null;
+        // Clan depuis CLAN_DATA
+        const clanName = clanByPseudo[key] || null;
         const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
         const meta = (dyBadge || killsBadge || clanBadge)
@@ -3041,91 +2956,6 @@ function esc(s) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// FUZZY PSEUDO MATCHING — tolère les variantes (underscores, 0/o…)
-// Utilisé par : recherche profil, leaderboards, staff, clans
-// ══════════════════════════════════════════════════════════════
-
-// Distance de Levenshtein classique (sensible aux caractères exacts)
-function levenshtein(a, b) {
-  a = a || ''; b = b || '';
-  const m = a.length, n = b.length;
-  if (m === 0) return n;
-  if (n === 0) return m;
-  let prev = new Array(n + 1);
-  let curr = new Array(n + 1);
-  for (let j = 0; j <= n; j++) prev[j] = j;
-  for (let i = 1; i <= m; i++) {
-    curr[0] = i;
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      curr[j] = Math.min(
-        prev[j] + 1,      // suppression
-        curr[j - 1] + 1,  // insertion
-        prev[j - 1] + cost // substitution
-      );
-    }
-    [prev, curr] = [curr, prev];
-  }
-  return prev[n];
-}
-
-// Normalise un pseudo pour détecter les variantes d'un même joueur :
-// minuscules, underscores retirés, "0" → "o" (confusion fréquente)
-function normalizePseudo(s) {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/_/g, '')
-    .replace(/0/g, 'o')
-    .trim();
-}
-
-// Deux pseudos sont-ils considérés comme "la même personne" / variantes proches ?
-function isFuzzyPseudoMatch(a, b) {
-  if (!a || !b) return false;
-  const la = a.toLowerCase().trim(), lb = b.toLowerCase().trim();
-  if (la === lb) return true;
-  const na = normalizePseudo(a), nb = normalizePseudo(b);
-  if (na === nb) return true;
-  // Tolérance proportionnelle à la longueur (pseudos courts = plus stricts)
-  const maxLen = Math.max(na.length, nb.length);
-  const threshold = maxLen <= 4 ? 1 : (maxLen <= 8 ? 2 : 3);
-  return levenshtein(na, nb) <= threshold;
-}
-
-// Filtre tolérant : `q` matche `name` soit en substring classique,
-// soit en variante proche (normalisation + Levenshtein)
-function fuzzyIncludes(name, q) {
-  if (!name || !q) return false;
-  const ln = name.toLowerCase(), lq = q.toLowerCase();
-  if (ln.includes(lq)) return true;
-  const nn = normalizePseudo(name), nq = normalizePseudo(q);
-  if (nn.includes(nq)) return true;
-  if (nq.length >= 3) {
-    // Compare le préfixe normalisé de `name` (même longueur que `nq`) à `nq`
-    const prefix = nn.slice(0, nq.length);
-    if (levenshtein(prefix, nq) <= (nq.length <= 6 ? 1 : 2)) return true;
-  }
-  return false;
-}
-
-// Parmi une liste de candidats, renvoie le plus PROCHE de `target`
-// (priorité à la distance brute la plus faible, pas seulement à un match flou) :
-// ex. cible "Nocturno_", candidats ["Nocturn0","Nocturno__"] → "Nocturno__" gagne
-// (1 caractère d'écart contre 2 pour "Nocturn0").
-function findClosestPseudo(target, candidates, keyFn) {
-  keyFn = keyFn || (x => x);
-  let best = null, bestDist = Infinity;
-  for (const cand of candidates) {
-    const candPseudo = keyFn(cand);
-    if (!candPseudo) continue;
-    if (!isFuzzyPseudoMatch(target, candPseudo)) continue;
-    const dist = levenshtein(target.toLowerCase(), candPseudo.toLowerCase());
-    if (dist < bestDist) { bestDist = dist; best = cand; }
-  }
-  return best;
-}
-
-// ══════════════════════════════════════════════════════════════
 // STAFF AVATARS — cherche les PP Discord des membres connectés
 // ══════════════════════════════════════════════════════════════
 async function loadStaffAvatars() {
@@ -3143,8 +2973,10 @@ async function loadStaffAvatars() {
       const r = await fetch(`${RL_API}/search?q=${encodeURIComponent(pseudo)}`);
       if (!r.ok) continue;
       const d = await r.json();
-      // Cherche la correspondance la plus proche (tolère Nocturno_/Nocturno__/Nocturn0…)
-      const match = findClosestPseudo(pseudo, d.results || [], u => u.pseudo || '');
+      // Cherche une correspondance exacte (insensible à la casse)
+      const match = (d.results || []).find(u =>
+        (u.pseudo || '').toLowerCase() === pseudo.toLowerCase()
+      );
       if (match && match.avatar_url) {
         // Remplace le kanji par la photo Discord
         avatarEl.innerHTML = '';
@@ -3298,8 +3130,8 @@ function lbApplyFilter(type, rows, query, bodyEl, footerEl) {
   const q = query.trim().toLowerCase();
   const filtered = q
     ? rows.filter(p => {
-        const name = p.pseudo || p.username || p.name || '';
-        return fuzzyIncludes(name, q);
+        const name = (p.pseudo || p.username || p.name || '').toLowerCase();
+        return name.includes(q);
       })
     : rows;
   bodyEl.innerHTML = lbRenderTable(type, filtered);
@@ -3530,7 +3362,7 @@ function renderClanList(clans, query) {
   const filtered = q ? clans.filter(c => {
     if (c.name.toLowerCase().includes(q)) return true;
     const names = Object.values(c.playerNames || {});
-    return names.some(n => fuzzyIncludes(n, q));
+    return names.some(n => n.toLowerCase().includes(q));
   }) : clans;
 
   const listEl = document.getElementById('clan-list');
