@@ -2825,8 +2825,6 @@ function rlOpenSettings(isNewUser = false) {
 // pour confirmation visuelle, puis envoie la liaison au Worker.
 // ⚠️ Le Worker (`PUT /profile`) doit refuser (409) si cet UUID est déjà lié
 // à un AUTRE compte Discord, afin d'empêcher qu'un pseudo soit usurpé.
-// Note : la recherche passe par le Worker (`/mojang/lookup`), pas directement
-// par api.mojang.com, qui n'autorise pas les appels CORS depuis un navigateur.
 let rlPendingMojang = null;
 async function rlLookupMojang() {
   const input = document.getElementById('rl-input-mc-pseudo');
@@ -2838,23 +2836,22 @@ async function rlLookupMojang() {
   preview.innerHTML = '';
   rlPendingMojang = null;
   try {
-    const r = await fetch(`${RL_API}/mojang/lookup?pseudo=${encodeURIComponent(pseudoMc)}`);
-    const d = await r.json().catch(() => ({}));
+    const r = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(pseudoMc)}`);
     if (r.status === 404) { st.className = 'rl-status err'; st.textContent = '❌ Aucun compte Minecraft avec ce pseudo.'; return; }
-    if (!r.ok) throw new Error(d.error || 'Service Mojang indisponible');
-    rlPendingMojang = { uuid: d.uuid, pseudo: d.pseudo };
+    if (!r.ok) throw new Error('Service Mojang indisponible');
+    const d = await r.json(); // { id, name }
+    rlPendingMojang = { uuid: d.id, pseudo: d.name };
     st.className = 'rl-status'; st.textContent = '';
     preview.innerHTML = `
       <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);border-radius:3px;">
-        <img src="https://crafatar.com/avatars/${esc(d.uuid)}?size=32&overlay" style="width:32px;height:32px;border-radius:3px;" alt="Skin">
-        <span style="font-size:.82rem;flex:1;">C'est bien <strong>${esc(d.pseudo)}</strong> ?</span>
+        <img src="https://crafatar.com/avatars/${esc(d.id)}?size=32&overlay" style="width:32px;height:32px;border-radius:3px;" alt="Skin">
+        <span style="font-size:.82rem;flex:1;">C'est bien <strong>${esc(d.name)}</strong> ?</span>
         <button class="rl-save-btn" style="margin:0;padding:.4rem .8rem;font-size:.7rem;" onclick="rlConfirmMojangLink()">✅ Lier ce compte</button>
       </div>`;
   } catch (e) {
     st.className = 'rl-status err'; st.textContent = '❌ ' + e.message;
   }
 }
-
 
 async function rlConfirmMojangLink() {
   if (!rlUser || !rlPendingMojang) return;
