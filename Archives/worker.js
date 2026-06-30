@@ -18,6 +18,21 @@
  *   POST /clans-sync     X-Stats-Secret → { clans: [...] }
  *   GET  /clans
  *
+ * SOUMISSIONS UNIQUES (candidature partenaire / questionnaire équipe)
+ *   GET    /submission/:type        Bearer token  → { submitted: bool, at: ts|null }
+ *   POST   /submission/:type        Bearer token  → marque la soumission comme faite (définitif)
+ *   DELETE /submission/:type        X-Admin-Secret + ?discord_id=xxx → déblocage admin
+ *   :type ∈ "partner" | "team"
+ *
+ * ── NOUVEAUX ENDPOINTS (admin + flags) ───────────────────────────────────
+ *   GET  /flags                     → { sections: {...}, require_auth: bool }
+ *
+ *   GET    /admin/users             X-Admin-Secret  → liste paginée
+ *   POST   /admin/users/:id/status  X-Admin-Secret  → { action: suspend|ban|unban|delete }
+ *   GET    /admin/flags             X-Admin-Secret  → état des flags
+ *   POST   /admin/flags             X-Admin-Secret  → { key, value }
+ *   GET    /admin/submissions       X-Admin-Secret  → liste des soumissions
+ *
  * ── MIGRATIONS D1 (à exécuter une seule fois) ─────────────────────────────
  *   ALTER TABLE player_stats ADD COLUMN dynasty TEXT;
  *
@@ -26,6 +41,38 @@
  *     value      TEXT NOT NULL,
  *     updated_at TEXT
  *   );
+ *
+ *   CREATE TABLE IF NOT EXISTS submissions (
+ *     discord_id TEXT NOT NULL,
+ *     type       TEXT NOT NULL,
+ *     payload    TEXT,
+ *     created_at TEXT NOT NULL,
+ *     PRIMARY KEY (discord_id, type)
+ *   );
+ *
+ *   -- NOUVELLES migrations v4 (ajouts purs, non destructifs)
+ *   ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';
+ *
+ *   CREATE TABLE IF NOT EXISTS site_flags (
+ *     key        TEXT PRIMARY KEY,
+ *     value      TEXT NOT NULL,
+ *     updated_at TEXT
+ *   );
+ *
+ *   INSERT OR IGNORE INTO site_flags (key, value, updated_at) VALUES
+ *     ('require_auth',         'false', datetime('now')),
+ *     ('section:home',         'true',  datetime('now')),
+ *     ('section:modpack',      'true',  datetime('now')),
+ *     ('section:lore',         'true',  datetime('now')),
+ *     ('section:reglement',    'true',  datetime('now')),
+ *     ('section:partenaires',  'true',  datetime('now')),
+ *     ('section:ajouts',       'true',  datetime('now')),
+ *     ('section:server',       'true',  datetime('now')),
+ *     ('section:clans',        'true',  datetime('now')),
+ *     ('section:team',         'true',  datetime('now')),
+ *     ('section:about',        'true',  datetime('now')),
+ *     ('section:staff',        'true',  datetime('now')),
+ *     ('section:aide',         'true',  datetime('now'));
  * ──────────────────────────────────────────────────────────────────────────
  */
 
@@ -35,6 +82,12 @@ const MC_HOST     = 'gm1.lordhosting.fr';
 const MC_PORT     = 2062;
 const DISCORD_API = 'https://discord.com/api/v10';
 
+// Types de soumission unique autorisés (cf. table `submissions`)
+const SUBMISSION_TYPES = ['partner', 'team'];
+
+// Sections gérées par les flags
+const SITE_SECTIONS = ['home', 'modpack', 'lore', 'reglement', 'partenaires', 'ajouts', 'server', 'clans', 'team', 'about', 'staff', 'aide'];
+
 // ── CORS ──────────────────────────────────────────────────────────────────
 function corsHeaders(origin) {
   const allowed = [
@@ -43,12 +96,13 @@ function corsHeaders(origin) {
     'https://www.emerarudo-senso.fr',
     'http://localhost',
     'http://127.0.0.1',
+    'null', // admin.html ouvert en file:// depuis le bureau
   ];
-  const o = allowed.find(a => origin && origin.startsWith(a)) ? origin : allowed[0];
+  const o = (origin === 'null' || allowed.find(a => origin && origin.startsWith(a))) ? origin : allowed[0];
   return {
     'Access-Control-Allow-Origin':  o,
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Stats-Secret',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Stats-Secret,X-Admin-Secret',
     'Access-Control-Max-Age':       '86400',
   };
 }
@@ -145,6 +199,11 @@ async function handleDiscordAuth(request, env, origin) {
     : `https://cdn.discordapp.com/embed/avatars/${parseInt(dc.discriminator || '0') % 5}.png`;
 
   const existing = await env.relinkdb.prepare('SELECT * FROM users WHERE discord_id = ?').bind(dc.id).first();
+  // Bloquer la connexion si le compte est banni ou suspendu
+  if (existing) {
+    if (existing.status === 'banned')    return json({ error: 'Compte banni' }, 403, origin);
+    if (existing.status === 'suspended') return json({ error: 'Compte suspendu' }, 403, origin);
+  }
   if (!existing) {
     await env.relinkdb.prepare('INSERT INTO users (discord_id, pseudo, email, avatar_url) VALUES (?, ?, ?, ?)')
       .bind(dc.id, dc.username, dc.email || null, avatarUrl).run();
@@ -198,9 +257,12 @@ async function handleMe(request, env, origin) {
   const payload = await getUser(request, env);
   if (!payload) return json({ error: 'Non authentifié' }, 401, origin);
   const user = await env.relinkdb.prepare(
-    'SELECT discord_id, pseudo, email, avatar_url FROM users WHERE discord_id = ?'
+    'SELECT discord_id, pseudo, email, avatar_url, status FROM users WHERE discord_id = ?'
   ).bind(payload.discord_id).first();
   if (!user) return json({ error: 'Utilisateur introuvable' }, 404, origin);
+  // Vérification statut — permet au site de détecter suspension/ban au rechargement
+  if (user.status === 'banned')    return json({ error: 'Compte banni' }, 403, origin);
+  if (user.status === 'suspended') return json({ error: 'Compte suspendu' }, 401, origin);
   return json(user, 200, origin);
 }
 
@@ -309,6 +371,198 @@ async function handleGetClans(request, env, origin) {
   return json(JSON.parse(row.value), 200, origin);
 }
 
+// ── Handlers SOUMISSIONS UNIQUES (partenaire / équipe) ────────────────────
+function extractSubmissionType(pathname) {
+  const m = pathname.match(/^\/submission\/([a-z]+)$/);
+  if (!m) return null;
+  const type = m[1];
+  return SUBMISSION_TYPES.includes(type) ? type : null;
+}
+
+async function handleGetSubmission(request, env, origin, type) {
+  const payload = await getUser(request, env);
+  if (!payload) return json({ error: 'Non authentifié' }, 401, origin);
+
+  const row = await env.relinkdb.prepare(
+    'SELECT created_at FROM submissions WHERE discord_id = ? AND type = ?'
+  ).bind(payload.discord_id, type).first();
+
+  return json({ submitted: !!row, at: row ? row.created_at : null }, 200, origin);
+}
+
+async function handlePostSubmission(request, env, origin, type) {
+  const payload = await getUser(request, env);
+  if (!payload) return json({ error: 'Non authentifié' }, 401, origin);
+
+  const existing = await env.relinkdb.prepare(
+    'SELECT created_at FROM submissions WHERE discord_id = ? AND type = ?'
+  ).bind(payload.discord_id, type).first();
+
+  if (existing) {
+    return json({ error: 'Déjà soumis', submitted: true, at: existing.created_at }, 409, origin);
+  }
+
+  let body = {};
+  try { body = await request.json(); } catch { /* corps optionnel */ }
+  const payloadStr = body && Object.keys(body).length ? JSON.stringify(body).slice(0, 8000) : null;
+
+  try {
+    await env.relinkdb.prepare(
+      `INSERT INTO submissions (discord_id, type, payload, created_at)
+       VALUES (?, ?, ?, datetime('now'))`
+    ).bind(payload.discord_id, type, payloadStr).run();
+  } catch(e) {
+    return json({ error: 'Déjà soumis', submitted: true }, 409, origin);
+  }
+
+  return json({ ok: true, submitted: true }, 200, origin);
+}
+
+async function handleDeleteSubmission(request, env, origin, type) {
+  const secret = request.headers.get('X-Admin-Secret') || '';
+  if (!env.ADMIN_SECRET || secret !== env.ADMIN_SECRET)
+    return json({ error: 'Non autorisé' }, 401, origin);
+
+  const discordId = new URL(request.url).searchParams.get('discord_id');
+  if (!discordId) return json({ error: 'discord_id manquant' }, 400, origin);
+
+  await env.relinkdb.prepare(
+    'DELETE FROM submissions WHERE discord_id = ? AND type = ?'
+  ).bind(discordId, type).run();
+
+  return json({ ok: true, unlocked: discordId, type }, 200, origin);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NOUVEAUX HANDLERS — ajouts purs, aucune modification de ce qui précède
+// ════════════════════════════════════════════════════════════════════════════
+
+// Vérifie le secret admin (helper partagé par tous les nouveaux handlers)
+function checkAdmin(request, env) {
+  const secret = request.headers.get('X-Admin-Secret') || '';
+  return env.ADMIN_SECRET && secret === env.ADMIN_SECRET;
+}
+
+// ── GET /flags — lecture publique pour le site principal ──────────────────
+async function handleGetFlags(env, origin) {
+  const rows = await env.relinkdb.prepare(
+    'SELECT key, value FROM site_flags'
+  ).all();
+
+  const flags = { sections: {}, require_auth: false };
+  for (const row of (rows.results || [])) {
+    if (row.key === 'require_auth') {
+      flags.require_auth = row.value === 'true';
+    } else if (row.key.startsWith('section:')) {
+      flags.sections[row.key.replace('section:', '')] = row.value === 'true';
+    }
+  }
+  for (const s of SITE_SECTIONS) {
+    if (!(s in flags.sections)) flags.sections[s] = true;
+  }
+  return json(flags, 200, origin);
+}
+
+// ── GET /admin/users ───────────────────────────────────────────────────────
+async function handleAdminGetUsers(request, env, origin) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+
+  const url    = new URL(request.url);
+  const q      = url.searchParams.get('q') || '';
+  const limit  = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
+  const offset = parseInt(url.searchParams.get('offset') || '0');
+
+  const base = `
+    SELECT u.discord_id, u.pseudo, u.email, u.avatar_url, u.status,
+      (SELECT created_at FROM submissions s WHERE s.discord_id = u.discord_id AND s.type='partner' LIMIT 1) AS submitted_partner,
+      (SELECT created_at FROM submissions s WHERE s.discord_id = u.discord_id AND s.type='team'    LIMIT 1) AS submitted_team
+    FROM users u`;
+
+  let rows, total;
+  if (q.length >= 2) {
+    rows  = await env.relinkdb.prepare(base + ' WHERE u.pseudo LIKE ? ORDER BY u.pseudo LIMIT ? OFFSET ?').bind(`%${q}%`, limit, offset).all();
+    total = await env.relinkdb.prepare('SELECT COUNT(*) AS n FROM users WHERE pseudo LIKE ?').bind(`%${q}%`).first();
+  } else {
+    rows  = await env.relinkdb.prepare(base + ' ORDER BY u.pseudo LIMIT ? OFFSET ?').bind(limit, offset).all();
+    total = await env.relinkdb.prepare('SELECT COUNT(*) AS n FROM users').first();
+  }
+
+  return json({ users: rows.results || [], total: total?.n || 0 }, 200, origin);
+}
+
+// ── POST /admin/users/:discord_id/status ──────────────────────────────────
+async function handleAdminUserStatus(request, env, origin, discordId) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+
+  const { action } = await request.json();
+  if (!['suspend', 'ban', 'unban', 'delete'].includes(action))
+    return json({ error: 'Action invalide' }, 400, origin);
+
+  const user = await env.relinkdb.prepare('SELECT discord_id, pseudo FROM users WHERE discord_id = ?').bind(discordId).first();
+  if (!user) return json({ error: 'Utilisateur introuvable' }, 404, origin);
+
+  if (action === 'delete') {
+    await env.relinkdb.batch([
+      env.relinkdb.prepare('DELETE FROM users       WHERE discord_id = ?').bind(discordId),
+      env.relinkdb.prepare('DELETE FROM submissions WHERE discord_id = ?').bind(discordId),
+    ]);
+    return json({ ok: true, action: 'deleted', discord_id: discordId }, 200, origin);
+  }
+
+  const statusMap = { suspend: 'suspended', ban: 'banned', unban: 'active' };
+  await env.relinkdb.prepare('UPDATE users SET status = ? WHERE discord_id = ?')
+    .bind(statusMap[action], discordId).run();
+
+  return json({ ok: true, action, new_status: statusMap[action], discord_id: discordId, pseudo: user.pseudo }, 200, origin);
+}
+
+// ── GET /admin/flags ───────────────────────────────────────────────────────
+async function handleAdminGetFlags(request, env, origin) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+  return handleGetFlags(env, origin);
+}
+
+// ── POST /admin/flags ──────────────────────────────────────────────────────
+async function handleAdminSetFlag(request, env, origin) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+
+  const { key, value } = await request.json();
+  // Les clés arrivent préfixées par "flag:" depuis le panneau admin
+  const allowed = ['flag:require_auth', ...SITE_SECTIONS.map(s => `flag:section:${s}`)];
+  if (!allowed.includes(key)) return json({ error: 'Clé invalide', received: key, allowed }, 400, origin);
+  // On stocke en base sans le préfixe "flag:" pour rester cohérent avec handleGetFlags
+  const storageKey = key.replace(/^flag:/, '');
+
+  await env.relinkdb.prepare(
+    `INSERT INTO site_flags (key, value, updated_at) VALUES (?, ?, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  ).bind(storageKey, String(value)).run();
+
+  return json({ ok: true, key, value: String(value) }, 200, origin);
+}
+
+// ── GET /admin/submissions ─────────────────────────────────────────────────
+async function handleAdminGetSubmissions(request, env, origin) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+
+  const type = new URL(request.url).searchParams.get('type');
+  let rows;
+  if (type && SUBMISSION_TYPES.includes(type)) {
+    rows = await env.relinkdb.prepare(
+      `SELECT s.discord_id, s.type, s.created_at, u.pseudo, u.avatar_url
+       FROM submissions s LEFT JOIN users u ON u.discord_id = s.discord_id
+       WHERE s.type = ? ORDER BY s.created_at DESC`
+    ).bind(type).all();
+  } else {
+    rows = await env.relinkdb.prepare(
+      `SELECT s.discord_id, s.type, s.created_at, u.pseudo, u.avatar_url
+       FROM submissions s LEFT JOIN users u ON u.discord_id = s.discord_id
+       ORDER BY s.created_at DESC`
+    ).all();
+  }
+  return json({ submissions: rows.results || [] }, 200, origin);
+}
+
 // ── Router ────────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env, ctx) {
@@ -319,6 +573,7 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
 
     try {
+      // ── Routes existantes (inchangées) ───────────────────────────────────
       if (request.method === 'POST' && pathname === '/auth/discord')  return await handleDiscordAuth(request, env, origin);
       if (request.method === 'PUT'  && pathname === '/profile')       return await handleUpdateProfile(request, env, origin);
       if (request.method === 'GET'  && pathname === '/search')        return await handleSearch(request, env, origin);
@@ -328,6 +583,25 @@ export default {
       if (request.method === 'GET'  && pathname === '/leaderboard')   return await handleLeaderboard(request, env, origin);
       if (request.method === 'POST' && pathname === '/clans-sync')    return await handlePostClans(request, env, origin);
       if (request.method === 'GET'  && pathname === '/clans')         return await handleGetClans(request, env, origin);
+
+      const submissionType = extractSubmissionType(pathname);
+      if (submissionType) {
+        if (request.method === 'GET')    return await handleGetSubmission(request, env, origin, submissionType);
+        if (request.method === 'POST')   return await handlePostSubmission(request, env, origin, submissionType);
+        if (request.method === 'DELETE') return await handleDeleteSubmission(request, env, origin, submissionType);
+      }
+
+      // ── Nouvelles routes ─────────────────────────────────────────────────
+      if (request.method === 'GET'  && pathname === '/flags')              return await handleGetFlags(env, origin);
+      if (request.method === 'GET'  && pathname === '/admin/users')        return await handleAdminGetUsers(request, env, origin);
+      if (request.method === 'GET'  && pathname === '/admin/flags')        return await handleAdminGetFlags(request, env, origin);
+      if (request.method === 'POST' && pathname === '/admin/flags')        return await handleAdminSetFlag(request, env, origin);
+      if (request.method === 'GET'  && pathname === '/admin/submissions')  return await handleAdminGetSubmissions(request, env, origin);
+
+      const adminUserMatch = pathname.match(/^\/admin\/users\/([^/]+)\/status$/);
+      if (adminUserMatch && request.method === 'POST')
+        return await handleAdminUserStatus(request, env, origin, adminUserMatch[1]);
+
       return json({ error: 'Route inconnue' }, 404, origin);
     } catch(e) {
       console.error(e);
