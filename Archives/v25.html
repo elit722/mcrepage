@@ -2841,7 +2841,7 @@ async function rlLookupMojang() {
     const r = await fetch(`${RL_API}/mojang/lookup?pseudo=${encodeURIComponent(pseudoMc)}`);
     const d = await r.json().catch(() => ({}));
     if (r.status === 404) { st.className = 'rl-status err'; st.textContent = '❌ Aucun compte Minecraft avec ce pseudo.'; return; }
-    if (!r.ok) throw new Error(d.error ? `${d.error}${d.mojang_status ? ' (HTTP ' + d.mojang_status + ')' : ''}${d.detail ? ' — ' + d.detail : ''}` : 'Service Mojang indisponible');
+    if (!r.ok) throw new Error(d.error || 'Service Mojang indisponible');
     rlPendingMojang = { uuid: d.uuid, pseudo: d.pseudo };
     st.className = 'rl-status'; st.textContent = '';
     preview.innerHTML = `
