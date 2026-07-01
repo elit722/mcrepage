@@ -740,25 +740,10 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <span class="nav-icon">律</span>
       <span class="nav-label"><span class="nav-label-fr">Règlement</span></span>
     </button>
-    <button class="nav-item" data-target="page-partenaires" type="button">
-      <span class="nav-icon">盟</span>
-      <span class="nav-label"><span class="nav-label-fr">Partenaires</span></span>
-    </button>
-    <button class="nav-item" data-target="page-ajouts" type="button">
-      <span class="nav-icon">造</span>
-      <span class="nav-label"><span class="nav-label-fr">Nos Ajouts</span></span>
-    </button>
+    <div class="divider"></div>
     <button class="nav-item" data-target="page-servinfo" type="button">
       <span class="nav-icon">鯖</span>
       <span class="nav-label"><span class="nav-label-fr">Info Serveur</span></span>
-    </button>
-    <button class="nav-item" data-target="page-about" type="button">
-      <span class="nav-icon">我</span>
-      <span class="nav-label"><span class="nav-label-fr">Qui sommes-nous</span></span>
-    </button>
-    <button class="nav-item" data-target="page-staff" type="button">
-      <span class="nav-icon">陣</span>
-      <span class="nav-label"><span class="nav-label-fr">Staff</span></span>
     </button>
     <button class="nav-item" data-target="page-clans" type="button">
       <span class="nav-icon">族</span>
@@ -768,6 +753,24 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
       <span class="nav-icon">択</span>
       <span class="nav-label"><span class="nav-label-fr">Mon Équipe</span></span>
     </button>
+    <div class="divider"></div>
+    <button class="nav-item" data-target="page-about" type="button">
+      <span class="nav-icon">我</span>
+      <span class="nav-label"><span class="nav-label-fr">Qui sommes-nous</span></span>
+    </button>
+    <button class="nav-item" data-target="page-ajouts" type="button">
+      <span class="nav-icon">造</span>
+      <span class="nav-label"><span class="nav-label-fr">Nos Ajouts</span></span>
+    </button>
+    <button class="nav-item" data-target="page-staff" type="button">
+      <span class="nav-icon">陣</span>
+      <span class="nav-label"><span class="nav-label-fr">Staff</span></span>
+    </button>
+    <button class="nav-item" data-target="page-partenaires" type="button">
+      <span class="nav-icon">盟</span>
+      <span class="nav-label"><span class="nav-label-fr">Partenaires</span></span>
+    </button>
+    <div class="divider"></div>
     <button class="nav-item" data-target="page-aide" type="button">
       <span class="nav-icon">援</span>
       <span class="nav-label"><span class="nav-label-fr">Aide</span></span>
@@ -3194,13 +3197,9 @@ function rlSearch(q) {
         const clanName = clanByPseudo[key] || null;
         const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
-        //Linked ?
-          const linkedBadge = p.linked
-          ? `<span class="lb-linked-badge" title="Compte Discord lié">✓</span>`
-          : '';
-        const meta = (dyBadge || killsBadge || clanBadge || linkedBadge)
-          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}${linkedBadge}</div>` : '';
-        
+        const meta = (dyBadge || killsBadge || clanBadge)
+          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}</div>` : '';
+
         return `
         <div class="rl-profile-card">
           <img src="${esc(u.avatar_url)}" alt="Avatar">
