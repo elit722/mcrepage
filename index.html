@@ -3200,7 +3200,7 @@ function rlSearch(q) {
         // death et kdr calculator
           const kdr = deaths > 0 ? (kills / deaths) : kills; // évite division par 0
           const kdrBadge = kdr != null
-            ? `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}</span>` : '';
+            ? `<span class="pc-kdr">⚔️ KDR = ${fmtNum(kdr)}</span>` : '';
        
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
