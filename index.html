@@ -3540,7 +3540,7 @@ function clanColorCss(colorName) {
 function fmtPlaytime(ticks) {
   // Minecraft ticks: 20 ticks/s → convert to hours
   if (!ticks || ticks === 0) return '0h';
-  const totalSeconds = Math.floor(ticks / 20);
+  const totalSeconds = ticks;
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   if (h === 0) return m + 'min';
