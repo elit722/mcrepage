@@ -2835,10 +2835,12 @@ async function rlHandleOAuthCallback(code) {
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
     rlUpdateUI();
 
-    // Compte Discord jamais connecté (ou compte sans Minecraft encore lié) :
-    // étape 2 obligatoire → lier le compte Mojang/Microsoft avant de continuer.
+    // Tant que le compte Minecraft n'est pas lié, on repropose la liaison à CHAQUE connexion
+    // (nouveau compte ou compte existant). L'utilisateur peut fermer via "Plus tard",
+    // mais le popup réapparaîtra à la prochaine connexion s'il n'a toujours pas lié son compte.
     const needsMinecraftLink = !rlUser.minecraft_uuid;
-    if (d.is_new_user || needsMinecraftLink) {
+
+    if (needsMinecraftLink) {
       rlOpenLinkMinecraft(true);
     } else {
       rlOpenSettings(false);
@@ -2862,7 +2864,7 @@ function rlOpenLinkMinecraft(mandatory = true) {
     <p class="rl-login-desc">
       Pour finaliser la liaison, connecte-toi sur le serveur Minecraft puis tape
       <strong>/link</strong> dans le chat. Un code à 6 chiffres s'affichera, valable
-      5 minutes. Entre-le ci-dessous.${mandatory ? ' Cette étape est <strong>obligatoire</strong>.' : ''}
+      5 minutes. Entre-le ci-dessous.${mandatory ? ' Tu peux le faire maintenant ou <strong>plus tard</strong>.' : ''}
     </p>
     <form onsubmit="event.preventDefault(); rlSubmitLinkCode();">
       <input
@@ -2883,12 +2885,29 @@ function rlOpenLinkMinecraft(mandatory = true) {
     <p class="rl-hint" style="text-align:center;margin-top:.8rem">
       Pas encore fait /link en jeu, ou code expiré ? Retape /link pour en générer un nouveau.
     </p>
-    ${mandatory ? '<button class="rl-logout-btn" style="margin-top:1rem" onclick="rlLogout()">Annuler l\'inscription</button>' : ''}
+    ${mandatory ? `
+      <div class="rl-link-actions" style="display:flex;gap:.6rem;margin-top:1rem">
+        <button class="rl-skip-btn" style="flex:1;background:transparent;border:1px solid var(--mist,#666);color:var(--mist,#aaa);border-radius:4px;padding:.6rem 1rem;cursor:pointer;font-size:.8rem" onclick="rlSkipLinkMinecraft()">
+          ⏭ Plus tard
+        </button>
+      </div>
+      <p class="rl-hint" style="text-align:center;margin-top:.5rem;opacity:.7">
+        Tant que ton compte n'est pas lié, tu n'apparaîtras pas sur le leaderboard ni sur la carte staff.
+      </p>
+    ` : ''}
   `);
   rlOpen();
 
   // Focus direct sur le champ code
   setTimeout(() => document.getElementById('rl-link-code-input')?.focus(), 50);
+}
+
+function rlSkipLinkMinecraft() {
+  // Ferme simplement la modale pour cette session — le popup réapparaîtra
+  // à la prochaine connexion tant que le compte Minecraft n'est pas lié.
+  rlSetMandatory(false);
+  document.getElementById('rl-overlay').classList.remove('open');
+  rlUpdateUI();
 }
 
 async function rlSubmitLinkCode() {
@@ -2936,7 +2955,7 @@ async function rlSubmitLinkCode() {
 // ── Modals ──
 function rlOpen() { document.getElementById('rl-overlay').classList.add('open'); }
 function rlClose() {
-  if (document.getElementById('rl-overlay').dataset.mandatory === '1') return; // étape obligatoire : pas de fermeture
+  if (document.getElementById('rl-overlay').dataset.mandatory === '1') return; // étape obligatoire : pas de fermeture (sauf via "Plus tard")
   document.getElementById('rl-overlay').classList.remove('open');
 }
 function rlOverlayClick(e) { if (e.target === document.getElementById('rl-overlay')) rlClose(); }
@@ -2999,7 +3018,7 @@ function rlOpenSettings(isNewUser = false) {
         <p class="rl-hint">Lié via /link en jeu — relie ton profil à ta carte staff et au leaderboard.</p>
       ` : `
         <button type="button" class="rl-dc-btn" style="background:#107C10" onclick="rlOpenLinkMinecraft(false)">Lier mon compte Minecraft</button>
-        <p class="rl-hint">Aucun compte Minecraft lié pour l'instant.</p>
+        <p class="rl-hint">Aucun compte Minecraft lié pour l'instant. Tu n'apparaîtras pas sur le leaderboard ni sur la carte staff tant qu'il n'est pas lié.</p>
       `}
     </div>
     <div class="rl-field">
