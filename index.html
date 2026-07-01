@@ -3190,23 +3190,25 @@ function rlSearch(q) {
         }
 
 
-        // Kills and death depuis lbCache
-        const kills = lb.kills ?? lb[`kills`] ?? null;
+       // Kills and death depuis lbCache
+        const kills = lb.kills ?? null;
         const killsBadge = kills !== null
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
-          
-        const deaths = lb.deaths ?? lb[`deaths`] ?? null;
 
-        //death et kdr calculator
-        const kdrBadge = kills / deaths !== null
-          ? `<span class="pc-kdr">⚔️KDR = ${fmtNum(kdr)}</span>` : '';
+        const deaths = lb.deaths ?? null;
 
+        // death et kdr calculator
+        let kdrBadge = '';
+        if (kills !== null && deaths !== null) {
+          const kdr = deaths > 0 ? (kills / deaths) : kills; // évite division par 0
+          kdrBadge = `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}</span>`;
+        }
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
         const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
-        const meta = (dyBadge || kdrBadge || clanBadge)
-          ? `<div class="pc-meta">${dyBadge}${kdrBadge}${clanBadge}</div>` : '';
+        const meta = (dyBadge || killsBadge || kdrBadge || clanBadge)
+          ? `<div class="pc-meta">${dyBadge}${killsBadge}${kdrBadge}${clanBadge}</div>` : '';
 
         return `
         <div class="rl-profile-card">
