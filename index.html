@@ -3191,22 +3191,26 @@ function rlSearch(q) {
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
 
         // Clan depuis CLAN_DATA
-          const clanName = clanByPseudo[key] || null;
-          const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
+        const clanName = clanByPseudo[key] || null;
+        const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
-          const meta = (linkedBadge || dyBadge || killsBadge || clanBadge)
-            ? `<div class="pc-meta">${linkedBadge}${dyBadge}${killsBadge}${clanBadge}</div>` : '';
-
-          return `
-          <div class="rl-profile-card">
-            <img src="${esc(u.avatar_url)}" alt="Avatar">
-            <div>
-              <div class="pc-pseudo">${esc(u.pseudo)}</div>
-              ${u.email ? `<div class="pc-email">${esc(u.email)}</div>` : ''}
-              ${meta}
-            </div>
-          </div>`;
-        }).join('');
+        //Linked ?
+          const linkedBadge = p.linked
+          ? `<span class="lb-linked-badge" title="Compte Discord lié">✓</span>`
+          : '';
+        const meta = (dyBadge || killsBadge || clanBadge || linkedBadge)
+          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}${linkedBadge}</div>` : '';
+        
+        return `
+        <div class="rl-profile-card">
+          <img src="${esc(u.avatar_url)}" alt="Avatar">
+          <div>
+            <div class="pc-pseudo">${esc(u.pseudo)}</div>
+            ${u.email ? `<div class="pc-email">${esc(u.email)}</div>` : ''}
+            ${meta}
+          </div>
+        </div>`;
+      }).join('');
     } catch(e) {
       document.getElementById('rl-search-results').innerHTML = '<div class="rl-empty">❌ Erreur de connexion.</div>';
     }
