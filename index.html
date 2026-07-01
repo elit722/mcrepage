@@ -3198,9 +3198,9 @@ function rlSearch(q) {
         const deaths = lb.deaths ?? null;
 
         // death et kdr calculator
-          const kdr = deaths > 0 ? (kills / deaths) : kills; // évite division par 0
+          const kdr = deaths > 0 ? (deaths / kills * 100) : kills; // évite division par 0
           const kdrBadge = kdr != null
-            ? `<span class="pc-kdr">⚔️ KDR = ${fmtNum(kdr)}</span>` : '';
+            ? `<span class="pc-kdr">⚔️ KDR = ${fmtNum(kdr)}%</span>` : '';
        
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
