@@ -154,6 +154,20 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .modpack-card .pack-icon{font-size:2.1rem;margin-bottom:.8rem;}
 .modpack-card h3{font-family:'Cinzel Decorative',serif;font-size:.8rem;color:var(--gold-light);margin-bottom:.4rem;}
 .modpack-card p{font-size:.77rem;color:var(--mist);margin-bottom:1.3rem;line-height:1.6;}
+.modpack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    align-items: stretch;
+}
+.modpack-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.modpack-card .btn-grp {
+    margin-top: auto;
+}
 .pack-badge{position:absolute;top:.75rem;right:.75rem;font-size:.56rem;padding:.18rem .42rem;border-radius:2px;letter-spacing:.07em;font-family:'Source Code Pro',monospace;}
 .badge-low{background:#27AE60;color:#fff;}.badge-full{background:#2980B9;color:#fff;}
 .badge-perf{background:#8E44AD;color:#fff;}.badge-srv{background:#D35400;color:#fff;}
@@ -164,7 +178,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .btn-ghost{background:transparent;border:1px solid rgba(201,168,76,.35);color:var(--gold);}
 .btn-ghost:hover{background:rgba(201,168,76,.09);border-color:var(--gold);}
 .btn-sm{padding:.38rem .85rem;font-size:.57rem;width:auto;}
-.btn-grp{display:flex;flex-direction:column;gap:.38rem; vertical-align: bottom;}
+.btn-grp{display:flex;flex-direction:column;gap:.38rem;}
 
 /* ── LORE ── */
 .lore-block{max-width:680px;margin:0 auto;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.13);border-radius:4px;padding:2.5rem;position:relative;}
