@@ -2724,13 +2724,6 @@ const RL_API = 'https://relink-auth.refugeemeraudien-direction.workers.dev'; // 
 const DISCORD_CLIENT_ID = '1333801116692910172';                     // ← remplace par ton Client ID Discord
 const DISCORD_REDIRECT = 'https://elit722.github.io/mcrepage/';       // ← remplace par lien définitif !!!
 
-// ── Microsoft / Mojang (compte Minecraft) ──
-// ⚠️ À CONFIGURER : crée une appli sur https://portal.azure.com (Microsoft Entra ID
-// → Inscriptions d'applications) avec une plateforme "Web", l'URI de redirection
-// ci-dessous, et l'autorisation déléguée "XboxLive.signin".
-const MS_CLIENT_ID = 'TON_CLIENT_ID_AZURE';       // ← remplace par le Client ID de ton appli Azure
-const MS_REDIRECT  = DISCORD_REDIRECT;            // même URL de callback (site à page unique)
-
 let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token }
 
 // ── Init ──
@@ -2740,16 +2733,12 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token }
   if (stored) {
     try { rlUser = JSON.parse(stored); rlUpdateUI(); } catch(e) { localStorage.removeItem('rl_user'); }
   }
-  // Callback OAuth (Discord ou Microsoft — même URL de retour, distingués via le préfixe du state)
+  // Callback OAuth Discord (code dans l'URL)
   const params = new URLSearchParams(location.search);
   const oauthCode = params.get('code');
   const oauthState = params.get('state');
   if (oauthCode && oauthState === localStorage.getItem('rl_oauth_state')) {
-    if (oauthState.startsWith('ms_')) {
-      rlHandleMicrosoftCallback(oauthCode);
-    } else {
-      rlHandleOAuthCallback(oauthCode);
-    }
+    rlHandleOAuthCallback(oauthCode);
   } else if (oauthCode || oauthState) {
     // Retour arrière / state invalide : nettoyer l'URL sans toucher à rlUser
     history.replaceState({}, document.title, location.pathname);
@@ -2838,116 +2827,21 @@ async function rlHandleOAuthCallback(code) {
         : (d.error === 'Compte suspendu' ? '\u23F8 Votre compte est temporairement suspendu.' : (d.error || 'Erreur serveur'));
       throw new Error(msg);
     }
-    rlUser = d; // { discord_id, pseudo, email, avatar_url, access_token, minecraft_uuid?, minecraft_username? }
+    rlUser = d; // { discord_id, pseudo, email, avatar_url, access_token }
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
     rlUpdateUI();
-
-    // Compte Discord jamais connecté (ou compte sans Minecraft encore lié) :
-    // étape 2 obligatoire → lier le compte Mojang/Microsoft avant de continuer.
-    const needsMinecraftLink = !(rlUser.minecraft_uuid || rlUser.pseudo_minecraft);
-    if (d.is_new_user || needsMinecraftLink) {
-      rlOpenLinkMinecraft(true);
-    } else {
-      rlOpenSettings(false);
-    }
+    rlOpenSettings(true);
   } catch(e) {
     rlSetModalBody(`<div class="rl-status err">❌ ${e.message}</div><button class="rl-dc-btn" style="margin-top:1rem" onclick="rlOpenLogin()">↩ Retour</button>`);
   }
 }
 
-// ── OAuth Microsoft (compte Minecraft / Mojang) ──
-function rlStartMicrosoftOAuth() {
-  const state = 'ms_' + Math.random().toString(36).slice(2);
-  localStorage.setItem('rl_oauth_state', state);
-  const url = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize`
-    + `?client_id=${MS_CLIENT_ID}`
-    + `&response_type=code`
-    + `&redirect_uri=${encodeURIComponent(MS_REDIRECT)}`
-    + `&scope=${encodeURIComponent('XboxLive.signin offline_access')}`
-    + `&state=${state}`;
-  location.href = url;
-}
-
-async function rlHandleMicrosoftCallback(code) {
-  history.replaceState({}, document.title, location.pathname);
-  // Sécurité : la session Discord doit exister avant de lier un compte Minecraft
-  if (!rlUser) { rlOpenLogin(); return; }
-  rlOpenLinkMinecraft(true);
-  rlSetModalBody(rlLoadingScreen('Connexion à ton compte Minecraft en cours…'));
-  try {
-    const r = await fetch(`${RL_API}/auth/microsoft`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ code, redirect_uri: MS_REDIRECT })
-    });
-    const d = await r.json();
-    if (!r.ok) {
-      const msg = (d.error === 'Aucun compte Minecraft')
-        ? '\u26D4 Ce compte Microsoft ne possède pas de compte Minecraft.'
-        : (d.error || 'Erreur lors de la connexion Microsoft/Mojang');
-      throw new Error(msg);
-    }
-    // d attendu : { minecraft_uuid, minecraft_username }
-    rlUser.minecraft_uuid     = d.minecraft_uuid;
-    rlUser.minecraft_username = d.minecraft_username;
-    rlUser.pseudo_minecraft   = d.minecraft_username;
-    localStorage.setItem('rl_user', JSON.stringify(rlUser));
-    rlOpenSettings(true);
-  } catch(e) {
-    rlSetTitle('Lier ton compte Minecraft');
-    rlSetModalBody(`
-      <div class="rl-status err" style="display:block">❌ ${e.message}</div>
-      <button class="rl-dc-btn" style="margin-top:1rem;background:#107C10" onclick="rlStartMicrosoftOAuth()">🔄 Réessayer</button>
-      <button class="rl-logout-btn" style="margin-top:.6rem" onclick="rlLogout()">Annuler l'inscription</button>
-    `);
-    rlOpen();
-  }
-}
-
-function rlOpenLinkMinecraft(mandatory = true) {
-  if (!rlUser) { rlOpenLogin(); return; }
-  rlSetTitle('Lier ton compte Minecraft');
-  rlSetMandatory(mandatory);
-  rlSetModalBody(`
-    <div class="rl-login-title">
-      <span class="rl-logo">⛏️</span>
-      <h3>Compte Minecraft</h3>
-    </div>
-    <p class="rl-login-desc">
-      Bienvenue sur ReLink ! Pour finaliser ton inscription, connecte ton compte
-      Mojang/Microsoft. Cela permet au site de relier automatiquement ton identifiant
-      Discord, ton compte Minecraft et ton pseudo ReLink.${mandatory ? ' Cette étape est <strong>obligatoire</strong>.' : ''}
-    </p>
-    <button class="rl-dc-btn" style="background:#107C10" onclick="rlStartMicrosoftOAuth()">
-      <svg viewBox="0 0 23 23" width="20" height="20"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="12" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="12" width="10" height="10" fill="#00A4EF"/><rect x="12" y="12" width="10" height="10" fill="#FFB900"/></svg>
-      Se connecter avec Microsoft
-    </button>
-    <p class="rl-hint" style="text-align:center;margin-top:.8rem">
-      Compte Mojang historique non migré ? Contacte le staff sur Discord.
-    </p>
-    ${mandatory ? '<button class="rl-logout-btn" style="margin-top:1rem" onclick="rlLogout()">Annuler l\'inscription</button>' : ''}
-  `);
-  rlOpen();
-}
-
 // ── Modals ──
 function rlOpen() { document.getElementById('rl-overlay').classList.add('open'); }
-function rlClose() {
-  if (document.getElementById('rl-overlay').dataset.mandatory === '1') return; // étape obligatoire : pas de fermeture
-  document.getElementById('rl-overlay').classList.remove('open');
-}
+function rlClose() { document.getElementById('rl-overlay').classList.remove('open'); }
 function rlOverlayClick(e) { if (e.target === document.getElementById('rl-overlay')) rlClose(); }
 function rlSetModalBody(html) { document.getElementById('rl-modal-body').innerHTML = html; }
-function rlSetTitle(t) {
-  document.getElementById('rl-modal-title').textContent = t;
-  rlSetMandatory(false); // par défaut une modale peut se fermer ; rlOpenLinkMinecraft() la repasse en obligatoire si besoin
-}
-function rlSetMandatory(mandatory) {
-  const overlay = document.getElementById('rl-overlay');
-  const closeBtn = document.querySelector('.rl-modal-close');
-  overlay.dataset.mandatory = mandatory ? '1' : '0';
-  if (closeBtn) closeBtn.style.display = mandatory ? 'none' : '';
-}
+function rlSetTitle(t) { document.getElementById('rl-modal-title').textContent = t; }
 
 function rlLoadingScreen(msg) {
   return `<div class="rl-status loading" style="display:block">⏳ ${msg}</div>`;
@@ -2986,18 +2880,9 @@ function rlOpenSettings(isNewUser = false) {
       <p class="rl-hint">Modifiable à tout moment.</p>
     </div>
     <div class="rl-field">
-      <label>Compte Minecraft</label>
-      ${rlUser.minecraft_uuid ? `
-        <div style="display:flex;align-items:center;gap:.6rem;background:rgba(16,124,16,.12);border:1px solid rgba(16,124,16,.4);border-radius:4px;padding:.55rem .8rem;">
-          <span style="color:#3CB371;">✅</span>
-          <span style="flex:1;font-size:.85rem;">${esc(rlUser.minecraft_username || rlUser.pseudo_minecraft || '')}</span>
-          <button type="button" class="btn btn-ghost btn-sm" style="width:auto;padding:.3rem .7rem;" onclick="rlOpenLinkMinecraft(false)">Changer</button>
-        </div>
-        <p class="rl-hint">Vérifié via Microsoft — lie ton profil à ta carte staff et au leaderboard.</p>
-      ` : `
-        <button type="button" class="rl-dc-btn" style="background:#107C10" onclick="rlOpenLinkMinecraft(false)">Lier mon compte Minecraft</button>
-        <p class="rl-hint">Aucun compte Minecraft lié pour l'instant.</p>
-      `}
+      <label>Pseudo Minecraft <span style="color:var(--mist);font-size:.58rem">(optionnel)</span></label>
+      <input type="text" id="rl-input-mc" value="${esc(rlUser.pseudo_minecraft || '')}" placeholder="Ton pseudo en jeu…" maxlength="32">
+      <p class="rl-hint">Permet de lier ton profil à ta carte staff et au leaderboard.</p>
     </div>
     <div class="rl-field">
       <label>Email <span style="color:var(--mist);font-size:.58rem">(optionnel)</span></label>
