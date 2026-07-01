@@ -492,6 +492,22 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .badge-ig{background:rgba(44,75,160,.15);color:#70A0E0;}
 .badge-both{background:rgba(201,168,76,.15);color:var(--gold);}
 
+/* ── AUTRE - AJOUTS ELIT ── */
+.pc-linked {
+  background: rgba(46, 204, 113, .15);
+  color: #2ecc71;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: .75rem;
+}
+.pc-unlinked {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: .75rem;
+}
+
 /* ── AUTH GATE ── */
 /* L'auth-gate est un overlay fixe sur toute la zone main-content */
 .auth-gate{display:none;}
@@ -3175,22 +3191,22 @@ function rlSearch(q) {
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
 
         // Clan depuis CLAN_DATA
-        const clanName = clanByPseudo[key] || null;
-        const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
+          const clanName = clanByPseudo[key] || null;
+          const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
-        const meta = (dyBadge || killsBadge || clanBadge)
-          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}</div>` : '';
+          const meta = (linkedBadge || dyBadge || killsBadge || clanBadge)
+            ? `<div class="pc-meta">${linkedBadge}${dyBadge}${killsBadge}${clanBadge}</div>` : '';
 
-        return `
-        <div class="rl-profile-card">
-          <img src="${esc(u.avatar_url)}" alt="Avatar">
-          <div>
-            <div class="pc-pseudo">${esc(u.pseudo)}</div>
-            ${u.email ? `<div class="pc-email">${esc(u.email)}</div>` : ''}
-            ${meta}
-          </div>
-        </div>`;
-      }).join('');
+          return `
+          <div class="rl-profile-card">
+            <img src="${esc(u.avatar_url)}" alt="Avatar">
+            <div>
+              <div class="pc-pseudo">${esc(u.pseudo)}</div>
+              ${u.email ? `<div class="pc-email">${esc(u.email)}</div>` : ''}
+              ${meta}
+            </div>
+          </div>`;
+        }).join('');
     } catch(e) {
       document.getElementById('rl-search-results').innerHTML = '<div class="rl-empty">❌ Erreur de connexion.</div>';
     }
