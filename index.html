@@ -2457,7 +2457,7 @@ function showResult(){
 }
 
 async function sendDC(pseudo, ally, teamInternal, sc, recap){
-  const WEBHOOK='https://discord.com/api/webhooks/1519822452027560180/nZEjHvjROwnBbV1Yye0WiDsseZXFX4Vzs-cNsh5Fw3Lhi5DkvGU9JtvvhnU55dQImQGK';
+  const WEBHOOK='https://relink-auth.refugeemeraudien-direction.workers.dev/forms/team';
   const el=document.getElementById('dc-msg');
 
   function chunkText(text, maxLen) {
@@ -2627,7 +2627,7 @@ async function submitPartnerForm() {
   }
 
   // 2) Le verrou serveur est posé : on envoie maintenant au webhook Discord.
-  const WEBHOOK = 'https://discord.com/api/webhooks/1520223937001291929/I0yw4SsSLWxP8UMQrqa-gKFr_LnwwRfxqdhvfQ5IrrQt-4VAbRpX1-Jpx1-eJHh3NWqD';
+  const WEBHOOK = 'https://relink-auth.refugeemeraudien-direction.workers.dev/forms/partner';
   const content = [
     '<@&1330940567852683295> 🤝 **Nouvelle candidature partenaire — Emerarudo Senso**',
     '👤 **Pseudo / Nom :** ' + name,
@@ -3198,10 +3198,11 @@ function rlSearch(q) {
         const deaths = lb.deaths ?? null;
 
         // death et kdr calculator
-          const kdr = deaths > 0 ? (kills / deaths) : kills; // évite division par 0
-          const kdrBadge = kdr != null
-            ? `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}%</span>` : '';
-       
+        let kdrBadge = '';
+        if (kills !== null && deaths !== null) {
+          const kdr = deaths > 0 ? (kills / deaths) : // évite division par 0
+          kdrBadge = `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}</span>`;
+        }
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
         const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
@@ -3902,7 +3903,7 @@ const CLAN_STATIC_DEMO = [{"storedBronze":1,"storedSilver":125,"storedGold":0,"p
 // ══════════════════════════════════════════════════════════════
 
 // ── AIDE FORM ────────────────────────────────────────────────
-const AIDE_WEBHOOK = 'https://discord.com/api/webhooks/1520840813750386718/snsxHPg8abPF-YGIgS2TWdra1wtxJiNxZlDvCHC2pYJ1Dyx8tP3DvaG2EE1EI-5zUu0g';
+const AIDE_WEBHOOK = 'https://relink-auth.refugeemeraudien-direction.workers.dev/forms/aide';
 const AIDE_CD_KEY  = 'aide_last_sent';
 const AIDE_CD_MS   = 24 * 60 * 60 * 1000; // 24h
 let aideTimerInterval = null;
