@@ -3030,7 +3030,7 @@ function rlOpenSettings(isNewUser = false) {
       <label>Photo de profil</label>
       <p class="rl-hint" style="margin-top:0">Synchronisée depuis Discord — non modifiable.</p>
     </div>
-    <button class="rl-save-btn" onclick="rlSaveProfile()" onclick="rlclose()">💾 Enregistrer</button>
+    <button class="rl-save-btn" onclick="rlSaveProfile()"">💾 Enregistrer</button>
     <button class="rl-logout-btn" onclick="rlLogout()">Déconnexion</button>
     <div class="rl-status" id="rl-settings-status"></div>
   `);
@@ -3058,6 +3058,8 @@ async function rlSaveProfile() {
   } catch(e) {
     st.className='rl-status err'; st.textContent='❌ ' + e.message;
   }
+  if (document.getElementById('rl-overlay').dataset.mandatory === '1') return; // étape obligatoire : pas de fermeture (sauf via "Plus tard")
+  document.getElementById('rl-overlay').classList.remove('open');
 }
 
 function rlLogout() {
