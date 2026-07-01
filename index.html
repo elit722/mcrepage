@@ -679,6 +679,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .rl-profile-card .pc-meta{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem;margin-top:.32rem;}
 .rl-profile-card .pc-clan{font-size:.64rem;color:var(--gold);font-family:'Source Code Pro',monospace;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.22);padding:.08rem .38rem;border-radius:2px;}
 .rl-profile-card .pc-kills{font-size:.64rem;color:#E07070;font-family:'Source Code Pro',monospace;}
+.rl-profile-card .pc-kdr{font-size:.64rem;color:#E07070;font-family:'Source Code Pro',monospace;}
 .rl-profile-card .pc-dynasty{font-size:.6rem;padding:.08rem .38rem;border-radius:2px;font-family:'Cinzel Decorative',serif;letter-spacing:.04em;}
 .pc-dynasty-susaku{background:rgba(192,57,43,.2);color:#E07070;border:1px solid rgba(192,57,43,.3);}
 .pc-dynasty-seiryu{background:rgba(44,75,160,.2);color:#70A0E0;border:1px solid rgba(44,75,160,.3);}
@@ -3188,17 +3189,24 @@ function rlSearch(q) {
           dyBadge = `<span class="pc-dynasty ${cls}">${esc(label)}</span>`;
         }
 
-        // Kills depuis lbCache
+
+        // Kills and death depuis lbCache
         const kills = lb.kills ?? lb[`kills`] ?? null;
         const killsBadge = kills !== null
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
+          
+        const deaths = lb.kills ?? lb[`kills`] ?? null;
+
+        //death et kdr calculator
+        const kdrBadge = kills / deaths !== null
+          ? `<span class="pc-kdr">⚔️KDR = ${fmtNum(kdr)}</span>` : '';
 
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
         const clanBadge = clanName ? `<span class="pc-clan">🏯 ${esc(clanName)}</span>` : '';
 
-        const meta = (dyBadge || killsBadge || clanBadge)
-          ? `<div class="pc-meta">${dyBadge}${killsBadge}${clanBadge}</div>` : '';
+        const meta = (dyBadge || kdrBadge || clanBadge)
+          ? `<div class="pc-meta">${dyBadge}${kdrBadge}${clanBadge}</div>` : '';
 
         return `
         <div class="rl-profile-card">

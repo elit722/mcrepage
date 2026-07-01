@@ -142,6 +142,7 @@ def get_mc_stats(uuid: str) -> dict:
         data = ptero_file(f'/world/stats/{uuid}.json')
         stats = json.loads(data).get('stats', {})
         kills = stats.get('minecraft:killed', {}).get('minecraft:player', 0)
+        deaths = stats.get('minecraft:deaths', {}).get('minecraft:player', 0)
         used = stats.get('minecraft:used', {})
         blocs_poses = sum(used.values())
         return {'kills': kills, 'blocs_poses': blocs_poses}
@@ -238,6 +239,7 @@ def collect():
             'uuid':        uuid,
             'pseudo':      pseudo,
             'kills':       mc['kills'],
+            'deaths':       mc['deaths'],
             'blocs_poses': mc['blocs_poses'],
             'fortune':     fortune,
             'dynasty':     dynasty,
