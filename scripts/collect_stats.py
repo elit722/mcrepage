@@ -138,17 +138,30 @@ def get_usercache() -> dict:
 
 
 def get_mc_stats(uuid: str) -> dict:
+    """
+    Lit world/stats/UUID.json et retourne kills, deaths, blocs_poses.
+    Utilise .get(..., 0) partout : un joueur peut ne jamais avoir déclenché
+    une stat donnée (ex : jamais mort), auquel cas la clé est absente du JSON
+    plutôt qu'à 0. Un accès direct type stats['minecraft:custom']['minecraft:deaths']
+    provoquerait alors un KeyError.
+    """
     try:
         data = ptero_file(f'/world/stats/{uuid}.json')
         stats = json.loads(data).get('stats', {})
+
         kills = stats.get('minecraft:killed', {}).get('minecraft:player', 0)
-        deaths = stats.get('minecraft:deaths', {}).get('minecraft:player', 0)
+
+        # Le compteur de morts total vit sous minecraft:custom, pas sous
+        # minecraft:killed (qui ne contient que les mobs/joueurs tués PAR ce joueur).
+        deaths = stats.get('minecraft:custom', {}).get('minecraft:deaths', 0)
+
         used = stats.get('minecraft:used', {})
-        blocs_poses = sum(used.values())
-        return {'kills': kills, 'blocs_poses': blocs_poses}
+        blocs_poses = sum(used.values()) if used else 0
+
+        return {'kills': kills, 'deaths': deaths, 'blocs_poses': blocs_poses}
     except Exception as e:
         print(f'[WARN] Stats {uuid} : {e}')
-        return {'kills': 0, 'blocs_poses': 0}
+        return {'kills': 0, 'deaths': 0, 'blocs_poses': 0}
 
 
 def get_numismatic_balance(uuid: str) -> int:
@@ -238,9 +251,9 @@ def collect():
         players.append({
             'uuid':        uuid,
             'pseudo':      pseudo,
-            'kills':       mc['kills'],
-            'deaths':       mc['deaths'],
-            'blocs_poses': mc['blocs_poses'],
+            'kills':       mc.get('kills', 0),
+            'deaths':      mc.get('deaths', 0),
+            'blocs_poses': mc.get('blocs_poses', 0),
             'fortune':     fortune,
             'dynasty':     dynasty,
         })

@@ -1,11 +1,15 @@
 /**
- * ReLink Worker v3 — Cloudflare Workers + D1
+ * ReLink Worker v5 — Cloudflare Workers + D1
  * ─────────────────────────────────────────────
  * AUTH / PROFIL
  *   POST /auth/discord
- *   PUT  /profile        Bearer token
+ *   PUT  /profile          Bearer token
  *   GET  /search?q=xxx
- *   GET  /me             Bearer token
+ *   GET  /me               Bearer token
+ *
+ * LIAISON COMPTE MINECRAFT (sans double connexion, compatible crack)  ← NOUVEAU v5
+ *   POST /mc/link/request   X-Link-Secret        appelé par le plugin MC (commande /link)
+ *   POST /link/confirm      Bearer token          appelé par le site (code entré par l'utilisateur)
  *
  * SERVEUR MINECRAFT
  *   GET  /server         stats Pterodactyl + mcstatus.io
@@ -24,7 +28,7 @@
  *   DELETE /submission/:type        X-Admin-Secret + ?discord_id=xxx → déblocage admin
  *   :type ∈ "partner" | "team"
  *
- * ── NOUVEAUX ENDPOINTS (admin + flags) ───────────────────────────────────
+ * ── ADMIN + FLAGS ─────────────────────────────────────────────────────────
  *   GET  /flags                     → { sections: {...}, require_auth: bool }
  *
  *   GET    /admin/users             X-Admin-Secret  → liste paginée
@@ -50,7 +54,6 @@
  *     PRIMARY KEY (discord_id, type)
  *   );
  *
- *   -- NOUVELLES migrations v4 (ajouts purs, non destructifs)
  *   ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';
  *
  *   CREATE TABLE IF NOT EXISTS site_flags (
@@ -73,6 +76,29 @@
  *     ('section:about',        'true',  datetime('now')),
  *     ('section:staff',        'true',  datetime('now')),
  *     ('section:aide',         'true',  datetime('now'));
+ *
+ *   ALTER TABLE users ADD COLUMN minecraft_uuid     TEXT;
+ *   ALTER TABLE users ADD COLUMN minecraft_username TEXT;
+ *   CREATE UNIQUE INDEX IF NOT EXISTS idx_users_minecraft_uuid
+ *     ON users(minecraft_uuid) WHERE minecraft_uuid IS NOT NULL;
+ *
+ *   -- NOUVELLE migration v5 : table des codes de liaison /link (ajout pur)
+ *   CREATE TABLE IF NOT EXISTS link_codes (
+ *     code        TEXT PRIMARY KEY,
+ *     mc_uuid     TEXT NOT NULL,
+ *     mc_username TEXT NOT NULL,
+ *     created_at  INTEGER NOT NULL,
+ *     expires_at  INTEGER NOT NULL,
+ *     used        INTEGER NOT NULL DEFAULT 0
+ *   );
+ *   CREATE INDEX IF NOT EXISTS idx_link_codes_mc_uuid ON link_codes (mc_uuid);
+ *
+ * ── VARIABLES / SECRETS WORKER À CONFIGURER (wrangler) ────────────────────
+ *   LINK_SECRET   (secret — partagé avec le plugin Minecraft, protège /mc/link/request)
+ *   wrangler secret put LINK_SECRET
+ *
+ *   Les secrets MS_CLIENT_ID / MS_CLIENT_SECRET ne sont plus utilisés en v5,
+ *   tu peux les retirer (wrangler secret delete MS_CLIENT_SECRET).
  * ──────────────────────────────────────────────────────────────────────────
  */
 
@@ -81,6 +107,9 @@ const SERVER_ID   = '1798a4bf';
 const MC_HOST     = 'gm1.lordhosting.fr';
 const MC_PORT     = 2062;
 const DISCORD_API = 'https://discord.com/api/v10';
+
+// Durée de validité d'un code /link (en millisecondes)
+const LINK_CODE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Types de soumission unique autorisés (cf. table `submissions`)
 const SUBMISSION_TYPES = ['partner', 'team'];
@@ -102,7 +131,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin':  o,
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Stats-Secret,X-Admin-Secret',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Stats-Secret,X-Admin-Secret,X-Link-Secret',
     'Access-Control-Max-Age':       '86400',
   };
 }
@@ -218,7 +247,94 @@ async function handleDiscordAuth(request, env, origin) {
     { discord_id: dc.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
     env.JWT_SECRET
   );
-  return json({ ...user, access_token }, 200, origin);
+  // is_new_user : indique au front qu'il faut déclencher l'étape de liaison
+  // du compte Minecraft — désormais via /link en jeu, plus via Microsoft.
+  return json({ ...user, access_token, is_new_user: !existing }, 200, origin);
+}
+
+// ── NOUVEAU v5 : liaison du compte Minecraft via code /link (crack-compatible) ──
+
+function generateLinkCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/**
+ * Appelé par le plugin Minecraft (serveur -> Worker) quand un joueur tape /link.
+ * Protégé par un secret partagé (X-Link-Secret), pas par une session Discord :
+ * c'est le serveur MC qui parle au Worker, pas le joueur directement.
+ */
+async function handleLinkRequest(request, env, origin) {
+  console.log("===== HEADERS =====");
+
+for (const [k, v] of request.headers.entries()) {
+  console.log(`${k.toLowerCase()} = ${v}`);
+}
+
+const secret = request.headers.get("X-Link-Secret")
+  || request.headers.get("x-link-secret");
+
+console.log("SECRET RECEIVED =", secret);
+console.log("SECRET ENV =", env.LINK_SECRET);
+
+if (!env.LINK_SECRET || !secret || secret !== env.LINK_SECRET) {
+  return json({
+    error: "Non autorisé",
+    debug: {
+      received: secret,
+      expected: env.LINK_SECRET
+    }
+  }, 401, origin);
+}
+
+  const { mc_uuid, mc_username } = await request.json();
+  if (!mc_uuid || !mc_username) return json({ error: 'Paramètres manquants' }, 400, origin);
+
+  const code = generateLinkCode();
+  const now = Date.now();
+  const expiresAt = now + LINK_CODE_TTL_MS;
+
+  // On invalide les anciens codes en attente pour ce joueur
+  await env.relinkdb.prepare('DELETE FROM link_codes WHERE mc_uuid = ?').bind(mc_uuid).run();
+
+  await env.relinkdb.prepare(
+    `INSERT INTO link_codes (code, mc_uuid, mc_username, created_at, expires_at, used)
+     VALUES (?, ?, ?, ?, ?, 0)`
+  ).bind(code, mc_uuid, mc_username, now, expiresAt).run();
+
+  return json({ code, expires_in: Math.floor(LINK_CODE_TTL_MS / 1000) }, 200, origin);
+}
+
+/**
+ * Appelé depuis le site par un utilisateur déjà connecté à Discord (Bearer token),
+ * qui entre le code affiché en jeu par /link.
+ */
+async function handleLinkConfirm(request, env, origin) {
+  const payload = await getUser(request, env);
+  if (!payload) return json({ error: 'Non authentifié' }, 401, origin);
+
+  const { code } = await request.json();
+  if (!code) return json({ error: 'Code manquant' }, 400, origin);
+
+  const row = await env.relinkdb.prepare(
+    'SELECT * FROM link_codes WHERE code = ? AND used = 0'
+  ).bind(String(code).trim()).first();
+
+  if (!row) return json({ error: 'Code invalide' }, 400, origin);
+  if (Date.now() > row.expires_at) return json({ error: 'Code expiré, régénère-le avec /link en jeu' }, 400, origin);
+
+  // Vérifie que ce compte Minecraft n'est pas déjà lié à un AUTRE compte Discord
+  const conflict = await env.relinkdb.prepare(
+    'SELECT discord_id FROM users WHERE minecraft_uuid = ? AND discord_id != ?'
+  ).bind(row.mc_uuid, payload.discord_id).first();
+  if (conflict) return json({ error: 'Ce compte Minecraft est déjà lié à un autre profil.' }, 409, origin);
+
+  await env.relinkdb.batch([
+    env.relinkdb.prepare('UPDATE link_codes SET used = 1 WHERE code = ?').bind(row.code),
+    env.relinkdb.prepare('UPDATE users SET minecraft_uuid = ?, minecraft_username = ? WHERE discord_id = ?')
+      .bind(row.mc_uuid, row.mc_username, payload.discord_id),
+  ]);
+
+  return json({ ok: true, minecraft_uuid: row.mc_uuid, minecraft_username: row.mc_username }, 200, origin);
 }
 
 async function handleUpdateProfile(request, env, origin) {
@@ -248,7 +364,7 @@ async function handleSearch(request, env, origin) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim();
   if (q.length < 2) return json({ results: [] }, 200, origin);
   const rows = await env.relinkdb.prepare(
-    'SELECT discord_id, pseudo, avatar_url FROM users WHERE pseudo LIKE ? LIMIT 20'
+    'SELECT discord_id, pseudo, avatar_url, minecraft_uuid, minecraft_username FROM users WHERE pseudo LIKE ? LIMIT 20'
   ).bind(`%${q}%`).all();
   return json({ results: rows.results || [] }, 200, origin);
 }
@@ -257,7 +373,7 @@ async function handleMe(request, env, origin) {
   const payload = await getUser(request, env);
   if (!payload) return json({ error: 'Non authentifié' }, 401, origin);
   const user = await env.relinkdb.prepare(
-    'SELECT discord_id, pseudo, email, avatar_url, status FROM users WHERE discord_id = ?'
+    'SELECT discord_id, pseudo, email, avatar_url, status, minecraft_uuid, minecraft_username FROM users WHERE discord_id = ?'
   ).bind(payload.discord_id).first();
   if (!user) return json({ error: 'Utilisateur introuvable' }, 404, origin);
   // Vérification statut — permet au site de détecter suspension/ban au rechargement
@@ -434,10 +550,9 @@ async function handleDeleteSubmission(request, env, origin, type) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// NOUVEAUX HANDLERS — ajouts purs, aucune modification de ce qui précède
+// HANDLERS ADMIN + FLAGS (inchangés)
 // ════════════════════════════════════════════════════════════════════════════
 
-// Vérifie le secret admin (helper partagé par tous les nouveaux handlers)
 function checkAdmin(request, env) {
   const secret = request.headers.get('X-Admin-Secret') || '';
   return env.ADMIN_SECRET && secret === env.ADMIN_SECRET;
@@ -474,6 +589,7 @@ async function handleAdminGetUsers(request, env, origin) {
 
   const base = `
     SELECT u.discord_id, u.pseudo, u.email, u.avatar_url, u.status,
+      u.minecraft_uuid, u.minecraft_username,
       (SELECT created_at FROM submissions s WHERE s.discord_id = u.discord_id AND s.type='partner' LIMIT 1) AS submitted_partner,
       (SELECT created_at FROM submissions s WHERE s.discord_id = u.discord_id AND s.type='team'    LIMIT 1) AS submitted_team
     FROM users u`;
@@ -527,10 +643,8 @@ async function handleAdminSetFlag(request, env, origin) {
   if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
 
   const { key, value } = await request.json();
-  // Les clés arrivent préfixées par "flag:" depuis le panneau admin
   const allowed = ['flag:require_auth', ...SITE_SECTIONS.map(s => `flag:section:${s}`)];
   if (!allowed.includes(key)) return json({ error: 'Clé invalide', received: key, allowed }, 400, origin);
-  // On stocke en base sans le préfixe "flag:" pour rester cohérent avec handleGetFlags
   const storageKey = key.replace(/^flag:/, '');
 
   await env.relinkdb.prepare(
@@ -573,8 +687,8 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
 
     try {
-      // ── Routes existantes (inchangées) ───────────────────────────────────
-      if (request.method === 'POST' && pathname === '/auth/discord')  return await handleDiscordAuth(request, env, origin);
+      // ── Routes existantes ─────────────────────────────────────────────────
+      if (request.method === 'POST' && pathname === '/auth/discord')   return await handleDiscordAuth(request, env, origin);
       if (request.method === 'PUT'  && pathname === '/profile')       return await handleUpdateProfile(request, env, origin);
       if (request.method === 'GET'  && pathname === '/search')        return await handleSearch(request, env, origin);
       if (request.method === 'GET'  && pathname === '/me')            return await handleMe(request, env, origin);
@@ -584,6 +698,10 @@ export default {
       if (request.method === 'POST' && pathname === '/clans-sync')    return await handlePostClans(request, env, origin);
       if (request.method === 'GET'  && pathname === '/clans')         return await handleGetClans(request, env, origin);
 
+      // ── NOUVEAU v5 : liaison compte Minecraft via /link ──────────────────
+      if (request.method === 'POST' && pathname === '/mc/link/request') return await handleLinkRequest(request, env, origin);
+      if (request.method === 'POST' && pathname === '/link/confirm')    return await handleLinkConfirm(request, env, origin);
+
       const submissionType = extractSubmissionType(pathname);
       if (submissionType) {
         if (request.method === 'GET')    return await handleGetSubmission(request, env, origin, submissionType);
@@ -591,7 +709,7 @@ export default {
         if (request.method === 'DELETE') return await handleDeleteSubmission(request, env, origin, submissionType);
       }
 
-      // ── Nouvelles routes ─────────────────────────────────────────────────
+      // ── Routes admin / flags ──────────────────────────────────────────────
       if (request.method === 'GET'  && pathname === '/flags')              return await handleGetFlags(env, origin);
       if (request.method === 'GET'  && pathname === '/admin/users')        return await handleAdminGetUsers(request, env, origin);
       if (request.method === 'GET'  && pathname === '/admin/flags')        return await handleAdminGetFlags(request, env, origin);
