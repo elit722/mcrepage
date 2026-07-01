@@ -628,10 +628,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .rl-field input:focus{border-color:var(--gold);}
 .rl-field input::placeholder{color:rgba(255,255,255,.2);}
 .rl-field .rl-hint{font-size:.68rem;color:var(--mist);margin-top:.28rem;font-style:italic;}
-.rl-input{width:100%;padding:.6rem .85rem;margin-top:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.22);border-radius:3px;color:var(--white-jade);font-family:'Source Code Pro',monospace;font-size:1.3rem;letter-spacing:.35em;text-align:center;outline:none;transition:border-color .2s,background .2s;}
-.rl-input::placeholder{color:var(--mist);opacity:.4;letter-spacing:.35em;}
-.rl-input:focus{border-color:var(--gold);background:rgba(255,255,255,.06);}
-.rl-input.err{border-color:rgba(192,57,43,.6);background:rgba(192,57,43,.06);}
 
 .rl-save-btn{width:100%;padding:.65rem;border-radius:3px;background:linear-gradient(135deg,var(--gold),#A07830);border:none;color:var(--ink);font-family:'Cinzel Decorative',serif;font-size:.62rem;letter-spacing:.08em;cursor:pointer;transition:all .2s;margin-top:.5rem;}
 .rl-save-btn:hover{background:linear-gradient(135deg,var(--gold-light),var(--gold));}
@@ -2728,7 +2724,14 @@ const RL_API = 'https://relink-auth.refugeemeraudien-direction.workers.dev'; // 
 const DISCORD_CLIENT_ID = '1333801116692910172';                     // ← remplace par ton Client ID Discord
 const DISCORD_REDIRECT = 'https://elit722.github.io/mcrepage/';       // ← remplace par lien définitif !!!
 
-let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token, minecraft_uuid?, minecraft_username? }
+// ── Microsoft / Mojang (compte Minecraft) ──
+// ⚠️ À CONFIGURER : crée une appli sur https://portal.azure.com (Microsoft Entra ID
+// → Inscriptions d'applications) avec une plateforme "Web", l'URI de redirection
+// ci-dessous, et l'autorisation déléguée "XboxLive.signin".
+const MS_CLIENT_ID = 'TON_CLIENT_ID_AZURE';       // ← remplace par le Client ID de ton appli Azure
+const MS_REDIRECT  = DISCORD_REDIRECT;            // même URL de callback (site à page unique)
+
+let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token }
 
 // ── Init ──
 (function rlInit() {
@@ -2737,12 +2740,16 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token, min
   if (stored) {
     try { rlUser = JSON.parse(stored); rlUpdateUI(); } catch(e) { localStorage.removeItem('rl_user'); }
   }
-  // Callback OAuth Discord
+  // Callback OAuth (Discord ou Microsoft — même URL de retour, distingués via le préfixe du state)
   const params = new URLSearchParams(location.search);
   const oauthCode = params.get('code');
   const oauthState = params.get('state');
   if (oauthCode && oauthState === localStorage.getItem('rl_oauth_state')) {
-    rlHandleOAuthCallback(oauthCode);
+    if (oauthState.startsWith('ms_')) {
+      rlHandleMicrosoftCallback(oauthCode);
+    } else {
+      rlHandleOAuthCallback(oauthCode);
+    }
   } else if (oauthCode || oauthState) {
     // Retour arrière / state invalide : nettoyer l'URL sans toucher à rlUser
     history.replaceState({}, document.title, location.pathname);
@@ -2837,7 +2844,7 @@ async function rlHandleOAuthCallback(code) {
 
     // Compte Discord jamais connecté (ou compte sans Minecraft encore lié) :
     // étape 2 obligatoire → lier le compte Mojang/Microsoft avant de continuer.
-    const needsMinecraftLink = !rlUser.minecraft_uuid;
+    const needsMinecraftLink = !(rlUser.minecraft_uuid || rlUser.pseudo_minecraft);
     if (d.is_new_user || needsMinecraftLink) {
       rlOpenLinkMinecraft(true);
     } else {
@@ -2874,6 +2881,7 @@ function rlOpenLinkMinecraft(mandatory = true) {
         placeholder="123456"
         autocomplete="one-time-code"
         class="rl-input"
+        style="text-align:center;font-size:1.4rem;letter-spacing:.3rem;width:100%;margin-top:.5rem"
       />
       <div id="rl-link-code-status"></div>
       <button type="submit" class="rl-dc-btn" style="background:#107C10;margin-top:1rem">
@@ -2898,10 +2906,7 @@ async function rlSubmitLinkCode() {
   const statusEl = document.getElementById('rl-link-code-status');
   const code = (input?.value || '').trim();
 
-  input?.classList.remove('err');
-
   if (!/^\d{6}$/.test(code)) {
-    input?.classList.add('err');
     if (statusEl) statusEl.innerHTML = `<div class="rl-status err">❌ Entre un code à 6 chiffres valide.</div>`;
     return;
   }
@@ -2928,7 +2933,6 @@ async function rlSubmitLinkCode() {
     rlUpdateUI();
     rlOpenSettings(true);
   } catch(e) {
-    input?.classList.add('err');
     if (statusEl) statusEl.innerHTML = `<div class="rl-status err">❌ ${e.message}</div>`;
   }
 }
@@ -2993,10 +2997,10 @@ function rlOpenSettings(isNewUser = false) {
       ${rlUser.minecraft_uuid ? `
         <div style="display:flex;align-items:center;gap:.6rem;background:rgba(16,124,16,.12);border:1px solid rgba(16,124,16,.4);border-radius:4px;padding:.55rem .8rem;">
           <span style="color:#3CB371;">✅</span>
-          <span style="flex:1;font-size:.85rem;">${esc(rlUser.minecraft_username || '')}</span>
+          <span style="flex:1;font-size:.85rem;">${esc(rlUser.minecraft_username || rlUser.pseudo_minecraft || '')}</span>
           <button type="button" class="btn btn-ghost btn-sm" style="width:auto;padding:.3rem .7rem;" onclick="rlOpenLinkMinecraft(false)">Changer</button>
         </div>
-        <p class="rl-hint">Lié via /link en jeu — relie ton profil à ta carte staff et au leaderboard.</p>
+        <p class="rl-hint">Vérifié via Microsoft — lie ton profil à ta carte staff et au leaderboard.</p>
       ` : `
         <button type="button" class="rl-dc-btn" style="background:#107C10" onclick="rlOpenLinkMinecraft(false)">Lier mon compte Minecraft</button>
         <p class="rl-hint">Aucun compte Minecraft lié pour l'instant.</p>
@@ -3022,6 +3026,7 @@ async function rlSaveProfile() {
   if (!rlUser) return;
   const pseudo    = document.getElementById('rl-input-pseudo').value.trim();
   const email     = document.getElementById('rl-input-email').value.trim();
+  const pseudo_mc = (document.getElementById('rl-input-mc')?.value || '').trim();
   const st        = document.getElementById('rl-settings-status');
   if (!pseudo) { st.className='rl-status err'; st.textContent='⚠️ Le pseudo est requis.'; return; }
   st.className='rl-status loading'; st.textContent='⏳ Enregistrement…';
@@ -3029,11 +3034,12 @@ async function rlSaveProfile() {
     const r = await fetch(`${RL_API}/profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ pseudo, email })
+      body: JSON.stringify({ pseudo, email, pseudo_minecraft: pseudo_mc })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Erreur');
     rlUser.pseudo = pseudo; rlUser.email = email;
+    if (pseudo_mc) rlUser.pseudo_minecraft = pseudo_mc;
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
     st.className='rl-status ok'; st.textContent='✅ Profil mis à jour !';
   } catch(e) {
@@ -3221,10 +3227,10 @@ function findClosestPseudo(target, results) {
   const targetNorm = normPseudo(target);
   const targetBase = basePseudo(target);
 
-  // 0. correspondance via minecraft_username (compte lié via /link, source fiable)
-  let match = results.find(u => normPseudo(u.minecraft_username) === targetNorm);
+  // 0. correspondance via pseudo_minecraft explicitement renseigné (lien manuel)
+  let match = results.find(u => normPseudo(u.pseudo_minecraft) === targetNorm);
   if (match) return match;
-  match = results.find(u => basePseudo(u.minecraft_username) === targetBase && targetBase.length >= 3);
+  match = results.find(u => basePseudo(u.pseudo_minecraft) === targetBase && targetBase.length >= 3);
   if (match) return match;
 
   // 1. correspondance exacte
