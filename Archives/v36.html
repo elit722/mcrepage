@@ -66,10 +66,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .nav-footer-logos img{height:22px;object-fit:contain;opacity:.5;transition:opacity .2s;filter:brightness(.8);}
 .nav-footer-logos img:hover{opacity:.9;}
 
-/* ── NAV MOBILE : bouton hamburger + overlay (masqués sur desktop) ── */
-.mobile-nav-toggle{display:none;}
-.nav-overlay{display:none;}
-
 /* ── MAIN CONTENT ── */
 .main-content{flex:1;overflow:hidden;position:relative;}
 
@@ -104,7 +100,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .hero-banner{position:relative;width:100%;max-width:900px;margin-bottom:2rem;border:1px solid rgba(201,168,76,.2);border-radius:4px;overflow:hidden;box-shadow:0 0 60px rgba(139,26,26,.4);}
 .hero-banner img{width:100%;display:block;}
 /* image d'accueil brute (sans wrapper .hero-banner) : la rendre responsive */
-#page-hero img{width:100% !important;max-width:900px !important;height:auto !important;display:block;border-radius:4px;border:1px solid rgba(201,168,76,.2);box-shadow:0 0 60px rgba(139,26,26,.4);}
+#page-hero img{width:100%;max-width:900px;height:auto;display:block;border-radius:4px;border:1px solid rgba(201,168,76,.2);box-shadow:0 0 60px rgba(139,26,26,.4);}
 .hero-title{position:relative;width:min(600px,88vw);margin-bottom:1.2rem;filter:drop-shadow(0 0 30px rgba(192,57,43,.6));}
 .hero-title img{width:100%;display:block;}
 .hero-sub{position:relative;font-family:'Sawarabi Mincho',serif;font-size:clamp(.7rem,1.2vw,.9rem);letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:1.2rem;}
@@ -352,41 +348,38 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .locked-submission .lk-desc{font-size:.82rem;color:var(--mist);line-height:1.75;}
 
 @media(max-width:768px){
-  /* ── NAV MOBILE : tiroir latéral gauche, ouvert/fermé via un bouton ── */
-  .mobile-nav-toggle{
-    display:flex;align-items:center;justify-content:center;
-    position:fixed;top:.6rem;left:.6rem;z-index:600;
-    width:40px;height:40px;border-radius:4px;
-    background:#0D0A06;border:1px solid rgba(201,168,76,.35);
-    color:var(--gold);font-size:1.1rem;cursor:pointer;
-    box-shadow:0 2px 12px rgba(0,0,0,.6);
-  }
-  .mobile-nav-toggle .icon-close{display:none;}
-  body.nav-mobile-open .mobile-nav-toggle .icon-open{display:none;}
-  body.nav-mobile-open .mobile-nav-toggle .icon-close{display:block;}
-
-  .nav-overlay{
-    display:none;position:fixed;inset:0;
-    background:rgba(0,0,0,.55);z-index:490;
-  }
-  body.nav-mobile-open .nav-overlay{display:block;}
-
+  /* ── NAV MOBILE : barre horizontale en haut, uniquement le nom des sections ── */
+  .app-shell{flex-direction:column;}
   .side-nav{
-    position:fixed;top:0;left:0;bottom:0;
-    width:250px;height:100vh;
-    transform:translateX(-100%);
-    transition:transform .3s ease;
-    z-index:500;
-    background:#0D0A06;
-    box-shadow:0 0 30px rgba(0,0,0,.7);
+    width:100%;height:58px;flex-shrink:0;
+    flex-direction:row;align-items:center;
+    padding:0 .4rem;
+    background:#0D0A06;backdrop-filter:none;
+    border-right:none;border-bottom:1px solid rgba(201,168,76,.3);
+    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    position:relative;z-index:150;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
   }
-  body.nav-mobile-open .side-nav{transform:translateX(0);}
-
+  .side-nav::-webkit-scrollbar{height:3px;}
+  .side-nav::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:2px;}
+  .nav-brand{display:none;}
+  .nav-items{
+    flex:none;height:100%;
+    flex-direction:row;align-items:center;
+    padding:0 .3rem;gap:.1rem;
+  }
+  .nav-item{
+    flex-direction:column;justify-content:center;
+    gap:.15rem;padding:.4rem .7rem;
+    border-left:none !important;
+    flex-shrink:0;
+  }
+  .nav-item.active{border-left:none;border-bottom:2px solid var(--gold);background:rgba(201,168,76,.1);}
   .nav-item .nav-icon{display:none;}
-  .nav-label-fr{font-size:.72rem;}
-
-  /* recherche + connexion restent en haut à droite, comme sur desktop */
-  .top-bar{top:.6rem;right:.6rem;}
+  .nav-label-fr{font-size:.58rem;white-space:nowrap;letter-spacing:.04em;}
+  .nav-items .divider{width:1px;height:20px;flex-shrink:0;margin:0 .2rem;background:linear-gradient(180deg,transparent,rgba(201,168,76,.3),transparent);}
+  .nav-footer{display:none;}
+  .top-bar{top:66px;}
 
   .hero-section{padding:1rem;}
 
@@ -573,7 +566,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   backdrop-filter:blur(2px);
 }
 @media(max-width:768px){
-  .page-section.locked.active .auth-gate{left:0;top:0;}
+  .page-section.locked.active .auth-gate{left:0;top:58px;}
 }
 .auth-gate-card{
   background:#0F0C08;
@@ -756,14 +749,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     </div>
   </div>
 </div>
-
-<!-- ── NAV MOBILE : bouton hamburger + overlay ── -->
-<button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="Ouvrir/fermer le menu" onclick="document.body.classList.toggle('nav-mobile-open')">
-  <span class="icon-open">☰</span>
-  <span class="icon-close">✕</span>
-</button>
-<div class="nav-overlay" id="nav-overlay" onclick="document.body.classList.remove('nav-mobile-open')"></div>
-
+  
 <nav class="side-nav">
   <div class="nav-brand">
     <img src="logore1.png" alt="Refuge Emeraudien Logo" />
@@ -4185,29 +4171,6 @@ rlApplyGates = function() {
 
 // ── Initialisation : charger les flags au démarrage ──
 fetchSiteFlags();
-
-// ══════════════════════════════════════════════════════════════════════════
-// NAV MOBILE : tiroir latéral (ouverture/fermeture + fermeture auto)
-// ══════════════════════════════════════════════════════════════════════════
-(function(){
-  const toggleBtn = document.getElementById('mobile-nav-toggle');
-  const overlay   = document.getElementById('nav-overlay');
-
-  function openNav()  { document.body.classList.add('nav-mobile-open'); }
-  function closeNav() { document.body.classList.remove('nav-mobile-open'); }
-  function toggleNav(){ document.body.classList.toggle('nav-mobile-open'); }
-
-  if (toggleBtn) toggleBtn.addEventListener('click', toggleNav);
-  if (overlay)   overlay.addEventListener('click', closeNav);
-
-  // Fermer le tiroir automatiquement après avoir choisi une section (mobile uniquement)
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if (window.innerWidth <= 768) closeNav();
-    });
-  });
-})();
-
 
 </script>
 </html>
