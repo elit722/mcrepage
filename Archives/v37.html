@@ -758,11 +758,11 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 </div>
 
 <!-- ── NAV MOBILE : bouton hamburger + overlay ── -->
-<button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="Ouvrir/fermer le menu" onclick="window.toggleMobileNav()">
+<button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="Ouvrir/fermer le menu" onclick="document.body.classList.toggle('nav-mobile-open')">
   <span class="icon-open">☰</span>
   <span class="icon-close">✕</span>
 </button>
-<div class="nav-overlay" id="nav-overlay" onclick="window.closeMobileNav()"></div>
+<div class="nav-overlay" id="nav-overlay" onclick="document.body.classList.remove('nav-mobile-open')"></div>
 
 <nav class="side-nav">
   <div class="nav-brand">
@@ -4189,31 +4189,24 @@ fetchSiteFlags();
 // ══════════════════════════════════════════════════════════════════════════
 // NAV MOBILE : tiroir latéral (ouverture/fermeture + fermeture auto)
 // ══════════════════════════════════════════════════════════════════════════
-window.openMobileNav = function() {
-  document.body.classList.add('nav-mobile-open');
-  var sn = document.querySelector('.side-nav');
-  var ov = document.getElementById('nav-overlay');
-  if (sn) sn.style.transform = 'translateX(0)';
-  if (ov) ov.style.display = 'block';
-};
-window.closeMobileNav = function() {
-  document.body.classList.remove('nav-mobile-open');
-  var sn = document.querySelector('.side-nav');
-  var ov = document.getElementById('nav-overlay');
-  if (sn) sn.style.transform = 'translateX(-100%)';
-  if (ov) ov.style.display = 'none';
-};
-window.toggleMobileNav = function() {
-  if (document.body.classList.contains('nav-mobile-open')) window.closeMobileNav();
-  else window.openMobileNav();
-};
+(function(){
+  const toggleBtn = document.getElementById('mobile-nav-toggle');
+  const overlay   = document.getElementById('nav-overlay');
 
-// Fermer le tiroir automatiquement après avoir choisi une section (mobile uniquement)
-document.querySelectorAll('.nav-item').forEach(function(item){
-  item.addEventListener('click', function() {
-    if (window.innerWidth <= 768) window.closeMobileNav();
+  function openNav()  { document.body.classList.add('nav-mobile-open'); }
+  function closeNav() { document.body.classList.remove('nav-mobile-open'); }
+  function toggleNav(){ document.body.classList.toggle('nav-mobile-open'); }
+
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleNav);
+  if (overlay)   overlay.addEventListener('click', closeNav);
+
+  // Fermer le tiroir automatiquement après avoir choisi une section (mobile uniquement)
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeNav();
+    });
   });
-});
+})();
 
 
 </script>
