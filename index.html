@@ -3200,7 +3200,7 @@ function rlSearch(q) {
         // death et kdr calculator
         if (kills !== null && deaths !== null) {
           const kdr = (kills / deaths)
-          const kdrBadge = kdrBadge ? `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}</span>` : 'Legends Never Die';
+          kdrBadge = kdr ? `<span class="pc-kdr">⚔️ KDR = ${kdr.toFixed(2)}</span>` : 'Legends Never Die';
         }
         // Clan depuis CLAN_DATA
         const clanName = clanByPseudo[key] || null;
