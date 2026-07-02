@@ -3191,7 +3191,7 @@ function rlSearch(q) {
 
 
        // Kills and death depuis lbCache
-        const kills = lb.kills ?? null;
+        const kills = (1 + lb.kills) ?? null;
         const killsBadge = kills !== null
           ? `<span class="pc-kills">⚔️ ${fmtNum(kills)}</span>` : '';
 
