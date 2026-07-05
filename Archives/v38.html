@@ -18,7 +18,7 @@ html,body{height:100%;overflow:hidden;}
 body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',serif;}
 
 /* ── LAYOUT ── */
-.app-shell{display:flex;height:100vh;overflow:hidden;margin-top:var(--banner-h,0px);height:calc(100vh - var(--banner-h,0px));transition:margin-top .3s ease,height .3s ease;}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
 
 /* ── SIDE NAV ── */
 .side-nav{
@@ -355,8 +355,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   /* ── NAV MOBILE : tiroir latéral gauche, ouvert/fermé via un bouton ── */
   .mobile-nav-toggle{
     display:flex;align-items:center;justify-content:center;
-    position:fixed;top:calc(.6rem + var(--banner-h,0px));left:.6rem;z-index:600;
-    transition:top .3s ease;
+    position:fixed;top:.6rem;left:.6rem;z-index:600;
     width:40px;height:40px;border-radius:4px;
     background:#0D0A06;border:1px solid rgba(201,168,76,.35);
     color:var(--gold);font-size:1.1rem;cursor:pointer;
@@ -387,7 +386,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   .nav-label-fr{font-size:.72rem;}
 
   /* recherche + connexion restent en haut à droite, comme sur desktop */
-  .top-bar{top:calc(.6rem + var(--banner-h,0px));right:.6rem;}
+  .top-bar{top:.6rem;right:.6rem;}
 
   .hero-section{padding:1rem;}
 
@@ -638,58 +637,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 }
 .top-bar-login-btn:hover{background:rgba(88,101,242,.32);border-color:#7289DA;}
 .top-bar-login-btn .dc-icon{font-size:.85rem;}
-.top-bar{top:var(--banner-h,0px);transition:top .3s ease;}
-
-/* ── BANDEAU DE LIAISON DISCORD/MINECRAFT ── */
-.link-banner{
-  position:fixed;top:0;left:0;right:0;
-  z-index:1000;
-  display:flex;align-items:center;gap:1rem;
-  padding:.55rem 1.2rem;
-  background:linear-gradient(90deg,rgba(88,101,242,.16),rgba(139,26,26,.16),rgba(88,101,242,.16));
-  background-size:200% 100%;
-  border-bottom:1px solid rgba(201,168,76,.28);
-  backdrop-filter:blur(12px);
-  animation:linkBannerSheen 8s linear infinite;
-  transform:translateY(-100%);
-  transition:transform .35s ease;
-}
-.link-banner.show{transform:translateY(0);}
-@keyframes linkBannerSheen{0%{background-position:0% 0;}100%{background-position:200% 0;}}
-.link-banner-icon{
-  flex-shrink:0;width:34px;height:34px;border-radius:50%;
-  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.35);
-  display:flex;align-items:center;justify-content:center;font-size:1.05rem;
-}
-.link-banner-body{flex:1;min-width:0;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;}
-.link-banner-text{display:flex;flex-direction:column;gap:.1rem;}
-.link-banner-text strong{font-family:'Cinzel Decorative',serif;font-size:.68rem;letter-spacing:.05em;color:var(--gold-light);}
-.link-banner-text span{font-size:.7rem;color:var(--mist);}
-.link-banner-perks{display:flex;gap:.9rem;flex-wrap:wrap;}
-.link-banner-perk{display:flex;align-items:center;gap:.35rem;font-size:.66rem;color:var(--white-jade);white-space:nowrap;}
-.link-banner-perk .lbp-ico{font-size:.8rem;}
-.link-banner-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
-.link-banner-cta{
-  display:flex;align-items:center;gap:.4rem;
-  padding:.42rem .95rem;border-radius:4px;
-  background:linear-gradient(135deg,var(--gold),#A07830);
-  border:none;color:var(--ink);font-family:'Cinzel Decorative',serif;
-  font-size:.62rem;letter-spacing:.06em;cursor:pointer;white-space:nowrap;
-  transition:all .2s;
-}
-.link-banner-cta:hover{background:linear-gradient(135deg,var(--gold-light),var(--gold));}
-.link-banner-close{
-  background:none;border:none;color:var(--mist);cursor:pointer;
-  font-size:.9rem;padding:.2rem .4rem;line-height:1;flex-shrink:0;transition:color .2s;
-}
-.link-banner-close:hover{color:var(--white-jade);}
-@media(max-width:900px){.link-banner-perks{display:none;}}
-@media(max-width:640px){
-  .link-banner{padding:.5rem .7rem .5rem 3.2rem;gap:.6rem;}
-  .link-banner-icon{display:none;}
-  .link-banner-text span{display:none;}
-  .link-banner-cta{padding:.4rem .7rem;font-size:.58rem;}
-}
 
 /* ── RELINK MODAL ── */
 .rl-overlay{
@@ -786,27 +733,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 </head>
 <body>
 <div class="app-shell">
-
-<!-- ── BANDEAU DE LIAISON DISCORD / MINECRAFT ── -->
-<div class="link-banner" id="link-banner">
-  <span class="link-banner-icon">🔗</span>
-  <div class="link-banner-body">
-    <div class="link-banner-text">
-      <strong>Lie ton compte Discord à ton compte Minecraft</strong>
-      <span>Tape <strong>/link</strong> en jeu, entre le code — c'est fait pour tous les events à venir.</span>
-    </div>
-    <div class="link-banner-perks">
-      <span class="link-banner-perk"><span class="lbp-ico">🛡️</span>Sécurise ton compte</span>
-      <span class="link-banner-perk"><span class="lbp-ico">🎁</span>Récompenses IG</span>
-      <span class="link-banner-perk"><span class="lbp-ico">🖼️</span>Ta PP Discord dans l'interchat</span>
-      <span class="link-banner-perk"><span class="lbp-ico">⏱️</span>Fais gagner du temps au staff</span>
-    </div>
-  </div>
-  <div class="link-banner-actions">
-    <button class="link-banner-cta" onclick="rlLinkBannerCTA()">Lier maintenant</button>
-    <button class="link-banner-close" title="Masquer pour cette session" onclick="rlDismissLinkBanner()">✕</button>
-  </div>
-</div>
 
 <!-- ── RELINK TOP BAR ── -->
 <div class="top-bar" id="rl-top-bar">
@@ -2914,8 +2840,6 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token, min
       })
       .catch(() => { /* Worker inaccessible : on laisse la session locale */ });
   }
-  // Affiche le bandeau d'incitation même si l'utilisateur n'est pas connecté
-  rlUpdateLinkBanner();
 })();
 
 // Pages nécessitant une connexion
@@ -2951,39 +2875,7 @@ function rlUpdateUI() {
   rlApplyGates();
   pfApplyGate();
   teamApplyGate();
-  rlUpdateLinkBanner();
 }
-
-// ── Bandeau d'incitation à la liaison Discord/Minecraft ──
-// Affiché tant que le compte n'a pas de minecraft_uuid (que l'utilisateur
-// soit connecté ou non). Se masque pour la session en cours via "✕",
-// mais réapparaîtra à la prochaine visite tant que le lien n'est pas fait.
-function rlUpdateLinkBanner() {
-  const banner = document.getElementById('link-banner');
-  if (!banner) return;
-  const isLinked = !!(rlUser && rlUser.minecraft_uuid);
-  const dismissed = sessionStorage.getItem('rl_link_banner_dismissed') === '1';
-  const show = !isLinked && !dismissed;
-  banner.classList.toggle('show', show);
-  document.documentElement.style.setProperty('--banner-h', show ? banner.offsetHeight + 'px' : '0px');
-}
-
-function rlDismissLinkBanner() {
-  sessionStorage.setItem('rl_link_banner_dismissed', '1');
-  rlUpdateLinkBanner();
-}
-
-function rlLinkBannerCTA() {
-  if (!rlUser) { rlOpenLogin(); }
-  else { rlOpenLinkMinecraft(false); }
-}
-
-window.addEventListener('resize', () => {
-  const banner = document.getElementById('link-banner');
-  if (banner && banner.classList.contains('show')) {
-    document.documentElement.style.setProperty('--banner-h', banner.offsetHeight + 'px');
-  }
-});
 
 // ── OAuth Discord ──
 function rlStartDiscordOAuth() {

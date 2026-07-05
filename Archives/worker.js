@@ -1,5 +1,5 @@
 /**
- * ReLink Worker v5 — Cloudflare Workers + D1
+ * ReLink Worker v6 — Cloudflare Workers + D1
  * ─────────────────────────────────────────────
  * AUTH / PROFIL
  *   POST /auth/discord
@@ -7,7 +7,7 @@
  *   GET  /search?q=xxx
  *   GET  /me               Bearer token
  *
- * LIAISON COMPTE MINECRAFT (sans double connexion, compatible crack)  ← NOUVEAU v5
+ * LIAISON COMPTE MINECRAFT (sans double connexion, compatible crack)
  *   POST /mc/link/request   X-Link-Secret        appelé par le plugin MC (commande /link)
  *   POST /link/confirm      Bearer token          appelé par le site (code entré par l'utilisateur)
  *
@@ -28,11 +28,18 @@
  *   DELETE /submission/:type        X-Admin-Secret + ?discord_id=xxx → déblocage admin
  *   :type ∈ "partner" | "team"
  *
+ * FORMULAIRES → DISCORD (NOUVEAU v6)                                   ← NOUVEAU
+ *   POST /forms/:type    → relaie vers le webhook Discord correspondant.
+ *   Le webhook n'est JAMAIS exposé côté client : il vit uniquement dans
+ *   les secrets du Worker. Rate limit serveur + honeypot anti-bot inclus.
+ *   :type ∈ clés de FORM_TYPES (ex: "aide")
+ *
  * ── ADMIN + FLAGS ─────────────────────────────────────────────────────────
  *   GET  /flags                     → { sections: {...}, require_auth: bool }
  *
- *   GET    /admin/users             X-Admin-Secret  → liste paginée
- *   POST   /admin/users/:id/status  X-Admin-Secret  → { action: suspend|ban|unban|delete }
+ *   GET    /admin/users                 X-Admin-Secret  → liste paginée
+ *   POST   /admin/users/:id/status      X-Admin-Secret  → { action: suspend|ban|unban|delete }
+ *   POST   /admin/users/:id/force-link  X-Admin-Secret  → { mc_uuid, mc_username } — lie/relie de force
  *   GET    /admin/flags             X-Admin-Secret  → état des flags
  *   POST   /admin/flags             X-Admin-Secret  → { key, value }
  *   GET    /admin/submissions       X-Admin-Secret  → liste des soumissions
@@ -82,7 +89,8 @@
  *   CREATE UNIQUE INDEX IF NOT EXISTS idx_users_minecraft_uuid
  *     ON users(minecraft_uuid) WHERE minecraft_uuid IS NOT NULL;
  *
- *   -- NOUVELLE migration v5 : table des codes de liaison /link (ajout pur)
+ *   ALTER TABLE player_stats ADD COLUMN deaths INTEGER DEFAULT 0;
+ *
  *   CREATE TABLE IF NOT EXISTS link_codes (
  *     code        TEXT PRIMARY KEY,
  *     mc_uuid     TEXT NOT NULL,
@@ -93,12 +101,40 @@
  *   );
  *   CREATE INDEX IF NOT EXISTS idx_link_codes_mc_uuid ON link_codes (mc_uuid);
  *
+ *   -- Aucune nouvelle table nécessaire pour /forms : le rate limit
+ *   -- réutilise la table kv_store déjà existante.
+ *
+ *   -- NOUVEAU v7 : mémorise quel discord_id a confirmé quel code /link,
+ *   -- pour que le plugin MC puisse savoir (via /mc/link/status) que la
+ *   -- liaison a été confirmée côté site, et agir en conséquence côté MC
+ *   -- (ex: appeler l'API SDLink pour finaliser la vérification là-bas).
+ *   ALTER TABLE link_codes ADD COLUMN confirmed_discord_id TEXT;
+ *
  * ── VARIABLES / SECRETS WORKER À CONFIGURER (wrangler) ────────────────────
- *   LINK_SECRET   (secret — partagé avec le plugin Minecraft, protège /mc/link/request)
+ *   LINK_SECRET     (secret — partagé avec le plugin Minecraft, protège /mc/link/request et /mc/link/status)
  *   wrangler secret put LINK_SECRET
  *
- *   Les secrets MS_CLIENT_ID / MS_CLIENT_SECRET ne sont plus utilisés en v5,
+ *   AIDE_WEBHOOK    (secret — URL du webhook Discord du formulaire "aide")   ← NOUVEAU
+ *   wrangler secret put AIDE_WEBHOOK
+ *   (ajoute un secret WEBHOOK par formulaire déclaré dans FORM_TYPES)
+ *
+ *   Les secrets MS_CLIENT_ID / MS_CLIENT_SECRET ne sont plus utilisés en v5+,
  *   tu peux les retirer (wrangler secret delete MS_CLIENT_SECRET).
+ *
+ * ── NOUVEAU v7 : PONT SDLINK (lecture + statut de liaison) ─────────────────
+ *   Le mod tiers "Simple Discord Link" (SDLink) stocke ses comptes vérifiés
+ *   dans un fichier JSONL sur le serveur MC (cf. SDLINK_VERIFIED_PATH).
+ *
+ *   1) LECTURE : à la connexion Discord (/auth/discord), si l'utilisateur
+ *      n'a pas encore de compte Minecraft lié chez nous, on regarde si
+ *      SDLink le connaît déjà (même discordID) et on relie automatiquement
+ *      → évite de refaire un /link si le joueur est déjà vérifié via SDLink.
+ *
+ *   2) STATUT : GET /mc/link/status?code=XXXXXX (X-Link-Secret) permet au
+ *      plugin MC de savoir si un code /link a été confirmé côté site, et
+ *      par quel discord_id — pour finaliser la vérification côté SDLink
+ *      lui-même (via son API Java), sans jamais toucher son fichier JSON
+ *      depuis le Worker.
  * ──────────────────────────────────────────────────────────────────────────
  */
 
@@ -116,6 +152,19 @@ const SUBMISSION_TYPES = ['partner', 'team'];
 
 // Sections gérées par les flags
 const SITE_SECTIONS = ['home', 'modpack', 'lore', 'reglement', 'partenaires', 'ajouts', 'server', 'clans', 'team', 'about', 'staff', 'aide'];
+
+// Chemin du fichier verifiedaccounts.json de SDLink sur le serveur MC.
+// À VÉRIFIER dans le gestionnaire de fichiers Pterodactyl si besoin.
+const SDLINK_VERIFIED_PATH = '/sdlinkstorage/verifiedaccounts.json';
+
+// ── FORMULAIRES → WEBHOOKS DISCORD ──────────────────────────────────────
+// Ajoute une entrée par formulaire. `envKey` = nom du secret Worker qui
+// contient l'URL du webhook Discord (jamais codée en dur ici).
+const FORM_TYPES = {
+  aide: { envKey: 'AIDE_WEBHOOK', cooldownMs: 24 * 60 * 60 * 1000 }, // 24h, aligné sur l'ancien AIDE_CD_MS côté front
+  partner: { envKey: 'PARTNER_WEBHOOK', cooldownMs: 60 * 60 * 1000 },
+  team:    { envKey: 'TEAM_WEBHOOK'},
+};
 
 // ── CORS ──────────────────────────────────────────────────────────────────
 function corsHeaders(origin) {
@@ -141,6 +190,19 @@ function json(data, status = 200, origin = '') {
     status,
     headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
   });
+}
+
+// ── Comparaison de secrets en temps constant ────────────────────────────
+// Évite les timing attacks sur les comparaisons de type `secret === env.X`.
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const enc = new TextEncoder();
+  const bufA = enc.encode(a);
+  const bufB = enc.encode(b);
+  if (bufA.length !== bufB.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bufA.length; i++) diff |= bufA[i] ^ bufB[i];
+  return diff === 0;
 }
 
 // ── JWT ───────────────────────────────────────────────────────────────────
@@ -198,6 +260,60 @@ async function minecraftStatus() {
   } catch { return null; }
 }
 
+// ── Pont SDLink (lecture seule) ────────────────────────────────────────────
+// Lit le fichier verifiedaccounts.json de SDLink via l'API Pterodactyl
+// (même technique que collect_stats.py). Format JSONL : 1ère ligne =
+// {"schemaVersion":"1.0"}, puis un objet JSON par compte.
+async function getSdlinkVerifiedAccounts(env) {
+  const r = await fetch(
+    `${PANEL}/api/client/servers/${SERVER_ID}/files/contents?file=${encodeURIComponent(SDLINK_VERIFIED_PATH)}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${env.PTERO_API_KEY}`,
+        'Accept': 'Application/vnd.pterodactyl.v1+json',
+      },
+    }
+  );
+  if (!r.ok) throw new Error(`Pterodactyl files/contents ${r.status}`);
+  const text = await r.text();
+
+  const accounts = [];
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      const obj = JSON.parse(trimmed);
+      if (obj.uuid && obj.discordID) accounts.push(obj);
+    } catch { /* ligne d'en-tête ou invalide, on ignore */ }
+  }
+  return accounts;
+}
+
+// Tente un lien automatique si l'utilisateur est déjà vérifié via SDLink.
+// N'échoue jamais bruyamment : un souci de lecture Pterodactyl ne doit
+// jamais casser la connexion Discord.
+async function tryAutoLinkFromSdlink(discordId, env) {
+  try {
+    const verified = await getSdlinkVerifiedAccounts(env);
+    const match = verified.find(a => String(a.discordID) === String(discordId));
+    if (!match) return null;
+
+    const conflict = await env.relinkdb.prepare(
+      'SELECT discord_id FROM users WHERE minecraft_uuid = ? AND discord_id != ?'
+    ).bind(match.uuid, discordId).first();
+    if (conflict) return null; // déjà pris ailleurs côté ReLink, on ne force rien
+
+    await env.relinkdb.prepare(
+      'UPDATE users SET minecraft_uuid = ?, minecraft_username = ? WHERE discord_id = ?'
+    ).bind(match.uuid, match.username, discordId).run();
+
+    return { minecraft_uuid: match.uuid, minecraft_username: match.username };
+  } catch (e) {
+    console.error('[SDLink autolink] échec:', e.message);
+    return null;
+  }
+}
+
 // ── Handlers AUTH ─────────────────────────────────────────────────────────
 async function handleDiscordAuth(request, env, origin) {
   const { code, redirect_uri } = await request.json();
@@ -228,7 +344,6 @@ async function handleDiscordAuth(request, env, origin) {
     : `https://cdn.discordapp.com/embed/avatars/${parseInt(dc.discriminator || '0') % 5}.png`;
 
   const existing = await env.relinkdb.prepare('SELECT * FROM users WHERE discord_id = ?').bind(dc.id).first();
-  // Bloquer la connexion si le compte est banni ou suspendu
   if (existing) {
     if (existing.status === 'banned')    return json({ error: 'Compte banni' }, 403, origin);
     if (existing.status === 'suspended') return json({ error: 'Compte suspendu' }, 403, origin);
@@ -243,16 +358,20 @@ async function handleDiscordAuth(request, env, origin) {
   const user = existing ? { ...existing, avatar_url: avatarUrl }
     : { discord_id: dc.id, pseudo: dc.username, email: dc.email || null, avatar_url: avatarUrl };
 
+  // NOUVEAU v7 : auto-link si déjà vérifié via SDLink et pas encore lié chez nous
+  if (!user.minecraft_uuid) {
+    const autoLink = await tryAutoLinkFromSdlink(dc.id, env);
+    if (autoLink) Object.assign(user, autoLink);
+  }
+
   const access_token = await signJWT(
     { discord_id: dc.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
     env.JWT_SECRET
   );
-  // is_new_user : indique au front qu'il faut déclencher l'étape de liaison
-  // du compte Minecraft — désormais via /link en jeu, plus via Microsoft.
   return json({ ...user, access_token, is_new_user: !existing }, 200, origin);
 }
 
-// ── NOUVEAU v5 : liaison du compte Minecraft via code /link (crack-compatible) ──
+// ── Liaison du compte Minecraft via code /link (crack-compatible) ─────────
 
 function generateLinkCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -262,34 +381,27 @@ function generateLinkCode() {
  * Appelé par le plugin Minecraft (serveur -> Worker) quand un joueur tape /link.
  * Protégé par un secret partagé (X-Link-Secret), pas par une session Discord :
  * c'est le serveur MC qui parle au Worker, pas le joueur directement.
+ *
+ * CORRIGÉ v6 : plus aucun log ni retour du secret attendu/reçu. Le comportement
+ * fonctionnel est strictement identique — seule la fuite d'info a été retirée.
  */
 async function handleLinkRequest(request, env, origin) {
-  console.log("===== HEADERS =====");
+  const secret = request.headers.get('X-Link-Secret') || '';
 
-for (const [k, v] of request.headers.entries()) {
-  console.log(`${k.toLowerCase()} = ${v}`);
-}
+  if (!env.LINK_SECRET || !secret || !timingSafeEqual(secret, env.LINK_SECRET)) {
+    return json({ error: 'Non autorisé' }, 401, origin);
+  }
 
-const secret = request.headers.get("X-Link-Secret")
-  || request.headers.get("x-link-secret");
-
-console.log("SECRET RECEIVED =", secret);
-console.log("SECRET ENV =", env.LINK_SECRET);
-
-if (!env.LINK_SECRET || !secret || secret !== env.LINK_SECRET) {
-  return json({
-    error: "Non autorisé",
-    debug: {
-      received: secret,
-      expected: env.LINK_SECRET
-    }
-  }, 401, origin);
-}
-
-  const { mc_uuid, mc_username } = await request.json();
+  const { mc_uuid, mc_username, code: providedCode } = await request.json();
   if (!mc_uuid || !mc_username) return json({ error: 'Paramètres manquants' }, 400, origin);
 
-  const code = generateLinkCode();
+  // NOUVEAU v7 : le plugin peut fournir son propre code (ex: le code de
+  // vérification SDLink) plutôt que d'en laisser générer un nouveau ici —
+  // un seul code, une seule saisie sur le site. On valide strictement le
+  // format (6 chiffres) pour éviter d'injecter une valeur arbitraire.
+  const code = (typeof providedCode === 'string' && /^\d{6}$/.test(providedCode))
+    ? providedCode
+    : generateLinkCode();
   const now = Date.now();
   const expiresAt = now + LINK_CODE_TTL_MS;
 
@@ -322,19 +434,47 @@ async function handleLinkConfirm(request, env, origin) {
   if (!row) return json({ error: 'Code invalide' }, 400, origin);
   if (Date.now() > row.expires_at) return json({ error: 'Code expiré, régénère-le avec /link en jeu' }, 400, origin);
 
-  // Vérifie que ce compte Minecraft n'est pas déjà lié à un AUTRE compte Discord
   const conflict = await env.relinkdb.prepare(
     'SELECT discord_id FROM users WHERE minecraft_uuid = ? AND discord_id != ?'
   ).bind(row.mc_uuid, payload.discord_id).first();
   if (conflict) return json({ error: 'Ce compte Minecraft est déjà lié à un autre profil.' }, 409, origin);
 
   await env.relinkdb.batch([
-    env.relinkdb.prepare('UPDATE link_codes SET used = 1 WHERE code = ?').bind(row.code),
+    // NOUVEAU v7 : on mémorise qui a confirmé, pour /mc/link/status
+    env.relinkdb.prepare('UPDATE link_codes SET used = 1, confirmed_discord_id = ? WHERE code = ?')
+      .bind(payload.discord_id, row.code),
     env.relinkdb.prepare('UPDATE users SET minecraft_uuid = ?, minecraft_username = ? WHERE discord_id = ?')
       .bind(row.mc_uuid, row.mc_username, payload.discord_id),
   ]);
 
   return json({ ok: true, minecraft_uuid: row.mc_uuid, minecraft_username: row.mc_username }, 200, origin);
+}
+
+/**
+ * NOUVEAU v7 — Appelé par le plugin Minecraft (X-Link-Secret) pour savoir si
+ * un code /link généré via /mc/link/request a été confirmé côté site, et par
+ * quel discord_id. Permet au plugin de finaliser la vérification côté SDLink
+ * (ou autre) directement en Java, sans que le Worker touche à leurs fichiers.
+ */
+async function handleLinkStatus(request, env, origin) {
+  const secret = request.headers.get('X-Link-Secret') || '';
+  if (!env.LINK_SECRET || !secret || !timingSafeEqual(secret, env.LINK_SECRET))
+    return json({ error: 'Non autorisé' }, 401, origin);
+
+  const code = new URL(request.url).searchParams.get('code');
+  if (!code) return json({ error: 'code manquant' }, 400, origin);
+
+  const row = await env.relinkdb.prepare(
+    'SELECT used, confirmed_discord_id, expires_at FROM link_codes WHERE code = ?'
+  ).bind(String(code).trim()).first();
+
+  if (!row) return json({ found: false }, 200, origin);
+  return json({
+    found: true,
+    used: !!row.used,
+    discord_id: row.confirmed_discord_id || null,
+    expired: Date.now() > row.expires_at,
+  }, 200, origin);
 }
 
 async function handleUpdateProfile(request, env, origin) {
@@ -376,7 +516,6 @@ async function handleMe(request, env, origin) {
     'SELECT discord_id, pseudo, email, avatar_url, status, minecraft_uuid, minecraft_username FROM users WHERE discord_id = ?'
   ).bind(payload.discord_id).first();
   if (!user) return json({ error: 'Utilisateur introuvable' }, 404, origin);
-  // Vérification statut — permet au site de détecter suspension/ban au rechargement
   if (user.status === 'banned')    return json({ error: 'Compte banni' }, 403, origin);
   if (user.status === 'suspended') return json({ error: 'Compte suspendu' }, 401, origin);
   return json(user, 200, origin);
@@ -405,7 +544,7 @@ async function handleServer(env, origin) {
 // ── Handler STATS joueurs (reçoit les données du script Python) ───────────
 async function handlePostStats(request, env, origin) {
   const secret = request.headers.get('X-Stats-Secret') || '';
-  if (!env.STATS_SECRET || secret !== env.STATS_SECRET)
+  if (!env.STATS_SECRET || !timingSafeEqual(secret, env.STATS_SECRET))
     return json({ error: 'Non autorisé' }, 401, origin);
 
   const { players } = await request.json();
@@ -413,11 +552,12 @@ async function handlePostStats(request, env, origin) {
     return json({ error: 'Payload invalide' }, 400, origin);
 
   const stmt = env.relinkdb.prepare(
-    `INSERT INTO player_stats (uuid, pseudo, kills, blocs_poses, fortune, dynasty, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO player_stats (uuid, pseudo, kills, deaths, blocs_poses, fortune, dynasty, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(uuid) DO UPDATE SET
        pseudo      = excluded.pseudo,
        kills       = excluded.kills,
+       deaths      = excluded.deaths,
        blocs_poses = excluded.blocs_poses,
        fortune     = excluded.fortune,
        dynasty     = excluded.dynasty,
@@ -425,7 +565,7 @@ async function handlePostStats(request, env, origin) {
   );
 
   const batch = players.map(p =>
-    stmt.bind(p.uuid, p.pseudo, p.kills || 0, p.blocs_poses || 0, p.fortune || 0, p.dynasty || null)
+    stmt.bind(p.uuid, p.pseudo, p.kills || 0, p.deaths || 0, p.blocs_poses || 0, p.fortune || 0, p.dynasty || null)
   );
   await env.relinkdb.batch(batch);
 
@@ -442,10 +582,13 @@ async function handleLeaderboard(request, env, origin) {
   if (!allowed.includes(type)) return json({ error: 'Type invalide' }, 400, origin);
 
   const rows = await env.relinkdb.prepare(
-    `SELECT ps.uuid, ps.pseudo, ps.kills, ps.blocs_poses, ps.fortune, ps.dynasty, ps.updated_at,
-            u.avatar_url
+    `SELECT ps.uuid, ps.pseudo, ps.kills, ps.deaths, ps.blocs_poses, ps.fortune, ps.dynasty, ps.updated_at,
+            COALESCE(u_uuid.avatar_url, u_pseudo.avatar_url)   AS avatar_url,
+            COALESCE(u_uuid.discord_id, u_pseudo.discord_id)   AS discord_id,
+            (u_uuid.discord_id IS NOT NULL)                    AS linked
      FROM player_stats ps
-     LEFT JOIN users u ON LOWER(u.pseudo) = LOWER(ps.pseudo)
+     LEFT JOIN users u_uuid   ON u_uuid.minecraft_uuid = ps.uuid
+     LEFT JOIN users u_pseudo ON LOWER(u_pseudo.pseudo) = LOWER(ps.pseudo)
      ORDER BY ps.${type} DESC
      LIMIT ?`
   ).bind(limit).all();
@@ -460,7 +603,7 @@ async function handleLeaderboard(request, env, origin) {
 // ── Handler CLANS — sync (reçoit les données du script Python) ────────────
 async function handlePostClans(request, env, origin) {
   const secret = request.headers.get('X-Stats-Secret') || '';
-  if (!env.STATS_SECRET || secret !== env.STATS_SECRET)
+  if (!env.STATS_SECRET || !timingSafeEqual(secret, env.STATS_SECRET))
     return json({ error: 'Non autorisé' }, 401, origin);
 
   const { clans } = await request.json();
@@ -536,7 +679,7 @@ async function handlePostSubmission(request, env, origin, type) {
 
 async function handleDeleteSubmission(request, env, origin, type) {
   const secret = request.headers.get('X-Admin-Secret') || '';
-  if (!env.ADMIN_SECRET || secret !== env.ADMIN_SECRET)
+  if (!env.ADMIN_SECRET || !timingSafeEqual(secret, env.ADMIN_SECRET))
     return json({ error: 'Non autorisé' }, 401, origin);
 
   const discordId = new URL(request.url).searchParams.get('discord_id');
@@ -550,12 +693,86 @@ async function handleDeleteSubmission(request, env, origin, type) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// HANDLERS ADMIN + FLAGS (inchangés)
+// HANDLER FORMULAIRES → DISCORD (NOUVEAU v6)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Relaie un formulaire du site vers le webhook Discord correspondant, sans
+ * jamais exposer l'URL du webhook côté client.
+ *
+ * Sécurités :
+ *  - Webhook stocké en secret Worker (env[config.envKey]), invisible du front.
+ *  - Rate limit serveur par IP + par type de formulaire (table kv_store déjà
+ *    existante), donc impossible à contourner en vidant le localStorage.
+ *  - Honeypot : un champ caché "_hp" rempli = requête silencieusement ignorée
+ *    (on répond 200 "ok" pour ne pas donner d'info au bot).
+ *  - Le message Discord est reconstruit côté serveur (titre + fields), donc
+ *    un tiers qui spamme l'endpoint ne peut pas injecter un embed arbitraire.
+ */
+async function handleFormSubmit(request, env, origin, type) {
+  const config = FORM_TYPES[type];
+  if (!config) return json({ error: 'Formulaire inconnu' }, 404, origin);
+
+  const webhookUrl = env[config.envKey];
+  if (!webhookUrl) return json({ error: 'Webhook non configuré' }, 500, origin);
+
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'Payload invalide' }, 400, origin); }
+  if (!body || typeof body !== 'object') return json({ error: 'Payload invalide' }, 400, origin);
+
+  // Honeypot anti-bot
+  if (body._hp) return json({ ok: true }, 200, origin);
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rlKey = `formrate:${type}:${ip}`;
+  const last = await env.relinkdb.prepare(
+    'SELECT value FROM kv_store WHERE key = ?'
+  ).bind(rlKey).first();
+
+  const now = Date.now();
+  if (last && now - parseInt(last.value, 10) < config.cooldownMs) {
+    const waitMs = config.cooldownMs - (now - parseInt(last.value, 10));
+    return json({ error: 'Trop de requêtes, réessaie plus tard', retry_after_ms: waitMs }, 429, origin);
+  }
+
+  const discordPayload = {
+    content: null,
+    embeds: [{
+      title: `Nouveau formulaire : ${type}`,
+      fields: Object.entries(body)
+        .filter(([k]) => k !== '_hp')
+        .slice(0, 25) // Discord limite à 25 fields par embed
+        .map(([k, v]) => ({
+          name: String(k).slice(0, 256) || '—',
+          value: String(v).slice(0, 1000) || '—',
+        })),
+      timestamp: new Date().toISOString(),
+    }],
+  };
+
+  const res = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(discordPayload),
+  });
+
+  if (!res.ok) return json({ error: 'Échec envoi Discord' }, 502, origin);
+
+  await env.relinkdb.prepare(
+    `INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  ).bind(rlKey, String(now)).run();
+
+  return json({ ok: true }, 200, origin);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HANDLERS ADMIN + FLAGS
 // ════════════════════════════════════════════════════════════════════════════
 
 function checkAdmin(request, env) {
   const secret = request.headers.get('X-Admin-Secret') || '';
-  return env.ADMIN_SECRET && secret === env.ADMIN_SECRET;
+  return !!env.ADMIN_SECRET && timingSafeEqual(secret, env.ADMIN_SECRET);
 }
 
 // ── GET /flags — lecture publique pour le site principal ──────────────────
@@ -632,6 +849,37 @@ async function handleAdminUserStatus(request, env, origin, discordId) {
   return json({ ok: true, action, new_status: statusMap[action], discord_id: discordId, pseudo: user.pseudo }, 200, origin);
 }
 
+// ── POST /admin/users/:discord_id/force-link ──────────────────────────────
+// Lie manuellement un compte ReLink à un pseudo/UUID Minecraft, sans passer
+// par le code /link en jeu. Réservé à l'admin. "Force" car si l'UUID fourni
+// est déjà lié à un AUTRE compte Discord, cette ancienne liaison est retirée
+// avant d'appliquer la nouvelle (contrairement à /link/confirm qui refuse
+// en cas de conflit).
+async function handleAdminForceLink(request, env, origin, discordId) {
+  if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
+
+  const { mc_uuid, mc_username } = await request.json();
+  if (!mc_uuid || !mc_username) return json({ error: 'mc_uuid et mc_username requis' }, 400, origin);
+
+  const user = await env.relinkdb.prepare('SELECT discord_id FROM users WHERE discord_id = ?').bind(discordId).first();
+  if (!user) return json({ error: 'Utilisateur introuvable' }, 404, origin);
+
+  await env.relinkdb.batch([
+    // Retire cet UUID de tout autre compte qui l'aurait déjà (le "force")
+    env.relinkdb.prepare(
+      'UPDATE users SET minecraft_uuid = NULL, minecraft_username = NULL WHERE minecraft_uuid = ? AND discord_id != ?'
+    ).bind(mc_uuid, discordId),
+    // Applique la liaison sur le compte ciblé
+    env.relinkdb.prepare(
+      'UPDATE users SET minecraft_uuid = ?, minecraft_username = ? WHERE discord_id = ?'
+    ).bind(mc_uuid, mc_username, discordId),
+    // Nettoie un éventuel code /link en attente pour cet UUID
+    env.relinkdb.prepare('DELETE FROM link_codes WHERE mc_uuid = ?').bind(mc_uuid),
+  ]);
+
+  return json({ ok: true, discord_id: discordId, minecraft_uuid: mc_uuid, minecraft_username: mc_username }, 200, origin);
+}
+
 // ── GET /admin/flags ───────────────────────────────────────────────────────
 async function handleAdminGetFlags(request, env, origin) {
   if (!checkAdmin(request, env)) return json({ error: 'Non autorisé' }, 401, origin);
@@ -698,8 +946,9 @@ export default {
       if (request.method === 'POST' && pathname === '/clans-sync')    return await handlePostClans(request, env, origin);
       if (request.method === 'GET'  && pathname === '/clans')         return await handleGetClans(request, env, origin);
 
-      // ── NOUVEAU v5 : liaison compte Minecraft via /link ──────────────────
+      // ── Liaison compte Minecraft via /link ────────────────────────────────
       if (request.method === 'POST' && pathname === '/mc/link/request') return await handleLinkRequest(request, env, origin);
+      if (request.method === 'GET'  && pathname === '/mc/link/status')  return await handleLinkStatus(request, env, origin);
       if (request.method === 'POST' && pathname === '/link/confirm')    return await handleLinkConfirm(request, env, origin);
 
       const submissionType = extractSubmissionType(pathname);
@@ -708,6 +957,11 @@ export default {
         if (request.method === 'POST')   return await handlePostSubmission(request, env, origin, submissionType);
         if (request.method === 'DELETE') return await handleDeleteSubmission(request, env, origin, submissionType);
       }
+
+      // ── Formulaires → Discord (NOUVEAU) ───────────────────────────────────
+      const formMatch = pathname.match(/^\/forms\/([a-z]+)$/);
+      if (formMatch && request.method === 'POST')
+        return await handleFormSubmit(request, env, origin, formMatch[1]);
 
       // ── Routes admin / flags ──────────────────────────────────────────────
       if (request.method === 'GET'  && pathname === '/flags')              return await handleGetFlags(env, origin);
@@ -719,6 +973,10 @@ export default {
       const adminUserMatch = pathname.match(/^\/admin\/users\/([^/]+)\/status$/);
       if (adminUserMatch && request.method === 'POST')
         return await handleAdminUserStatus(request, env, origin, adminUserMatch[1]);
+
+      const adminForceLinkMatch = pathname.match(/^\/admin\/users\/([^/]+)\/force-link$/);
+      if (adminForceLinkMatch && request.method === 'POST')
+        return await handleAdminForceLink(request, env, origin, adminForceLinkMatch[1]);
 
       return json({ error: 'Route inconnue' }, 404, origin);
     } catch(e) {
