@@ -949,7 +949,6 @@ const FLAG_META = {
   'flag:section:about':       { label: 'A propos',        desc: 'Presentation du projet',              container: 'flags-sections' },
   'flag:section:staff':       { label: 'Staff',           desc: 'Equipe de moderation',                container: 'flags-sections' },
   'flag:section:aide':        { label: 'Aide',            desc: 'FAQ et support',                      container: 'flags-sections' },
-  'flag:section:recompense':  { label: 'Récompenses',     desc: '[auth] Boutique et éclats',           container: 'flags-sections' },
 }
 
 async function loadFlags() {
@@ -1286,7 +1285,6 @@ async function unlockAll() {
     'flag:section:reglement', 'flag:section:partenaires', 'flag:section:ajouts',
     'flag:section:server', 'flag:section:clans', 'flag:section:team',
     'flag:section:about', 'flag:section:staff', 'flag:section:aide',
-    'flag:section:recompense',
   ];
   let errors = 0;
   for (const key of keys) {
