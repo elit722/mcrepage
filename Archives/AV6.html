@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReLink — Admin</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161920;
+    --card:      #1e2130;
+    --border:    #2a2f42;
+    --border-hi: #3d4460;
+    --text:      #e8eaf0;
+    --muted:     #7880a0;
+    --accent:    #5c6ef7;
+    --accent-bg: rgba(92,110,247,.12);
+    --green:     #3ecf78;
+    --green-bg:  rgba(62,207,120,.10);
+    --amber:     #f5a623;
+    --amber-bg:  rgba(245,166,35,.10);
+    --red:       #e85050;
+    --red-bg:    rgba(232,80,80,.10);
+    --radius:    8px;
+    --font:      'Inter', system-ui, sans-serif;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+
+  /* ── Layout ── */
+  #app { display: flex; height: 100vh; overflow: hidden; }
+
+  nav {
+    width: 220px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 0;
+  }
+  .nav-logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo .gem { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .nav-logo h1 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.2px; }
+  .nav-logo span { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+
+  .nav-items { padding: 12px 8px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: var(--radius);
+    cursor: pointer; color: var(--muted);
+    font-size: 13px; font-weight: 500;
+    border: none; background: none; width: 100%; text-align: left;
+    transition: color .15s, background .15s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--card); }
+  .nav-item.active { color: var(--accent); background: var(--accent-bg); }
+  .nav-item .ico { font-size: 16px; width: 18px; text-align: center; }
+
+  .nav-section-label { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 12px 20px 4px; }
+
+  .nav-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── Main ── */
+  main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+  #auth-screen {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .auth-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 36px 40px; width: 380px; text-align: center;
+  }
+  .auth-card .gem-big { width: 52px; height: 52px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 20px; }
+  .auth-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .auth-card p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .auth-card input {
+    width: 100%; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 14px; outline: none;
+    margin-bottom: 12px; font-family: var(--font);
+    transition: border-color .15s;
+  }
+  .auth-card input:focus { border-color: var(--accent); }
+  .btn-primary {
+    width: 100%; padding: 10px; background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: .9; }
+
+  .page { display: none; flex-direction: column; padding: 28px 32px; gap: 20px; }
+  .page.active { display: flex; }
+
+  .page-header { display: flex; align-items: center; gap: 12px; }
+  .page-header h2 { font-size: 20px; font-weight: 600; }
+  .page-header .badge { background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+
+  /* ── Cards ── */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 16px; }
+
+  /* ── Search bar ── */
+  .search-bar {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .search-bar input {
+    flex: 1; padding: 9px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 14px; outline: none;
+    font-family: var(--font); transition: border-color .15s;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  .avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 8px; background: var(--border); }
+  .avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 8px; vertical-align: middle; }
+
+  .badge-status {
+    display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+  }
+  .badge-active  { background: var(--green-bg); color: var(--green); }
+  .badge-suspended { background: var(--amber-bg); color: var(--amber); }
+  .badge-banned  { background: var(--red-bg); color: var(--red); }
+
+  .badge-sub { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--accent-bg); color: var(--accent); }
+  .badge-nosub { display: inline-block; font-size: 11px; color: var(--muted); padding: 2px 8px; }
+
+  /* ── Action buttons ── */
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-action {
+    padding: 5px 10px; border-radius: var(--radius); font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; transition: opacity .15s, transform .1s;
+  }
+  .btn-action:hover { opacity: .85; }
+  .btn-action:active { transform: scale(.97); }
+  .btn-suspend { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+  .btn-ban     { background: var(--red-bg);   color: var(--red);   border-color: var(--red); }
+  .btn-unban   { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+  .btn-delete  { background: rgba(232,80,80,.06); color: var(--red); border-color: var(--red); }
+  .btn-unlock  { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .btn-link    { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  .badge-mc-linked   { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--green-bg); color: var(--green); }
+  .badge-mc-unlinked { display: inline-block; font-size: 11px; color: var(--muted); padding: 2px 8px; }
+
+  /* ── Flags toggles ── */
+  .flags-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .flag-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .flag-info .flag-label { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .flag-info .flag-desc  { font-size: 11px; color: var(--muted); }
+
+  /* Toggle switch */
+  .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border); border-radius: 22px; transition: background .2s;
+  }
+  .slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: transform .2s;
+  }
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+  /* ── Stats ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .stat-card .stat-val { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .stat-card .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ── Pagination ── */
+  .pagination { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .pagination button {
+    padding: 5px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-size: 13px; cursor: pointer; transition: border-color .15s;
+  }
+  .pagination button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pagination button:disabled { opacity: .35; cursor: default; }
+  .pagination span { font-size: 12px; color: var(--muted); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 18px; font-size: 13px; font-weight: 500;
+    opacity: 0; transform: translateY(8px); transition: all .25s;
+    max-width: 320px; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red); color: var(--red); }
+
+  /* ── Confirm modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px 32px; width: 380px; max-width: 95vw;
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+  .modal label.field-label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-bottom: 4px; margin-top: 10px; }
+  .modal input {
+    width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 13px; outline: none;
+    font-family: var(--font); transition: border-color .15s;
+  }
+  .modal input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button {
+    padding: 8px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    transition: opacity .15s;
+  }
+  .modal-actions button:hover { opacity: .8; }
+  .modal-actions .btn-confirm-danger { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+  .modal-actions .btn-confirm-warn   { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+  .modal-actions .btn-confirm-ok     { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 48px; color: var(--muted); font-size: 13px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Éclats & Boutique (NOUVEAU) ── */
+  .eclats-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--amber); }
+  .badge-partner { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--amber-bg); color: var(--amber); }
+  .btn-eclats  { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end; }
+  .form-field label { display: block; font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .form-field input, .form-field select {
+    width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 13px; outline: none;
+    font-family: var(--font); transition: border-color .15s;
+  }
+  .form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+  .form-field-check { display: flex; align-items: center; gap: 8px; padding-bottom: 9px; }
+
+  .shop-row-edit { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .shop-row-edit input[type="number"], .shop-row-edit input[type="text"] {
+    width: 88px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 12px; font-family: var(--font);
+  }
+  .shop-row-edit input[type="text"].wide { width: 140px; }
+  .cat-pill { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 7px; border-radius: 20px; background: var(--accent-bg); color: var(--accent); }
+
+  .subtabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .subtab { padding: 7px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .subtab.active { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="gem-big">⚙️</div>
+      <h2>ReLink Admin</h2>
+      <p>Entrez votre clé d'administration pour continuer.</p>
+      <input type="password" id="secret-input" placeholder="X-Admin-Secret" autocomplete="off">
+      <button class="btn-primary" onclick="login()">Accéder au panneau</button>
+      <div id="auth-error" style="margin-top:12px;color:var(--red);font-size:12px;display:none;"></div>
+    </div>
+  </div>
+
+  <nav id="sidebar" style="display:none;">
+    <div class="nav-logo">
+      <div class="gem">⚙️</div>
+      <div>
+        <h1>ReLink Admin</h1>
+        <span>Panneau de gestion</span>
+      </div>
+    </div>
+    <div class="nav-items">
+      <div class="nav-section-label">Gestion</div>
+      <button class="nav-item active" data-page="users" onclick="showPage('users')">
+        <span class="ico">👥</span> Utilisateurs
+      </button>
+      <button class="nav-item" data-page="submissions" onclick="showPage('submissions')">
+        <span class="ico">📋</span> Formulaires
+      </button>
+      <button class="nav-item" data-page="eclats" onclick="showPage('eclats')">
+        <span class="ico">💎</span> Éclats &amp; Boutique
+      </button>
+      <div class="nav-section-label" style="margin-top:8px;">Site principal</div>
+      <button class="nav-item" data-page="flags" onclick="showPage('flags')">
+        <span class="ico">🎛️</span> Visibilité sections
+      </button>
+    </div>
+    <div class="nav-footer">
+      <div id="worker-url-display" style="word-break:break-all;font-size:11px;margin-bottom:8px;"></div>
+      <button onclick="logout()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0;">→ Déconnexion</button>
+    </div>
+  </nav>
+
+  <main id="main-content" style="display:none;">
+
+    <!-- ── Page Utilisateurs ── -->
+    <div id="page-users" class="page active">
+      <div class="page-header">
+        <h2>Utilisateurs</h2>
+        <span class="badge" id="user-count">…</span>
+      </div>
+
+      <div class="stats-row" id="user-stats"></div>
+
+      <div class="card">
+        <div class="search-bar">
+          <input type="text" id="user-search" placeholder="Rechercher par pseudo…" oninput="debouncedSearch()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Statut</th>
+                <th>Minecraft</th>
+                <th>Éclats</th>
+                <th>Candidature</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="6" class="empty-state"><span class="spinner"></span>Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" style="margin-top:14px;" id="user-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ── Page Formulaires ── -->
+    <div id="page-submissions" class="page">
+      <div class="page-header">
+        <h2>Formulaires soumis</h2>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-action btn-unlock" style="font-size:13px;padding:7px 14px;" onclick="filterSubs(null)">Tous</button>
+        <button class="btn-action btn-unlock" style="font-size:13px;padding:7px 14px;" onclick="filterSubs('partner')">Partenaire</button>
+        <button class="btn-action btn-unlock" style="font-size:13px;padding:7px 14px;" onclick="filterSubs('team')">Équipe</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Type</th>
+                <th>Soumis le</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="subs-tbody">
+              <tr><td colspan="4" class="empty-state"><span class="spinner"></span>Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Page Éclats & Boutique (NOUVEAU) ── -->
+    <div id="page-eclats" class="page">
+      <div class="page-header">
+        <h2>Éclats &amp; Boutique</h2>
+      </div>
+
+      <div class="subtabs">
+        <button class="subtab active" data-eclats-tab="give" onclick="showEclatsTab('give')">💎 Donner / retirer</button>
+        <button class="subtab" data-eclats-tab="partner" onclick="showEclatsTab('partner')">🤝 Bonus partenaire</button>
+        <button class="subtab" data-eclats-tab="shop" onclick="showEclatsTab('shop')">🛒 Boutique</button>
+      </div>
+
+      <!-- Onglet : Donner / retirer des éclats -->
+      <div id="eclats-tab-give" class="eclats-tab card">
+        <div class="card-title">Créditer ou débiter un membre</div>
+        <div class="form-grid">
+          <div class="form-field" style="grid-column: span 2;">
+            <label>Membre (pseudo ou discord_id)</label>
+            <input type="text" id="give-user-search" placeholder="Tapez un pseudo…" oninput="debouncedGiveUserSearch()" autocomplete="off">
+            <div id="give-user-suggestions" style="position:relative;"></div>
+          </div>
+          <div class="form-field">
+            <label>Montant (négatif = retrait)</label>
+            <input type="number" id="give-amount" placeholder="ex: 250 ou -100">
+          </div>
+          <div class="form-field">
+            <label>Raison</label>
+            <select id="give-reason">
+              <option value="">Auto (don/retrait admin)</option>
+              <option value="staff_bonus">staff_bonus</option>
+              <option value="referral_parrain">referral_parrain</option>
+              <option value="referral_filleul">referral_filleul</option>
+              <option value="quest_custom">quest_custom</option>
+              <option value="link_bonus">link_bonus</option>
+              <option value="admin_grant">admin_grant</option>
+              <option value="admin_remove">admin_remove</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <button class="btn-primary" onclick="submitGiveEclats()">Valider</button>
+          </div>
+        </div>
+        <div id="give-selected-user" style="margin-top:14px;font-size:13px;color:var(--muted);"></div>
+      </div>
+
+      <!-- Onglet : Bonus partenaire -->
+      <div id="eclats-tab-partner" class="eclats-tab card" style="display:none;">
+        <div class="card-title">Donner / retirer le statut partenaire</div>
+        <div class="form-grid">
+          <div class="form-field" style="grid-column: span 2;">
+            <label>Membre (pseudo ou discord_id)</label>
+            <input type="text" id="partner-user-search" placeholder="Tapez un pseudo…" oninput="debouncedPartnerUserSearch()" autocomplete="off">
+            <div id="partner-user-suggestions" style="position:relative;"></div>
+          </div>
+          <div class="form-field-check">
+            <label class="toggle"><input type="checkbox" id="partner-is-partner"><span class="slider"></span></label>
+            <span style="font-size:13px;">Statut partenaire actif</span>
+          </div>
+          <div class="form-field">
+            <label>Bonus sur gains persos (%)</label>
+            <input type="number" id="partner-bonus-percent" placeholder="ex: 15" min="0" max="100">
+          </div>
+          <div class="form-field">
+            <label>Bonus d'éclats à créditer maintenant (optionnel)</label>
+            <input type="number" id="partner-apply-bonus" placeholder="ex: 1500">
+          </div>
+          <div class="form-field">
+            <button class="btn-primary" onclick="submitSetPartner()">Valider</button>
+          </div>
+        </div>
+        <div id="partner-selected-user" style="margin-top:14px;font-size:13px;color:var(--muted);"></div>
+      </div>
+
+      <!-- Onglet : Boutique -->
+      <div id="eclats-tab-shop" class="eclats-tab" style="display:none; flex-direction:column; gap:20px;">
+        <div class="card">
+          <div class="card-title">Ajouter un article</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Clé unique</label>
+              <input type="text" id="new-item-key" placeholder="ex: lootbox_iron_x5">
+            </div>
+            <div class="form-field">
+              <label>Catégorie</label>
+              <select id="new-item-category">
+                <option value="lootbox">lootbox</option>
+                <option value="money_ig">money_ig</option>
+                <option value="gift_card">gift_card</option>
+                <option value="event_item">event_item</option>
+                <option value="vip">vip</option>
+              </select>
+            </div>
+            <div class="form-field" style="grid-column: span 2;">
+              <label>Nom affiché</label>
+              <input type="text" id="new-item-name" placeholder="ex: Lootbox Iron x5">
+            </div>
+            <div class="form-field">
+              <label>Prix (éclats)</label>
+              <input type="number" id="new-item-price" placeholder="ex: 1150">
+            </div>
+            <div class="form-field">
+              <label>Quantité / pack</label>
+              <input type="number" id="new-item-pack" placeholder="1" value="1">
+            </div>
+            <div class="form-field">
+              <label>Max / joueur</label>
+              <input type="number" id="new-item-maxplayer" placeholder="illimité">
+            </div>
+            <div class="form-field">
+              <label>Max total</label>
+              <input type="number" id="new-item-maxtotal" placeholder="illimité">
+            </div>
+            <div class="form-field">
+              <button class="btn-primary" onclick="addShopItem()">Ajouter l'article</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Articles de la boutique</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Article</th>
+                  <th>Prix / Promo</th>
+                  <th>Pack</th>
+                  <th>Limites</th>
+                  <th>Visible</th>
+                  <th>Achetable</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="shop-tbody">
+                <tr><td colspan="7" class="empty-state"><span class="spinner"></span>Chargement…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Page Flags ── -->
+    <div id="page-flags" class="page">
+      <div class="page-header">
+        <h2>Visibilit&#233; &amp; acc&#232;s</h2>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn-action btn-unban" style="font-size:13px;padding:8px 16px;" onclick="unlockAll()">
+          &#128275; Tout d&#233;verrouiller
+        </button>
+        <span style="font-size:12px;color:var(--muted);">D&#233;sactive la connexion obligatoire globale et affiche toutes les sections.</span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Accès global</div>
+        <div class="flags-grid" id="flags-auth"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Sections du site</div>
+        <div class="flags-grid" id="flags-sections"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Confirm modal -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button onclick="closeModal()">Annuler</button>
+      <button id="modal-confirm" class="btn-confirm-danger" onclick="modalConfirmCallback()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Force-link modal -->
+<div id="forcelink-overlay" class="modal-overlay">
+  <div class="modal">
+    <h3>Lier un compte Minecraft</h3>
+    <p>Lier de force <strong id="forcelink-pseudo-label"></strong> à un compte Minecraft. Si l'UUID est déjà lié à un autre compte ReLink, la liaison précédente sera retirée.</p>
+    <input type="hidden" id="forcelink-discord-id">
+    <label class="field-label">Pseudo Minecraft</label>
+    <input type="text" id="forcelink-mc-username" placeholder="ex: Steve123" autocomplete="off">
+    <label class="field-label">UUID Minecraft</label>
+    <input type="text" id="forcelink-mc-uuid" placeholder="ex: 069a79f4-44e9-4726-a5be-fca90e38aaf5" autocomplete="off">
+    <div id="forcelink-error" style="margin-top:10px;color:var(--red);font-size:12px;display:none;"></div>
+    <div class="modal-actions" style="margin-top:18px;">
+      <button onclick="closeForceLink()">Annuler</button>
+      <button class="btn-confirm-ok" onclick="submitForceLink()">Lier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Offrir un article de boutique -->
+<div id="grantitem-overlay" class="modal-overlay">
+  <div class="modal">
+    <h3>Offrir <span id="grantitem-name"></span></h3>
+    <p>Offre gratuitement cet article à un membre (aucun éclat n'est débité).</p>
+    <input type="hidden" id="grantitem-id">
+    <label class="field-label">Membre (pseudo ou discord_id)</label>
+    <input type="text" id="grantitem-user-search" placeholder="Tapez un pseudo…" autocomplete="off" oninput="debouncedGrantItemUserSearch()">
+    <div id="grantitem-user-suggestions" style="position:relative;"></div>
+    <div id="grantitem-selected-user" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
+    <label class="field-label">Quantité</label>
+    <input type="number" id="grantitem-quantity" value="1" min="1">
+    <div id="grantitem-error" style="margin-top:10px;color:var(--red);font-size:12px;display:none;"></div>
+    <div class="modal-actions" style="margin-top:18px;">
+      <button onclick="closeGrantItem()">Annuler</button>
+      <button class="btn-confirm-ok" onclick="submitGrantItem()">Offrir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let ADMIN_SECRET = '';
+let WORKER_URL   = '';
+let currentPage  = 'users';
+let userOffset   = 0;
+let userTotal    = 0;
+const USER_LIMIT = 20;
+let currentSubFilter = null;
+let modalResolve = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+async function login() {
+  const secretVal = document.getElementById('secret-input').value.trim();
+  const urlInput  = document.getElementById('auth-worker-url');
+  const url = urlInput ? urlInput.value.trim() : WORKER_URL;
+
+  if (!secretVal) { showError('Entrez votre clé admin.'); return; }
+  if (!url)       { showError('Entrez l\'URL du Worker.'); return; }
+
+  ADMIN_SECRET = secretVal;
+  WORKER_URL   = url.replace(/\/$/, '');
+
+  try {
+    const r = await apiFetch('/admin/flags', 'GET');
+    if (r.error) { showError('Clé incorrecte ou Worker inaccessible.'); return; }
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'flex';
+    document.getElementById('main-content').style.flexDirection = 'column';
+    document.getElementById('worker-url-display').textContent = WORKER_URL;
+    loadPage('users');
+  } catch(e) {
+    showError('Impossible de joindre le Worker : ' + e.message);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function logout() {
+  ADMIN_SECRET = ''; WORKER_URL = '';
+  location.reload();
+}
+
+document.getElementById('secret-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+// ── API helper ────────────────────────────────────────────────────────────
+async function apiFetch(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(WORKER_URL + path, opts);
+  return r.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ── Modal confirm ─────────────────────────────────────────────────────────
+function confirm(title, body, btnClass = 'btn-confirm-danger') {
+  return new Promise(resolve => {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').textContent  = body;
+    const btn = document.getElementById('modal-confirm');
+    btn.className = btnClass;
+    modalResolve = resolve;
+    document.getElementById('modal-overlay').classList.add('open');
+  });
+}
+function modalConfirmCallback() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  if (modalResolve) { modalResolve(true); modalResolve = null; }
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  if (modalResolve) { modalResolve(false); modalResolve = null; }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function showPage(name) {
+  currentPage = name;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`[data-page="${name}"]`).classList.add('active');
+  loadPage(name);
+}
+
+function loadPage(name) {
+  if (name === 'users')       loadUsers();
+  if (name === 'submissions') loadSubmissions(currentSubFilter);
+  if (name === 'flags')       loadFlags();
+  if (name === 'eclats')      { /* les sous-onglets chargent leurs propres données */ }
+}
+
+// ── Page Utilisateurs ─────────────────────────────────────────────────────
+let searchTimer;
+function debouncedSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { userOffset = 0; loadUsers(); }, 350);
+}
+
+async function loadUsers() {
+  const q = document.getElementById('user-search').value.trim();
+  const qs = `?limit=${USER_LIMIT}&offset=${userOffset}` + (q.length >= 2 ? `&q=${encodeURIComponent(q)}` : '');
+  const data = await apiFetch('/admin/users' + qs);
+
+  userTotal = data.total || 0;
+  document.getElementById('user-count').textContent = userTotal + ' membres';
+
+  // Stats rapides
+  const all = data.users || [];
+  const active = all.filter(u => !u.status || u.status === 'active').length;
+  const susp   = all.filter(u => u.status === 'suspended').length;
+  const banned = all.filter(u => u.status === 'banned').length;
+
+  document.getElementById('user-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${active}</div><div class="stat-lbl">Actifs (page)</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--amber)">${susp}</div><div class="stat-lbl">Suspendus</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--red)">${banned}</div><div class="stat-lbl">Bannis</div></div>
+    <div class="stat-card"><div class="stat-val">${userTotal}</div><div class="stat-lbl">Total</div></div>
+  `;
+
+  const tbody = document.getElementById('users-tbody');
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun utilisateur trouvé.</td></tr>';
+  } else {
+    tbody.innerHTML = all.map(u => userRow(u)).join('');
+  }
+
+  renderPagination();
+}
+
+function userRow(u) {
+  const status = u.status || 'active';
+  const labelMap = { active: 'Actif', suspended: 'Suspendu', banned: 'Banni' };
+  const avatar = u.avatar_url
+    ? `<img class="avatar" src="${u.avatar_url}" alt="" onerror="this.style.display='none';this.nextSibling.style.display='inline-flex'"><span class="avatar-placeholder" style="display:none">${(u.pseudo||'?')[0].toUpperCase()}</span>`
+    : `<span class="avatar-placeholder">${(u.pseudo||'?')[0].toUpperCase()}</span>`;
+
+  const mcLinked = !!u.minecraft_uuid;
+  const mcCell = mcLinked
+    ? `<span class="badge-mc-linked" title="${esc(u.minecraft_uuid)}">✓ ${esc(u.minecraft_username)}</span>`
+    : `<span class="badge-mc-unlinked">Non lié</span>`;
+
+  let actions = '';
+  if (status === 'active') {
+    actions += `<button class="btn-action btn-suspend" onclick="doUserAction('${u.discord_id}','${u.pseudo}','suspend')">Suspendre</button>`;
+    actions += `<button class="btn-action btn-ban"     onclick="doUserAction('${u.discord_id}','${u.pseudo}','ban')">Bannir</button>`;
+  } else {
+    actions += `<button class="btn-action btn-unban"   onclick="doUserAction('${u.discord_id}','${u.pseudo}','unban')">Débannir</button>`;
+  }
+  actions += `<button class="btn-action btn-link" onclick="openForceLink('${u.discord_id}','${esc(u.pseudo)}','${esc(u.minecraft_uuid||'')}','${esc(u.minecraft_username||'')}')">${mcLinked ? 'Relier' : 'Lier'}</button>`;
+  actions += `<button class="btn-action btn-eclats" onclick="openGiveEclatsFor('${u.discord_id}','${esc(u.pseudo)}',${u.eclats||0})">💎 Éclats</button>`;
+  actions += `<button class="btn-action btn-delete" onclick="doUserAction('${u.discord_id}','${u.pseudo}','delete')">Supprimer</button>`;
+
+  const eclatsCell = `<span class="eclats-badge">💎 ${u.eclats||0}</span>` +
+    (u.is_partner ? `<br><span class="badge-partner">Partenaire ${u.partner_bonus_percent||0}%</span>` : '');
+
+  const candBits = [];
+  if (u.submitted_partner) candBits.push('🤝 Partenaire');
+  if (u.submitted_team)    candBits.push('⚔️ Équipe');
+  const candCell = candBits.length
+    ? `<span class="badge-sub">${candBits.join(' · ')}</span>`
+    : `<span class="badge-nosub">—</span>`;
+
+  return `<tr>
+    <td>${avatar}<strong>${esc(u.pseudo)}</strong><br><span style="color:var(--muted);font-size:11px">${esc(u.discord_id)}</span></td>
+    <td><span class="badge-status badge-${status}">${labelMap[status]}</span></td>
+    <td>${mcCell}</td>
+    <td>${eclatsCell}</td>
+    <td>${candCell}</td>
+    <td><div class="actions">${actions}</div></td>
+  </tr>`;
+}
+
+// ── Raccourci : ouvrir l'onglet Éclats prérempli avec ce membre ─────────
+function openGiveEclatsFor(discordId, pseudo, eclats) {
+  showPage('eclats');
+  showEclatsTab('give');
+  selectedGiveUser = { discord_id: discordId, pseudo, eclats };
+  document.getElementById('give-user-search').value = pseudo;
+  document.getElementById('give-user-suggestions').innerHTML = '';
+  document.getElementById('give-selected-user').textContent =
+    `Sélectionné : ${pseudo} (${discordId}) — solde actuel : ${eclats} éclats`;
+}
+
+// ── Force-link Minecraft ↔ ReLink ────────────────────────────────────────
+function openForceLink(discordId, pseudo, currentUuid, currentUsername) {
+  document.getElementById('forcelink-discord-id').value = discordId;
+  document.getElementById('forcelink-pseudo-label').textContent = pseudo;
+  document.getElementById('forcelink-mc-username').value = currentUsername || '';
+  document.getElementById('forcelink-mc-uuid').value = currentUuid || '';
+  document.getElementById('forcelink-error').style.display = 'none';
+  document.getElementById('forcelink-overlay').classList.add('open');
+}
+
+function closeForceLink() {
+  document.getElementById('forcelink-overlay').classList.remove('open');
+}
+
+async function submitForceLink() {
+  const discordId   = document.getElementById('forcelink-discord-id').value;
+  const mc_username = document.getElementById('forcelink-mc-username').value.trim();
+  const mc_uuid      = document.getElementById('forcelink-mc-uuid').value.trim();
+  const errEl = document.getElementById('forcelink-error');
+
+  if (!mc_username || !mc_uuid) {
+    errEl.textContent = 'Le pseudo et l\'UUID Minecraft sont requis.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const data = await apiFetch(`/admin/users/${discordId}/force-link`, 'POST', { mc_uuid, mc_username });
+  if (data.ok) {
+    closeForceLink();
+    toast(`Compte lié à ${mc_username}.`, 'success');
+    loadUsers();
+  } else {
+    errEl.textContent = data.error || 'Erreur lors de la liaison.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function doUserAction(discordId, pseudo, action) {
+  const labels = { suspend: 'Suspendre', ban: 'Bannir', unban: 'Débannir/Désuspendre', delete: 'Supprimer' };
+  const bodies = {
+    suspend: `Suspendre le compte de ${pseudo} ? Il ne pourra plus se connecter.`,
+    ban:     `Bannir définitivement ${pseudo} ? Il ne pourra plus se connecter.`,
+    unban:   `Réactiver le compte de ${pseudo} ?`,
+    delete:  `Supprimer définitivement le compte de ${pseudo} ? Ses soumissions seront également supprimées. Cette action est irréversible.`,
+  };
+  const btnClasses = { suspend: 'btn-confirm-warn', ban: 'btn-confirm-danger', unban: 'btn-confirm-ok', delete: 'btn-confirm-danger' };
+
+  const ok = await confirm(labels[action], bodies[action], btnClasses[action]);
+  if (!ok) return;
+
+  const data = await apiFetch(`/admin/users/${discordId}/status`, 'POST', { action });
+  if (data.ok) {
+    toast(`${pseudo} — ${labels[action]} effectué.`, 'success');
+    loadUsers();
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+function renderPagination() {
+  const pages = Math.ceil(userTotal / USER_LIMIT);
+  const current = Math.floor(userOffset / USER_LIMIT) + 1;
+  const el = document.getElementById('user-pagination');
+  el.innerHTML = `
+    <button onclick="gotoPage(${current-2})" ${current <= 1 ? 'disabled' : ''}>← Préc.</button>
+    <span>Page ${current} / ${pages || 1}</span>
+    <button onclick="gotoPage(${current})" ${current >= pages ? 'disabled' : ''}>Suiv. →</button>
+  `;
+}
+
+function gotoPage(i) {
+  userOffset = i * USER_LIMIT;
+  loadUsers();
+}
+
+// ── Page Formulaires ──────────────────────────────────────────────────────
+function filterSubs(type) {
+  currentSubFilter = type;
+  loadSubmissions(type);
+}
+
+async function loadSubmissions(type) {
+  const qs = type ? `?type=${type}` : '';
+  const data = await apiFetch('/admin/submissions' + qs);
+  const subs = data.submissions || [];
+  const tbody = document.getElementById('subs-tbody');
+
+  if (!subs.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune soumission.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = subs.map(s => {
+    const avatar = s.avatar_url
+      ? `<img class="avatar" src="${s.avatar_url}" alt="">`
+      : `<span class="avatar-placeholder">${(s.pseudo||'?')[0].toUpperCase()}</span>`;
+    const typeLabel = s.type === 'partner' ? '🤝 Partenaire' : '⚔️ Équipe';
+    const date = new Date(s.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    return `<tr>
+      <td>${avatar}<strong>${esc(s.pseudo || s.discord_id)}</strong><br><span style="color:var(--muted);font-size:11px">${esc(s.discord_id)}</span></td>
+      <td><span class="badge-status badge-active">${typeLabel}</span></td>
+      <td style="color:var(--muted);font-size:12px">${date}</td>
+      <td><button class="btn-action btn-unlock" onclick="unlockSub('${s.discord_id}','${esc(s.pseudo||s.discord_id)}','${s.type}')">Débloquer</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function unlockSub(discordId, pseudo, type) {
+  const typeLabel = type === 'partner' ? 'partenaire' : 'équipe';
+  const ok = await confirm(
+    'Débloquer le formulaire',
+    `Permettre à ${pseudo} de soumettre à nouveau le formulaire ${typeLabel} ?`,
+    'btn-confirm-ok'
+  );
+  if (!ok) return;
+  const data = await apiFetch(`/submission/${type}?discord_id=${discordId}`, 'DELETE');
+  if (data.ok) {
+    toast(`Formulaire ${typeLabel} de ${pseudo} débloqué.`, 'success');
+    loadSubmissions(currentSubFilter);
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+// ── Page Flags ────────────────────────────────────────────────────────────
+const FLAG_META = {
+  'flag:require_auth': {
+    label: 'Connexion obligatoire (globale)',
+    desc: 'Force tous les visiteurs a se connecter pour voir n\'importe quelle section',
+    container: 'flags-auth',
+  },
+  'flag:section:home':        { label: 'Informations',    desc: 'Infos generales du serveur',          container: 'flags-sections' },
+  'flag:section:modpack':     { label: 'Modpack',         desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
+  'flag:section:lore':        { label: 'Lore',            desc: 'Histoire et univers du serveur',      container: 'flags-sections' },
+  'flag:section:reglement':   { label: 'Reglement',       desc: 'Regles de la communaute',             container: 'flags-sections' },
+  'flag:section:partenaires': { label: 'Partenaires',     desc: 'Candidature partenaire',              container: 'flags-sections' },
+  'flag:section:ajouts':      { label: 'Ajouts recents',  desc: 'Nouveautes et mises a jour',          container: 'flags-sections' },
+  'flag:section:server':      { label: 'Info Serveur',    desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
+  'flag:section:clans':       { label: 'Clans',           desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
+  'flag:section:team':        { label: 'Mon Equipe',      desc: '[auth] Connexion requise par defaut', container: 'flags-sections' },
+  'flag:section:about':       { label: 'A propos',        desc: 'Presentation du projet',              container: 'flags-sections' },
+  'flag:section:staff':       { label: 'Staff',           desc: 'Equipe de moderation',                container: 'flags-sections' },
+  'flag:section:aide':        { label: 'Aide',            desc: 'FAQ et support',                      container: 'flags-sections' },
+  'flag:section:recompense':  { label: 'Récompenses',     desc: '[auth] Boutique et éclats',           container: 'flags-sections' },
+}
+
+async function loadFlags() {
+  const data = await apiFetch('/admin/flags');
+  const flat = {};
+  flat['flag:require_auth'] = data.require_auth;
+  for (const [k, v] of Object.entries(data.sections || {})) {
+    flat[`flag:section:${k}`] = v;
+  }
+
+  document.getElementById('flags-auth').innerHTML = '';
+  document.getElementById('flags-sections').innerHTML = '';
+
+  for (const [key, meta] of Object.entries(FLAG_META)) {
+    const val = flat[key] === true || flat[key] === 'true';
+    const html = `
+      <div class="flag-item">
+        <div class="flag-info">
+          <div class="flag-label">${meta.label}</div>
+          <div class="flag-desc">${meta.desc}</div>
+        </div>
+        <label class="toggle" title="${val ? 'Activé' : 'Désactivé'}">
+          <input type="checkbox" ${val ? 'checked' : ''} onchange="setFlag('${key}', this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>`;
+    document.getElementById(meta.container).insertAdjacentHTML('beforeend', html);
+  }
+}
+
+async function setFlag(key, value) {
+  const data = await apiFetch('/admin/flags', 'POST', { key, value: String(value) });
+  if (data.ok) {
+    const meta = FLAG_META[key];
+    toast(`${meta?.label || key} — ${value ? 'activé' : 'désactivé'}`, 'success');
+  } else {
+    toast(data.error || 'Erreur', 'error');
+    loadFlags(); // réinitialise si erreur
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Page Éclats & Boutique (NOUVEAU)
+// ════════════════════════════════════════════════════════════════════════════
+
+function showEclatsTab(name) {
+  document.querySelectorAll('.eclats-tab').forEach(el => el.style.display = 'none');
+  const el = document.getElementById('eclats-tab-' + name);
+  el.style.display = name === 'shop' ? 'flex' : 'block';
+  document.querySelectorAll('[data-eclats-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-eclats-tab="${name}"]`).classList.add('active');
+  if (name === 'shop') loadShopItems();
+}
+
+// ── Recherche générique de membre (autocomplete réutilisé 3x) ────────────
+const userSearchResults = {};
+async function runUserSearch(query, suggestionsElId, pickFnName) {
+  const box = document.getElementById(suggestionsElId);
+  if (!box) return;
+  if (query.trim().length < 2) { box.innerHTML = ''; return; }
+  const data = await apiFetch('/admin/users?limit=8&q=' + encodeURIComponent(query.trim()));
+  const users = data.users || [];
+  userSearchResults[suggestionsElId] = users;
+  if (!users.length) {
+    box.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 2px;">Aucun résultat</div>';
+    return;
+  }
+  box.innerHTML = `<div style="position:absolute;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-top:4px;width:100%;max-height:180px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.35);">
+    ${users.map((u, i) => `<div style="padding:8px 12px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='var(--card)'" onmouseout="this.style.background='transparent'" onclick="${pickFnName}(${i})">
+      ${esc(u.pseudo)} <span style="color:var(--muted);font-size:11px;">${esc(u.discord_id)} · 💎${u.eclats||0}${u.is_partner ? ' · partenaire' : ''}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Onglet : Donner / retirer des éclats ─────────────────────────────────
+let selectedGiveUser = null;
+let giveSearchTimer;
+function debouncedGiveUserSearch() {
+  clearTimeout(giveSearchTimer);
+  const q = document.getElementById('give-user-search').value;
+  giveSearchTimer = setTimeout(() => runUserSearch(q, 'give-user-suggestions', 'pickGiveUser'), 300);
+}
+function pickGiveUser(i) {
+  selectedGiveUser = userSearchResults['give-user-suggestions'][i];
+  document.getElementById('give-user-search').value = selectedGiveUser.pseudo;
+  document.getElementById('give-user-suggestions').innerHTML = '';
+  document.getElementById('give-selected-user').textContent =
+    `Sélectionné : ${selectedGiveUser.pseudo} (${selectedGiveUser.discord_id}) — solde actuel : ${selectedGiveUser.eclats || 0} éclats`;
+}
+async function submitGiveEclats() {
+  if (!selectedGiveUser) { toast('Sélectionnez un membre dans la liste.', 'error'); return; }
+  const amount = parseInt(document.getElementById('give-amount').value, 10);
+  if (!Number.isFinite(amount) || amount === 0) { toast('Montant invalide (entier non nul).', 'error'); return; }
+  const reason = document.getElementById('give-reason').value || undefined;
+
+  const data = await apiFetch('/admin/eclats/grant', 'POST', { discord_id: selectedGiveUser.discord_id, amount, reason });
+  if (data.ok) {
+    toast(`${amount > 0 ? '+' : ''}${amount} éclats pour ${selectedGiveUser.pseudo}. Nouveau solde : ${data.balance}.`, 'success');
+    selectedGiveUser.eclats = data.balance;
+    document.getElementById('give-selected-user').textContent =
+      `Sélectionné : ${selectedGiveUser.pseudo} (${selectedGiveUser.discord_id}) — solde actuel : ${data.balance} éclats`;
+    document.getElementById('give-amount').value = '';
+    if (currentPage === 'users') loadUsers();
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+// ── Onglet : Bonus partenaire ─────────────────────────────────────────────
+let selectedPartnerUser = null;
+let partnerSearchTimer;
+function debouncedPartnerUserSearch() {
+  clearTimeout(partnerSearchTimer);
+  const q = document.getElementById('partner-user-search').value;
+  partnerSearchTimer = setTimeout(() => runUserSearch(q, 'partner-user-suggestions', 'pickPartnerUser'), 300);
+}
+function pickPartnerUser(i) {
+  selectedPartnerUser = userSearchResults['partner-user-suggestions'][i];
+  document.getElementById('partner-user-search').value = selectedPartnerUser.pseudo;
+  document.getElementById('partner-user-suggestions').innerHTML = '';
+  document.getElementById('partner-is-partner').checked = !!selectedPartnerUser.is_partner;
+  document.getElementById('partner-bonus-percent').value = selectedPartnerUser.partner_bonus_percent || 0;
+  document.getElementById('partner-selected-user').textContent =
+    `Sélectionné : ${selectedPartnerUser.pseudo} (${selectedPartnerUser.discord_id})`;
+}
+async function submitSetPartner() {
+  if (!selectedPartnerUser) { toast('Sélectionnez un membre dans la liste.', 'error'); return; }
+  const is_partner = document.getElementById('partner-is-partner').checked;
+  const partner_bonus_percent = parseInt(document.getElementById('partner-bonus-percent').value, 10) || 0;
+  const applyRaw = document.getElementById('partner-apply-bonus').value.trim();
+  const apply_bonus = applyRaw ? parseInt(applyRaw, 10) : undefined;
+
+  const data = await apiFetch('/admin/eclats/partner', 'POST', {
+    discord_id: selectedPartnerUser.discord_id, is_partner, partner_bonus_percent, apply_bonus,
+  });
+  if (data.ok) {
+    toast(`${selectedPartnerUser.pseudo} — partenaire ${is_partner ? 'activé' : 'désactivé'} (${partner_bonus_percent}%)${data.balance != null ? `, solde : ${data.balance}` : ''}.`, 'success');
+    document.getElementById('partner-apply-bonus').value = '';
+    if (currentPage === 'users') loadUsers();
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+// ── Onglet : Boutique ──────────────────────────────────────────────────────
+let shopItemsCache = [];
+
+async function loadShopItems() {
+  const data = await apiFetch('/admin/shop');
+  shopItemsCache = data.items || [];
+  renderShopTable();
+}
+
+function renderShopTable() {
+  const tbody = document.getElementById('shop-tbody');
+  if (!shopItemsCache.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun article. Ajoutez-en un ci-dessus.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = shopItemsCache.map(it => shopRow(it)).join('');
+}
+
+function shopRow(it) {
+  return `<tr data-item-id="${it.id}">
+    <td>
+      <strong>${esc(it.name)}</strong><br>
+      <span class="cat-pill">${esc(it.category)}</span>
+      <span style="color:var(--muted);font-size:11px;margin-left:6px;">${esc(it.item_key)}</span><br>
+      <span style="color:var(--muted);font-size:11px;">Vendus : ${it.purchased_total || 0}</span>
+    </td>
+    <td>
+      <div class="shop-row-edit">
+        <input type="number" title="Prix (éclats)" value="${it.price_eclats}" onchange="updateShopField(${it.id},'price_eclats',this.value)">
+        <input type="number" title="Prix promo" placeholder="promo" value="${it.promo_price ?? ''}" onchange="updateShopField(${it.id},'promo_price',this.value)">
+        <label class="toggle" title="Promo active">
+          <input type="checkbox" ${it.promo_active ? 'checked' : ''} onchange="updateShopField(${it.id},'promo_active',this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </td>
+    <td>
+      <input type="number" title="Quantité par pack" value="${it.pack_quantity}" style="width:70px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;" onchange="updateShopField(${it.id},'pack_quantity',this.value)">
+    </td>
+    <td>
+      <div class="shop-row-edit">
+        <input type="number" title="Max par joueur" placeholder="max/j" value="${it.max_per_player ?? ''}" onchange="updateShopField(${it.id},'max_per_player',this.value)">
+        <input type="number" title="Max total" placeholder="max total" value="${it.max_total ?? ''}" onchange="updateShopField(${it.id},'max_total',this.value)">
+      </div>
+    </td>
+    <td><label class="toggle"><input type="checkbox" ${it.visible ? 'checked' : ''} onchange="updateShopField(${it.id},'visible',this.checked)"><span class="slider"></span></label></td>
+    <td><label class="toggle"><input type="checkbox" ${it.purchasable ? 'checked' : ''} onchange="updateShopField(${it.id},'purchasable',this.checked)"><span class="slider"></span></label></td>
+    <td>
+      <div class="actions">
+        <button class="btn-action btn-eclats" onclick="openGrantItem(${it.id},'${esc(it.name)}')">Offrir</button>
+        <button class="btn-action btn-delete" onclick="removeShopItem(${it.id},'${esc(it.name)}')">Supprimer</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+async function updateShopField(id, field, value) {
+  const boolFields = ['promo_active', 'visible', 'purchasable'];
+  const body = { [field]: boolFields.includes(field) ? !!value : value };
+  const data = await apiFetch(`/admin/shop/${id}`, 'PUT', body);
+  if (data.ok) {
+    toast('Article mis à jour.', 'success');
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+  loadShopItems();
+}
+
+async function addShopItem() {
+  const body = {
+    item_key:       document.getElementById('new-item-key').value.trim(),
+    category:       document.getElementById('new-item-category').value,
+    name:           document.getElementById('new-item-name').value.trim(),
+    price_eclats:   document.getElementById('new-item-price').value,
+    pack_quantity:  document.getElementById('new-item-pack').value || 1,
+    max_per_player: document.getElementById('new-item-maxplayer').value || null,
+    max_total:      document.getElementById('new-item-maxtotal').value || null,
+  };
+  if (!body.item_key || !body.name || !body.price_eclats) {
+    toast('Clé, nom et prix sont requis.', 'error');
+    return;
+  }
+  const data = await apiFetch('/admin/shop', 'POST', body);
+  if (data.ok) {
+    toast('Article ajouté à la boutique.', 'success');
+    ['new-item-key', 'new-item-name', 'new-item-price', 'new-item-maxplayer', 'new-item-maxtotal'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('new-item-pack').value = 1;
+    loadShopItems();
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+async function removeShopItem(id, name) {
+  const ok = await confirm('Supprimer l\'article', `Supprimer définitivement "${name}" de la boutique ?`, 'btn-confirm-danger');
+  if (!ok) return;
+  const data = await apiFetch(`/admin/shop/${id}`, 'DELETE');
+  if (data.ok) {
+    toast(`"${name}" supprimé.`, 'success');
+    loadShopItems();
+  } else {
+    toast(data.error || 'Erreur', 'error');
+  }
+}
+
+// ── Offrir un article de boutique à un membre ────────────────────────────
+let selectedGrantItemUser = null;
+let grantItemSearchTimer;
+function openGrantItem(id, name) {
+  document.getElementById('grantitem-id').value = id;
+  document.getElementById('grantitem-name').textContent = name;
+  document.getElementById('grantitem-user-search').value = '';
+  document.getElementById('grantitem-user-suggestions').innerHTML = '';
+  document.getElementById('grantitem-selected-user').textContent = '';
+  document.getElementById('grantitem-quantity').value = 1;
+  document.getElementById('grantitem-error').style.display = 'none';
+  selectedGrantItemUser = null;
+  document.getElementById('grantitem-overlay').classList.add('open');
+}
+function closeGrantItem() {
+  document.getElementById('grantitem-overlay').classList.remove('open');
+}
+function debouncedGrantItemUserSearch() {
+  clearTimeout(grantItemSearchTimer);
+  const q = document.getElementById('grantitem-user-search').value;
+  grantItemSearchTimer = setTimeout(() => runUserSearch(q, 'grantitem-user-suggestions', 'pickGrantItemUser'), 300);
+}
+function pickGrantItemUser(i) {
+  selectedGrantItemUser = userSearchResults['grantitem-user-suggestions'][i];
+  document.getElementById('grantitem-user-search').value = selectedGrantItemUser.pseudo;
+  document.getElementById('grantitem-user-suggestions').innerHTML = '';
+  document.getElementById('grantitem-selected-user').textContent =
+    `${selectedGrantItemUser.pseudo} (${selectedGrantItemUser.discord_id})`;
+}
+async function submitGrantItem() {
+  const errEl = document.getElementById('grantitem-error');
+  if (!selectedGrantItemUser) {
+    errEl.textContent = 'Sélectionnez un membre dans la liste.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const id = document.getElementById('grantitem-id').value;
+  const quantity = parseInt(document.getElementById('grantitem-quantity').value, 10) || 1;
+  const data = await apiFetch(`/admin/shop/${id}/grant`, 'POST', { discord_id: selectedGrantItemUser.discord_id, quantity });
+  if (data.ok) {
+    closeGrantItem();
+    toast(`"${data.item}" x${data.quantity} offert à ${selectedGrantItemUser.pseudo}.`, 'success');
+    loadShopItems();
+  } else {
+    errEl.textContent = data.error || 'Erreur';
+    errEl.style.display = 'block';
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Auth screen — champ URL ────────────────────────────────────────────────
+// Ajoute le champ URL dynamiquement sous le champ secret
+(function() {
+  const authCard = document.querySelector('.auth-card');
+  const input = document.getElementById('secret-input');
+  const urlInput = document.createElement('input');
+  urlInput.id = 'auth-worker-url';
+  urlInput.type = 'url';
+  urlInput.placeholder = 'URL du Worker (ex: https://xxx.workers.dev)';
+  urlInput.autocomplete = 'off';
+  urlInput.style.marginBottom = '12px';
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  const savedUrl = localStorage.getItem('relink_worker_url') || '';
+  if (savedUrl) urlInput.value = savedUrl;
+  urlInput.addEventListener('input', () => localStorage.setItem('relink_worker_url', urlInput.value.trim()));
+  authCard.insertBefore(urlInput, input.nextSibling);
+})();
+// ── Tout déverrouiller ──────────────────────────────────────────────────
+async function unlockAll() {
+  const ok = await confirm(
+    'Tout deverrouiller',
+    'Desactiver la connexion obligatoire globale et rendre toutes les sections visibles ? Les protections individuelles du site (modpack, servinfo, clans, equipe) restent gerees par le site lui-meme.',
+    'btn-confirm-ok'
+  );
+  if (!ok) return;
+  const keys = [
+    'flag:require_auth',
+    'flag:section:home', 'flag:section:modpack', 'flag:section:lore',
+    'flag:section:reglement', 'flag:section:partenaires', 'flag:section:ajouts',
+    'flag:section:server', 'flag:section:clans', 'flag:section:team',
+    'flag:section:about', 'flag:section:staff', 'flag:section:aide',
+    'flag:section:recompense',
+  ];
+  let errors = 0;
+  for (const key of keys) {
+    const val = key === 'flag:require_auth' ? 'false' : 'true';
+    const d = await apiFetch('/admin/flags', 'POST', { key, value: val });
+    if (!d.ok) errors++;
+  }
+  if (errors === 0) {
+    toast('Tout deverrouille avec succes.', 'success');
+  } else {
+    toast(errors + ' erreur(s) lors du deverrouillage.', 'error');
+  }
+  loadFlags();
+}
+
+</script>
+</body>
+</html>

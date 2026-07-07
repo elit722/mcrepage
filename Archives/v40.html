@@ -628,68 +628,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .rec-status.available{background:rgba(201,168,76,.15);color:var(--gold-light);}
 .rec-status.locked-status{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
 .rec-loading{text-align:center;padding:1.5rem;font-size:.78rem;color:rgba(201,168,76,.3);font-style:italic;}
-.rec-account-eclats{margin-left:auto;font-family:'Source Code Pro',monospace;color:var(--gold-light);font-size:.85rem;white-space:nowrap;}
-.rec-empty{text-align:center;padding:1.4rem;font-size:.78rem;color:var(--mist);}
-
-.rec-section{margin-top:2.6rem;}
-.rec-section-head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;}
-.rec-section-head h3{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--gold-light);letter-spacing:.05em;}
-.rec-section-head .rec-section-icon{font-size:1.1rem;}
-.rec-section-desc{font-size:.78rem;color:var(--mist);margin-bottom:1.2rem;line-height:1.7;}
-
-.rec-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;}
-.rec-info-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:1.3rem 1.4rem;}
-.rec-info-card h4{font-family:'Cinzel Decorative',serif;font-size:.7rem;color:var(--gold);letter-spacing:.05em;margin-bottom:.8rem;text-transform:uppercase;}
-.rec-info-card ul{list-style:none;display:grid;gap:.55rem;}
-.rec-info-card li{font-size:.78rem;color:var(--mist);line-height:1.55;padding-left:1.1rem;position:relative;}
-.rec-info-card li::before{content:'◆';position:absolute;left:0;top:0;color:rgba(201,168,76,.55);font-size:.6rem;}
-.rec-info-card li strong{color:var(--gold-light);font-weight:600;}
-
-/* Code de parrainage */
-.ref-box{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:1.1rem 1.3rem;margin-bottom:1rem;}
-.ref-code{font-family:'Source Code Pro',monospace;font-size:1.2rem;letter-spacing:.15em;color:var(--gold-light);background:rgba(0,0,0,.3);padding:.5rem 1rem;border-radius:3px;border:1px solid rgba(201,168,76,.3);}
-.ref-copy-btn{background:transparent;border:1px solid rgba(201,168,76,.35);color:var(--gold);font-size:.66rem;font-family:'Cinzel Decorative',serif;padding:.5rem .9rem;border-radius:3px;cursor:pointer;letter-spacing:.05em;transition:all .2s;}
-.ref-copy-btn:hover{background:rgba(201,168,76,.12);border-color:var(--gold);}
-.ref-count{margin-left:auto;font-size:.78rem;color:var(--mist);}
-.ref-count b{color:var(--gold-light);font-family:'Source Code Pro',monospace;font-size:.95rem;}
-.ref-redeem-row{display:flex;gap:.6rem;flex-wrap:wrap;}
-.ref-redeem-row input{flex:1;min-width:160px;background:rgba(0,0,0,.3);border:1px solid rgba(201,168,76,.25);border-radius:3px;padding:.6rem .8rem;color:var(--white-jade);font-family:'Source Code Pro',monospace;letter-spacing:.1em;text-transform:uppercase;}
-.ref-redeem-row input:focus{outline:none;border-color:var(--gold);}
-.ref-redeem-row button{background:linear-gradient(135deg,var(--gold),#a5842f);border:none;color:#0D0A06;font-family:'Cinzel Decorative',serif;font-size:.66rem;letter-spacing:.05em;padding:.6rem 1.1rem;border-radius:3px;cursor:pointer;white-space:nowrap;}
-
-/* Streak façon Duolingo */
-.streak-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:1.4rem 1.5rem;}
-.streak-top{display:flex;align-items:center;gap:1.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
-.streak-flame{font-size:2.3rem;line-height:1;filter:drop-shadow(0 0 10px rgba(201,168,76,.4));}
-.streak-flame.off{opacity:.3;filter:none;}
-.streak-count{font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--gold-light);}
-.streak-count span{font-size:.68rem;color:var(--mist);display:block;font-family:'Source Code Pro',monospace;letter-spacing:.05em;text-transform:uppercase;margin-top:.15rem;}
-.streak-mini-stats{display:flex;gap:1.5rem;margin-left:auto;flex-wrap:wrap;}
-.streak-mini-stats div{text-align:center;}
-.streak-mini-stats .smv{font-family:'Source Code Pro',monospace;font-size:1rem;color:var(--gold-light);display:block;}
-.streak-mini-stats .sml{font-size:.58rem;color:var(--mist);letter-spacing:.06em;text-transform:uppercase;}
-.streak-days{display:flex;gap:.4rem;flex-wrap:wrap;}
-.streak-day{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-family:'Source Code Pro',monospace;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.3);flex-shrink:0;}
-.streak-day.validated{background:rgba(201,168,76,.22);border-color:rgba(201,168,76,.5);color:var(--gold-light);}
-.streak-day.today{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.25);}
-.streak-day.milestone{border-radius:8px;}
-.streak-note{font-size:.68rem;color:rgba(201,168,76,.5);margin-top:.7rem;font-style:italic;}
-
-/* Boutique */
-.shop-cats{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.3rem;}
-.shop-cat-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);color:var(--mist);font-size:.66rem;font-family:'Cinzel Decorative',serif;padding:.45rem .9rem;border-radius:20px;cursor:pointer;letter-spacing:.04em;transition:all .2s;}
-.shop-cat-btn.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold-light);}
-.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.1rem;}
-.shop-item{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:1.2rem;text-align:center;position:relative;transition:border-color .2s,transform .2s;}
-.shop-item:hover{border-color:rgba(201,168,76,.35);transform:translateY(-3px);}
-.shop-item .shop-item-cat{position:absolute;top:.6rem;right:.6rem;font-size:.55rem;color:rgba(201,168,76,.5);letter-spacing:.05em;text-transform:uppercase;}
-.shop-item h4{font-family:'Cinzel Decorative',serif;font-size:.75rem;color:var(--gold-light);margin:.4rem 0 .3rem;}
-.shop-item p{font-size:.72rem;color:var(--mist);line-height:1.5;margin-bottom:.7rem;min-height:1.5em;}
-.shop-item .shop-price{font-family:'Source Code Pro',monospace;font-size:1rem;color:var(--gold-light);margin-bottom:.7rem;}
-.shop-item .shop-price .old{color:rgba(255,255,255,.3);text-decoration:line-through;font-size:.8rem;margin-right:.4rem;}
-.shop-item .shop-buy-btn{width:100%;background:linear-gradient(135deg,var(--gold),#a5842f);border:none;color:#0D0A06;font-family:'Cinzel Decorative',serif;font-size:.64rem;letter-spacing:.05em;padding:.55rem;border-radius:3px;cursor:pointer;transition:opacity .2s;}
-.shop-item .shop-buy-btn:hover{opacity:.88;}
-.shop-item .shop-limit{font-size:.6rem;color:rgba(255,255,255,.35);margin-top:.5rem;}
 
 /* ── RELINK TOP BAR ── */
 .top-bar{
@@ -1788,7 +1726,6 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
         <div class="rec-account-name" id="rec-mc-name">—</div>
         <div class="rec-account-sub">Compte Minecraft lié via /link</div>
       </div>
-      <div class="rec-account-eclats" id="rec-account-eclats">💎 —</div>
     </div>
 
     <div id="rec-content">
@@ -3113,8 +3050,8 @@ function rlApplyMcGates() {
   });
 }
 
-// Affiche la barre de compte + le contenu enrichi des récompenses une fois débloqué :
-// infos éclats, streak façon Duolingo, code de parrainage, classements et boutique.
+// Affiche la barre de compte + le contenu des récompenses une fois débloqué.
+// (Contenu statique par défaut : à brancher sur RL_API + '/rewards' si besoin.)
 function recRenderContent(pageId) {
   if (pageId !== 'page-recompense' || !rlUser) return;
   const bar = document.getElementById('rec-account-bar');
@@ -3128,323 +3065,29 @@ function recRenderContent(pageId) {
     if (name) name.textContent = rlUser.minecraft_username || rlUser.pseudo || '—';
   }
   const content = document.getElementById('rec-content');
-  if (!content || content.dataset.loaded === '1') return;
-  content.dataset.loaded = '1';
-
-  content.innerHTML = `
-    <div class="rec-section">
-      <div class="rec-section-head"><span class="rec-section-icon">💎</span><h3>Comment gagner des Éclats</h3></div>
-      <div class="rec-info-grid">
-        <div class="rec-info-card">
-          <h4>Actions en jeu &amp; sur le site</h4>
-          <ul>
-            <li><strong>Bonus de liaison</strong> — à la première connexion de ton compte Minecraft via <strong>/link</strong></li>
-            <li><strong>Streak quotidienne</strong> — connecte-toi et joue chaque jour, avec des paliers bonus</li>
-            <li><strong>Quêtes journalières</strong> — faciles, moyennes ou difficiles, renouvelées chaque jour</li>
-            <li><strong>Parrainage</strong> — invite un ami avec ton code personnel ci-dessous</li>
-            <li>Statut <strong>Staff</strong> ou <strong>Partenaire</strong> — bonus dédié sur tes gains</li>
-          </ul>
+  if (content && content.dataset.loaded !== '1') {
+    content.dataset.loaded = '1';
+    content.innerHTML = `
+      <div class="rec-grid">
+        <div class="rec-card">
+          <div class="rec-icon">🎉</div>
+          <h3>Bienvenue sur le serveur</h3>
+          <p>Récompense de bienvenue pour tout compte fraîchement lié à ton profil Minecraft.</p>
+          <span class="rec-status available">Disponible</span>
         </div>
-        <div class="rec-info-card">
-          <h4>À savoir</h4>
-          <ul>
-            <li>Aucun Éclat ne s'achète avec de l'argent réel — ils se méritent uniquement en jouant.</li>
-            <li>Les Éclats non dépensés restent sur ton compte, tu peux les garder pour plus tard.</li>
-            <li>La boutique, les prix et les stocks peuvent évoluer en cours d'event : reviens régulièrement.</li>
-          </ul>
+        <div class="rec-card">
+          <div class="rec-icon">🗓️</div>
+          <h3>Récompenses d'event</h3>
+          <p>Débloquées automatiquement en participant aux events organisés par le staff.</p>
+          <span class="rec-status locked-status">À venir</span>
         </div>
-      </div>
-    </div>
-
-    <div class="rec-section">
-      <div class="rec-section-head"><span class="rec-section-icon">🔥</span><h3>Ta Streak</h3></div>
-      <p class="rec-section-desc">
-        Chaque jour où tu es actif en jeu (temps de jeu et actions minimales requises), ta série augmente
-        d'un jour et te rapporte des Éclats — avec des paliers bonus à <strong>3, 7, 14, 21 et 26 jours</strong>.
-        Une journée sans activité suffisante remet ta série à zéro, sauf si tu utilises ton
-        <strong>gel de streak</strong> (disponible une fois tous les 7 jours).
-      </p>
-      <div class="streak-card" id="streak-card">
-        <div class="rec-loading">Chargement de ta streak…</div>
-      </div>
-    </div>
-
-    <div class="rec-section">
-      <div class="rec-section-head"><span class="rec-section-icon">🤝</span><h3>Ton code de parrainage</h3></div>
-      <p class="rec-section-desc">Partage ton code avec un ami. Quand il/elle le valide ici après avoir lié son compte Minecraft, vous gagnez tous les deux des Éclats.</p>
-      <div class="ref-box" id="ref-box">
-        <div class="rec-loading">Chargement…</div>
-      </div>
-      <div class="ref-redeem-row">
-        <input type="text" id="ref-redeem-input" placeholder="Code d'un ami" maxlength="8">
-        <button onclick="recRedeemReferral()">Valider le code</button>
-      </div>
-      <div class="rl-status" id="ref-redeem-status"></div>
-    </div>
-
-    <div class="rec-section">
-      <div class="rec-section-head"><span class="rec-section-icon">🏆</span><h3>Classements</h3></div>
-      <div class="clan-lb-grid">
-        <div class="clan-lb-block">
-          <div class="clan-lb-title">🤝 Parrainages</div>
-          <div id="lb-referrals"><div class="clan-lb-loading">Chargement…</div></div>
+        <div class="rec-card">
+          <div class="rec-icon">🤝</div>
+          <h3>Parrainage</h3>
+          <p>Invite un ami qui lie son compte via /link et gagnez tous les deux une récompense.</p>
+          <span class="rec-status locked-status">À venir</span>
         </div>
-        <div class="clan-lb-block">
-          <div class="clan-lb-title">🔥 Streak</div>
-          <div id="lb-streak"><div class="clan-lb-loading">Chargement…</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="rec-section">
-      <div class="rec-section-head"><span class="rec-section-icon">🛒</span><h3>La Boutique</h3></div>
-      <p class="rec-section-desc">Échange tes Éclats contre des lootbox, de l'argent in-game, des cartes cadeaux, des objets d'event ou du VIP.</p>
-      <div class="shop-cats" id="shop-cats"></div>
-      <div class="shop-grid" id="shop-grid">
-        <div class="rec-loading">Chargement de la boutique…</div>
-      </div>
-      <div class="rl-status" id="shop-status"></div>
-    </div>
-  `;
-
-  recLoadRewardsSummary();
-  recLoadLeaderboards();
-  recLoadShop();
-}
-
-// ── Résumé compte : éclats, code de parrainage, streak ────────────────────
-async function recLoadRewardsSummary() {
-  try {
-    const r = await fetch(`${RL_API}/rewards/summary`, {
-      headers: { 'Authorization': `Bearer ${rlUser.access_token}` },
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Erreur');
-
-    const eclatsEl = document.getElementById('rec-account-eclats');
-    if (eclatsEl) eclatsEl.textContent = `💎 ${d.eclats} Éclat${d.eclats === 1 ? '' : 's'}`;
-
-    recRenderReferralBox(d);
-    recRenderStreakCard(d.streak);
-  } catch(e) {
-    const refBox = document.getElementById('ref-box');
-    if (refBox) refBox.innerHTML = `<div class="rec-empty">Impossible de charger tes infos : ${esc(e.message)}</div>`;
-    const streakCard = document.getElementById('streak-card');
-    if (streakCard) streakCard.innerHTML = `<div class="rec-empty">Impossible de charger ta streak pour le moment.</div>`;
-  }
-}
-
-function recRenderReferralBox(d) {
-  const box = document.getElementById('ref-box');
-  if (!box) return;
-  box.innerHTML = `
-    <div class="ref-code">${esc(d.referral_code || '—')}</div>
-    <button class="ref-copy-btn" onclick="recCopyReferralCode('${esc(d.referral_code || '')}')">📋 Copier</button>
-    <div class="ref-count">Filleuls parrainés : <b>${d.referral_count || 0}</b></div>
-  `;
-}
-
-function recCopyReferralCode(code) {
-  if (!code || !navigator.clipboard) return;
-  navigator.clipboard.writeText(code).then(() => {
-    const status = document.getElementById('ref-redeem-status');
-    if (status) {
-      status.className = 'rl-status ok';
-      status.textContent = '✅ Code copié !';
-      setTimeout(() => { status.className = 'rl-status'; status.textContent = ''; }, 2500);
-    }
-  }).catch(() => {});
-}
-
-async function recRedeemReferral() {
-  const input  = document.getElementById('ref-redeem-input');
-  const status = document.getElementById('ref-redeem-status');
-  const code = (input?.value || '').trim().toUpperCase();
-  if (!code) { status.className = 'rl-status err'; status.textContent = '❌ Entre le code de ton ami.'; return; }
-
-  status.className = 'rl-status loading';
-  status.textContent = '⏳ Vérification…';
-  try {
-    const r = await fetch(`${RL_API}/referral/redeem`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ code }),
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Code invalide');
-
-    status.className = 'rl-status ok';
-    status.textContent = `✅ Parrainage validé avec ${d.parrain} !`;
-    input.value = '';
-    recLoadRewardsSummary();
-    recLoadLeaderboards();
-  } catch(e) {
-    status.className = 'rl-status err';
-    status.textContent = `❌ ${e.message}`;
-  }
-}
-
-// ── Streak façon Duolingo : anneaux de jours sur la durée de l'event ─────
-const REC_EVENT_DAYS = 26;
-const REC_STREAK_MILESTONES = [3, 7, 14, 21, 26];
-
-function recRenderStreakCard(streak) {
-  const card = document.getElementById('streak-card');
-  if (!card) return;
-  const cur     = streak?.current_streak || 0;
-  const longest = streak?.longest_streak || 0;
-  const playtimeMin = Math.floor((streak?.playtime_seconds_today || 0) / 60);
-  const blocksToday = streak?.blocks_today || 0;
-
-  let pips = '';
-  for (let day = 1; day <= REC_EVENT_DAYS; day++) {
-    let cls = 'streak-day';
-    if (day <= cur) cls += ' validated';
-    if (day === cur + 1) cls += ' today';
-    const isMilestone = REC_STREAK_MILESTONES.includes(day);
-    if (isMilestone) cls += ' milestone';
-    pips += `<div class="${cls}" title="Jour ${day}${isMilestone ? ' — palier bonus' : ''}">${isMilestone ? '★' : day}</div>`;
-  }
-
-  card.innerHTML = `
-    <div class="streak-top">
-      <div class="streak-flame ${cur > 0 ? '' : 'off'}">🔥</div>
-      <div class="streak-count">${cur}<span>jour${cur === 1 ? '' : 's'} de suite</span></div>
-      <div class="streak-mini-stats">
-        <div><span class="smv">${longest}</span><span class="sml">Record</span></div>
-        <div><span class="smv">${playtimeMin}min</span><span class="sml">Aujourd'hui</span></div>
-        <div><span class="smv">${blocksToday}</span><span class="sml">Blocs (jour)</span></div>
-      </div>
-    </div>
-    <div class="streak-days">${pips}</div>
-    <div class="streak-note">★ = palier bonus (3, 7, 14, 21, 26 jours) · le jour entouré en doré est celui à valider aujourd'hui.</div>
-  `;
-}
-
-// ── Classements parrainage & streak ───────────────────────────────────────
-async function recLoadLeaderboards() {
-  try {
-    const r = await fetch(`${RL_API}/leaderboard/referrals?limit=10`);
-    const d = await r.json();
-    if (!r.ok) throw new Error();
-    recRenderLb(d.results || [], 'lb-referrals', u => `${u.referral_count} filleul${u.referral_count === 1 ? '' : 's'}`);
-  } catch(e) {
-    const el = document.getElementById('lb-referrals');
-    if (el) el.innerHTML = '<div class="rec-empty">Classement indisponible.</div>';
-  }
-  try {
-    const r = await fetch(`${RL_API}/leaderboard/streak?limit=10`);
-    const d = await r.json();
-    if (!r.ok) throw new Error();
-    recRenderLb(d.results || [], 'lb-streak', u => `${u.current_streak} jour${u.current_streak === 1 ? '' : 's'}`);
-  } catch(e) {
-    const el = document.getElementById('lb-streak');
-    if (el) el.innerHTML = '<div class="rec-empty">Classement indisponible.</div>';
-  }
-}
-
-function recRenderLb(results, containerId, valueFn) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (!results.length) { el.innerHTML = '<div class="rec-empty">Personne pour l\'instant.</div>'; return; }
-  const medals = ['🥇','🥈','🥉'];
-  const rows = results.map((u, i) => {
-    const rank = i + 1;
-    const rankCell = rank <= 3
-      ? `<span class="clan-lb-rank clan-lb-rank-${rank}">${medals[i]}</span>`
-      : `<span class="clan-lb-rank">#${rank}</span>`;
-    const avatar = u.avatar_url
-      ? `<img src="${u.avatar_url}" alt="" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:.4rem;">`
-      : '';
-    return `<tr><td>${rankCell}</td><td>${avatar}${esc(u.pseudo || u.discord_id)}</td><td>${valueFn(u)}</td></tr>`;
-  }).join('');
-  el.innerHTML = `<table class="clan-lb-table"><thead><tr><th>#</th><th>Joueur</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-// ── Boutique ───────────────────────────────────────────────────────────────
-let recShopItems = [];
-let recShopCatFilter = null;
-const REC_SHOP_CAT_LABELS = {
-  lootbox: '📦 Lootbox', money_ig: '💰 Argent IG', gift_card: '🎁 Cartes cadeaux',
-  event_item: '✨ Items d\'event', vip: '👑 VIP',
-};
-
-async function recLoadShop() {
-  try {
-    const r = await fetch(`${RL_API}/shop`);
-    const d = await r.json();
-    if (!r.ok) throw new Error();
-    recShopItems = d.items || [];
-    recRenderShopCats();
-    recRenderShopGrid();
-  } catch(e) {
-    const el = document.getElementById('shop-grid');
-    if (el) el.innerHTML = '<div class="rec-empty">Boutique indisponible pour le moment.</div>';
-  }
-}
-
-function recRenderShopCats() {
-  const cats = [...new Set(recShopItems.map(it => it.category))];
-  const box = document.getElementById('shop-cats');
-  if (!box) return;
-  box.innerHTML = `<button class="shop-cat-btn ${!recShopCatFilter ? 'active' : ''}" onclick="recFilterShop(null)">Tout</button>` +
-    cats.map(c => `<button class="shop-cat-btn ${recShopCatFilter === c ? 'active' : ''}" onclick="recFilterShop('${c}')">${REC_SHOP_CAT_LABELS[c] || esc(c)}</button>`).join('');
-}
-
-function recFilterShop(cat) {
-  recShopCatFilter = cat;
-  recRenderShopCats();
-  recRenderShopGrid();
-}
-
-function recRenderShopGrid() {
-  const grid = document.getElementById('shop-grid');
-  if (!grid) return;
-  const items = recShopCatFilter ? recShopItems.filter(it => it.category === recShopCatFilter) : recShopItems;
-  if (!items.length) { grid.innerHTML = '<div class="rec-empty">Aucun article disponible dans cette catégorie.</div>'; return; }
-
-  grid.innerHTML = items.map(it => {
-    const hasPromo = it.promo_active && it.promo_price != null;
-    const priceHtml = hasPromo
-      ? `<span class="old">${it.price_eclats}</span>${it.promo_price} 💎`
-      : `${it.price_eclats} 💎`;
-    const limitBits = [];
-    if (it.max_per_player != null) limitBits.push(`max ${it.max_per_player}/joueur`);
-    if (it.max_total != null) limitBits.push(`${Math.max(0, it.max_total - (it.purchased_total || 0))} restants`);
-    return `<div class="shop-item">
-      <span class="shop-item-cat">${esc(it.category)}</span>
-      <h4>${esc(it.name)}</h4>
-      <p>${esc(it.description || '')}</p>
-      <div class="shop-price">${priceHtml}</div>
-      <button class="shop-buy-btn" onclick="recBuyItem(${it.id},'${esc(it.name).replace(/'/g,"\\'")}')">Acheter${it.pack_quantity > 1 ? ` (x${it.pack_quantity})` : ''}</button>
-      ${limitBits.length ? `<div class="shop-limit">${limitBits.join(' · ')}</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-async function recBuyItem(id, name) {
-  if (!rlUser) { rlOpenLogin(); return; }
-  if (!window.confirm(`Acheter "${name}" ?`)) return;
-
-  const status = document.getElementById('shop-status');
-  if (status) { status.className = 'rl-status loading'; status.textContent = '⏳ Achat en cours…'; }
-  try {
-    const r = await fetch(`${RL_API}/shop/${id}/purchase`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
-      body: JSON.stringify({ quantity: 1 }),
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Achat impossible');
-
-    if (status) {
-      status.className = 'rl-status ok';
-      status.textContent = `✅ "${d.item}" acheté ! -${d.spent} 💎 · Nouveau solde : ${d.balance} 💎`;
-    }
-    recLoadRewardsSummary();
-    recLoadShop();
-  } catch(e) {
-    if (status) { status.className = 'rl-status err'; status.textContent = `❌ ${e.message}`; }
+      </div>`;
   }
 }
 
