@@ -304,9 +304,6 @@
       <button class="nav-item" data-page="eclats" onclick="showPage('eclats')">
         <span class="ico">💎</span> Éclats &amp; Boutique
       </button>
-      <button class="nav-item" data-page="commandes" onclick="showPage('commandes')">
-        <span class="ico">📦</span> Suivi des commandes
-      </button>
       <div class="nav-section-label" style="margin-top:8px;">Site principal</div>
       <button class="nav-item" data-page="flags" onclick="showPage('flags')">
         <span class="ico">🎛️</span> Visibilité sections
@@ -530,42 +527,6 @@
       </div>
     </div>
 
-    <!-- ── Page Suivi des commandes ── -->
-    <div id="page-commandes" class="page">
-      <div class="page-header">
-        <h2>Suivi des commandes</h2>
-        <span class="badge" id="commande-count">…</span>
-      </div>
-
-      <div class="subtabs">
-        <button class="subtab active" data-commande-filter="" onclick="filterCommandes('')">Toutes</button>
-        <button class="subtab" data-commande-filter="pending" onclick="filterCommandes('pending')">⏳ En attente</button>
-        <button class="subtab" data-commande-filter="fulfilled" onclick="filterCommandes('fulfilled')">✅ Livrées</button>
-        <button class="subtab" data-commande-filter="cancelled" onclick="filterCommandes('cancelled')">❌ Annulées</button>
-      </div>
-
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Joueur</th>
-                <th>Article</th>
-                <th>Quantité</th>
-                <th>Éclats dépensés</th>
-                <th>Statut</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="commandes-tbody">
-              <tr><td colspan="7" class="empty-state"><span class="spinner"></span>Chargement…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
     <!-- ── Page Flags ── -->
     <div id="page-flags" class="page">
       <div class="page-header">
@@ -750,7 +711,6 @@ function loadPage(name) {
   if (name === 'submissions') loadSubmissions(currentSubFilter);
   if (name === 'flags')       loadFlags();
   if (name === 'eclats')      { /* les sous-onglets chargent leurs propres données */ }
-  if (name === 'commandes')   loadCommandes();
 }
 
 // ── Page Utilisateurs ─────────────────────────────────────────────────────
@@ -1287,67 +1247,6 @@ async function submitGrantItem() {
   } else {
     errEl.textContent = data.error || 'Erreur';
     errEl.style.display = 'block';
-  }
-}
-
-// ── Page Suivi des commandes ──────────────────────────────────────────────
-let currentCommandeFilter = '';
-
-function filterCommandes(status) {
-  currentCommandeFilter = status;
-  document.querySelectorAll('[data-commande-filter]').forEach(b => b.classList.remove('active'));
-  document.querySelector(`[data-commande-filter="${status}"]`).classList.add('active');
-  loadCommandes();
-}
-
-async function loadCommandes() {
-  const qs = currentCommandeFilter ? `?status=${currentCommandeFilter}&limit=100` : '?limit=100';
-  const data = await apiFetch(`/admin/shop/purchases${qs}`);
-  document.getElementById('commande-count').textContent = data.total ?? (data.purchases || []).length;
-  const tbody = document.getElementById('commandes-tbody');
-  const purchases = data.purchases || [];
-  if (!purchases.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aucune commande.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = purchases.map(commandeRow).join('');
-}
-
-function commandeRow(p) {
-  const statusBadge = {
-    pending:   '<span class="badge" style="background:#4a3a0f;color:#f0c443;">⏳ En attente</span>',
-    fulfilled: '<span class="badge" style="background:#0f3d1f;color:#4fd177;">✅ Livrée</span>',
-    cancelled: '<span class="badge" style="background:#3d0f0f;color:#e05a5a;">❌ Annulée</span>',
-  }[p.status] || esc(p.status);
-
-  const actions = p.status === 'pending'
-    ? `<button class="btn-action btn-unban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'fulfilled')">✅ Marquer livrée</button>
-       <button class="btn-action btn-ban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'cancelled')">❌ Annuler</button>`
-    : p.status === 'fulfilled'
-      ? `<button class="btn-action btn-ban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'cancelled')">❌ Annuler</button>`
-      : `<button class="btn-action btn-unlock" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'pending')">↩️ Remettre en attente</button>`;
-
-  return `<tr>
-    <td>${esc(p.pseudo || p.discord_id)}${p.minecraft_username ? ` <span style="color:var(--muted);font-size:11px;">(${esc(p.minecraft_username)})</span>` : ''}</td>
-    <td>${esc(p.item_name)} <span style="color:var(--muted);font-size:11px;">[${esc(p.category)}]</span></td>
-    <td>${p.quantity}</td>
-    <td>${p.eclats_spent} 💎</td>
-    <td>${statusBadge}</td>
-    <td style="font-size:12px;color:var(--muted);">${esc(p.created_at)}</td>
-    <td style="display:flex;gap:6px;flex-wrap:wrap;">${actions}</td>
-  </tr>`;
-}
-
-async function setCommandeStatus(id, status) {
-  const labelMap = { fulfilled: 'marquer cette commande comme livrée', cancelled: 'annuler cette commande (remboursement des Éclats)', pending: 'remettre cette commande en attente' };
-  const ok = await confirm('Confirmer', `Voulez-vous ${labelMap[status] || 'modifier le statut'} ?`, status === 'cancelled' ? 'btn-confirm-danger' : 'btn-confirm');
-  if (!ok) return;
-  const data = await apiFetch(`/admin/shop/purchases/${id}/status`, 'POST', { status });
-  if (data.ok) {
-    toast('Commande mise à jour.', 'success');
-    loadCommandes();
-  } else {
-    toast(data.error || 'Erreur', 'error');
   }
 }
 

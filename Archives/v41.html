@@ -3171,11 +3171,15 @@ function recRenderContent(pageId) {
 
     <div class="rec-section">
       <div class="rec-section-head"><span class="rec-section-icon">🤝</span><h3>Ton code de parrainage</h3></div>
-      <p class="rec-section-desc">Partage ton code avec un ami. Il/elle l'entre directement en tapant <strong>/link</strong> en jeu, au moment de lier son compte — vous gagnez tous les deux des Éclats une fois qu'il/elle a cumulé <strong>2h de jeu</strong>.</p>
+      <p class="rec-section-desc">Partage ton code avec un ami. Quand il/elle le valide ici après avoir lié son compte Minecraft, vous gagnez tous les deux des Éclats.</p>
       <div class="ref-box" id="ref-box">
         <div class="rec-loading">Chargement…</div>
       </div>
-      <div id="ref-status-box"></div>
+      <div class="ref-redeem-row">
+        <input type="text" id="ref-redeem-input" placeholder="Code d'un ami" maxlength="8">
+        <button onclick="recRedeemReferral()">Valider le code</button>
+      </div>
+      <div class="rl-status" id="ref-redeem-status"></div>
     </div>
 
     <div class="rec-section">
@@ -3238,33 +3242,46 @@ function recRenderReferralBox(d) {
     <button class="ref-copy-btn" onclick="recCopyReferralCode('${esc(d.referral_code || '')}')">📋 Copier</button>
     <div class="ref-count">Filleuls parrainés : <b>${d.referral_count || 0}</b></div>
   `;
-
-  const statusBox = document.getElementById('ref-status-box');
-  if (!statusBox) return;
-  const s = d.referral_status;
-  if (!s || !s.used_code) {
-    statusBox.innerHTML = '';
-    return;
-  }
-  if (s.reward_given) {
-    statusBox.innerHTML = `<div class="rl-status ok" style="margin-top:.6rem">✅ Parrainage par <b>${esc(s.parrain)}</b> validé — Éclats reçus !</div>`;
-  } else {
-    const minutes = Math.floor((s.playtime_seconds || 0) / 60);
-    const requiredMinutes = Math.floor((s.playtime_required_seconds || 7200) / 60);
-    statusBox.innerHTML = `<div class="rl-status" style="margin-top:.6rem">⏳ Parrainage par <b>${esc(s.parrain)}</b> en attente — ${minutes}/${requiredMinutes} min de jeu cumulées avant de recevoir vos Éclats.</div>`;
-  }
 }
 
 function recCopyReferralCode(code) {
   if (!code || !navigator.clipboard) return;
   navigator.clipboard.writeText(code).then(() => {
-    const status = document.getElementById('ref-status-box');
+    const status = document.getElementById('ref-redeem-status');
     if (status) {
-      const prev = status.innerHTML;
-      status.innerHTML = `<div class="rl-status ok" style="margin-top:.6rem">✅ Code copié !</div>`;
-      setTimeout(() => { status.innerHTML = prev; }, 2000);
+      status.className = 'rl-status ok';
+      status.textContent = '✅ Code copié !';
+      setTimeout(() => { status.className = 'rl-status'; status.textContent = ''; }, 2500);
     }
   }).catch(() => {});
+}
+
+async function recRedeemReferral() {
+  const input  = document.getElementById('ref-redeem-input');
+  const status = document.getElementById('ref-redeem-status');
+  const code = (input?.value || '').trim().toUpperCase();
+  if (!code) { status.className = 'rl-status err'; status.textContent = '❌ Entre le code de ton ami.'; return; }
+
+  status.className = 'rl-status loading';
+  status.textContent = '⏳ Vérification…';
+  try {
+    const r = await fetch(`${RL_API}/referral/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
+      body: JSON.stringify({ code }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Code invalide');
+
+    status.className = 'rl-status ok';
+    status.textContent = `✅ Parrainage validé avec ${d.parrain} !`;
+    input.value = '';
+    recLoadRewardsSummary();
+    recLoadLeaderboards();
+  } catch(e) {
+    status.className = 'rl-status err';
+    status.textContent = `❌ ${e.message}`;
+  }
 }
 
 // ── Streak façon Duolingo : anneaux de jours sur la durée de l'event ─────
@@ -3560,18 +3577,6 @@ function rlOpenLinkMinecraft(mandatory = true) {
         autocomplete="one-time-code"
         class="rl-input"
       />
-      <label for="rl-link-referral-input" style="display:block;margin-top:.8rem;font-size:.8rem;color:var(--mist,#aaa);">
-        Code de parrainage d'un ami <span style="opacity:.7">(optionnel)</span>
-      </label>
-      <input
-        id="rl-link-referral-input"
-        type="text"
-        maxlength="8"
-        placeholder="ex: AB3D9F2K"
-        autocomplete="off"
-        class="rl-input"
-        style="text-transform:uppercase;margin-top:.3rem"
-      />
       <div id="rl-link-code-status"></div>
       <button type="submit" class="rl-dc-btn" style="background:#107C10;margin-top:1rem">
         ✅ Valider le code
@@ -3609,10 +3614,8 @@ async function rlSubmitLinkCode() {
   if (!rlUser) { rlOpenLogin(); return; }
 
   const input = document.getElementById('rl-link-code-input');
-  const referralInput = document.getElementById('rl-link-referral-input');
   const statusEl = document.getElementById('rl-link-code-status');
   const code = (input?.value || '').trim();
-  const referralCode = (referralInput?.value || '').trim().toUpperCase();
 
   input?.classList.remove('err');
 
@@ -3631,26 +3634,18 @@ async function rlSubmitLinkCode() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${rlUser.access_token}`
       },
-      body: JSON.stringify({ code, referral_code: referralCode || undefined })
+      body: JSON.stringify({ code })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Code invalide ou expiré');
 
-    // d attendu : { ok: true, minecraft_uuid, minecraft_username, referral }
+    // d attendu : { ok: true, minecraft_uuid, minecraft_username }
     rlUser.minecraft_uuid     = d.minecraft_uuid;
     rlUser.minecraft_username = d.minecraft_username;
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
 
-    let referralMsg = '';
-    if (referralCode) {
-      referralMsg = d.referral?.ok
-        ? `<div class="rl-status ok" style="margin-top:.5rem">🤝 Code de parrainage accepté (${esc(d.referral.parrain)}) — vos Éclats arrivent après 2h de jeu.</div>`
-        : `<div class="rl-status err" style="margin-top:.5rem">⚠️ Compte lié, mais code de parrainage refusé : ${esc(d.referral?.error || 'erreur inconnue')}</div>`;
-    }
-    if (statusEl) statusEl.innerHTML = `<div class="rl-status ok">✅ Compte Minecraft lié !</div>${referralMsg}`;
-
     rlUpdateUI();
-    setTimeout(() => rlOpenSettings(true), referralMsg ? 900 : 0);
+    rlOpenSettings(true);
   } catch(e) {
     input?.classList.add('err');
     if (statusEl) statusEl.innerHTML = `<div class="rl-status err">❌ ${e.message}</div>`;
