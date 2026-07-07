@@ -572,9 +572,6 @@
       <div class="page-header">
         <h2>Suivi des commandes</h2>
         <span class="badge" id="commande-count">…</span>
-        <button class="btn-action btn-ban" style="margin-left:auto;font-size:13px;padding:8px 16px;" onclick="purgePastCommandes()">
-          🗑️ Supprimer les commandes passées
-        </button>
       </div>
 
       <div class="subtabs">
@@ -1365,10 +1362,8 @@ function commandeRow(p) {
     ? `<button class="btn-action btn-unban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'fulfilled')">✅ Marquer livrée</button>
        <button class="btn-action btn-ban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'cancelled')">❌ Annuler</button>`
     : p.status === 'fulfilled'
-      ? `<button class="btn-action btn-ban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'cancelled')">❌ Annuler</button>
-         <button class="btn-action btn-delete" style="font-size:12px;padding:6px 12px;" onclick="deleteCommande(${p.id})">🗑️</button>`
-      : `<button class="btn-action btn-unlock" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'pending')">↩️ Remettre en attente</button>
-         <button class="btn-action btn-delete" style="font-size:12px;padding:6px 12px;" onclick="deleteCommande(${p.id})">🗑️</button>`;
+      ? `<button class="btn-action btn-ban" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'cancelled')">❌ Annuler</button>`
+      : `<button class="btn-action btn-unlock" style="font-size:12px;padding:6px 12px;" onclick="setCommandeStatus(${p.id},'pending')">↩️ Remettre en attente</button>`;
 
   return `<tr>
     <td>${esc(p.pseudo || p.discord_id)}${p.minecraft_username ? ` <span style="color:var(--muted);font-size:11px;">(${esc(p.minecraft_username)})</span>` : ''}</td>
@@ -1383,42 +1378,11 @@ function commandeRow(p) {
 
 async function setCommandeStatus(id, status) {
   const labelMap = { fulfilled: 'marquer cette commande comme livrée', cancelled: 'annuler cette commande (remboursement des Éclats)', pending: 'remettre cette commande en attente' };
-  const ok = await confirm('Confirmer', `Voulez-vous ${labelMap[status] || 'modifier le statut'} ?`, status === 'cancelled' ? 'btn-confirm-danger' : 'btn-confirm-ok');
+  const ok = await confirm('Confirmer', `Voulez-vous ${labelMap[status] || 'modifier le statut'} ?`, status === 'cancelled' ? 'btn-confirm-danger' : 'btn-confirm');
   if (!ok) return;
   const data = await apiFetch(`/admin/shop/purchases/${id}/status`, 'POST', { status });
   if (data.ok) {
     toast('Commande mise à jour.', 'success');
-    loadCommandes();
-  } else {
-    toast(data.error || 'Erreur', 'error');
-  }
-}
-
-// Supprime une commande précise de l'historique (livrée/annulée uniquement — aucun remboursement).
-async function deleteCommande(id) {
-  const ok = await confirm('Supprimer la commande', 'Supprimer définitivement cette commande de l\'historique ? Cette action est irréversible.', 'btn-confirm-danger');
-  if (!ok) return;
-  const data = await apiFetch(`/admin/shop/purchases/${id}`, 'DELETE');
-  if (data.ok) {
-    toast('Commande supprimée.', 'success');
-    loadCommandes();
-  } else {
-    toast(data.error || 'Erreur', 'error');
-  }
-}
-
-// Supprime en masse toutes les commandes "passées" (livrées + annulées) — les
-// commandes en attente ne sont jamais touchées.
-async function purgePastCommandes() {
-  const ok = await confirm(
-    'Supprimer les commandes passées',
-    'Supprimer définitivement toutes les commandes livrées et annulées de l\'historique ? Les commandes en attente seront conservées. Cette action est irréversible.',
-    'btn-confirm-danger'
-  );
-  if (!ok) return;
-  const data = await apiFetch('/admin/shop/purchases/purge', 'DELETE');
-  if (data.ok) {
-    toast(`${data.deleted} commande${data.deleted === 1 ? '' : 's'} supprimée${data.deleted === 1 ? '' : 's'}.`, 'success');
     loadCommandes();
   } else {
     toast(data.error || 'Erreur', 'error');
