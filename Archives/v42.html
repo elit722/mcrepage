@@ -3158,9 +3158,9 @@ function recRenderContent(pageId) {
 
     <div class="rec-section">
       <div class="rec-section-head"><span class="rec-section-icon">🔥</span><h3>Ta Streak</h3></div>
-      <p class="rec-section-desc" id="streak-desc">
+      <p class="rec-section-desc">
         Chaque jour où tu es actif en jeu (temps de jeu et actions minimales requises), ta série augmente
-        d'un jour et te rapporte des Éclats — avec des paliers bonus.
+        d'un jour et te rapporte des Éclats — avec des paliers bonus à <strong>3, 7, 14, 21 et 26 jours</strong>.
         Une journée sans activité suffisante remet ta série à zéro, sauf si tu utilises ton
         <strong>gel de streak</strong> (disponible une fois tous les 7 jours).
       </p>
@@ -3211,8 +3211,6 @@ function recRenderContent(pageId) {
 // ── Résumé compte : éclats, code de parrainage, streak ────────────────────
 async function recLoadRewardsSummary() {
   try {
-    if (!recStreakConfigLoaded) await recLoadStreakConfig();
-
     const r = await fetch(`${RL_API}/rewards/summary`, {
       headers: { 'Authorization': `Bearer ${rlUser.access_token}` },
     });
@@ -3270,35 +3268,8 @@ function recCopyReferralCode(code) {
 }
 
 // ── Streak façon Duolingo : anneaux de jours sur la durée de l'event ─────
-// NOUVEAU v12 : durée du calendrier et paliers bonus ne sont plus figés en dur
-// ici — ils sont chargés depuis /streak/config (réglable dans le panel admin,
-// pratique pour raccourcir/allonger le calendrier selon la durée d'un event).
-// Valeurs de secours tant que la config n'est pas encore arrivée.
-let REC_EVENT_DAYS = 26;
-let REC_STREAK_MILESTONES = [3, 7, 14, 21, 26];
-let recStreakConfigLoaded = false;
-
-async function recLoadStreakConfig() {
-  try {
-    const r = await fetch(`${RL_API}/streak/config`);
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Erreur');
-    REC_EVENT_DAYS = d.event_days || REC_EVENT_DAYS;
-    REC_STREAK_MILESTONES = (d.milestones || []).map(m => m.day);
-    recStreakConfigLoaded = true;
-
-    const desc = document.getElementById('streak-desc');
-    if (desc && REC_STREAK_MILESTONES.length) {
-      const list = REC_STREAK_MILESTONES.join(', ').replace(/,([^,]*)$/, ' et$1');
-      desc.innerHTML = `Chaque jour où tu es actif en jeu (temps de jeu et actions minimales requises), ta série augmente
-        d'un jour et te rapporte des Éclats — avec des paliers bonus à <strong>${list} jours</strong>.
-        Une journée sans activité suffisante remet ta série à zéro, sauf si tu utilises ton
-        <strong>gel de streak</strong> (disponible une fois tous les 7 jours).`;
-    }
-  } catch (e) {
-    // on garde les valeurs de secours si la config n'a pas pu être chargée
-  }
-}
+const REC_EVENT_DAYS = 26;
+const REC_STREAK_MILESTONES = [3, 7, 14, 21, 26];
 
 function recRenderStreakCard(streak) {
   const card = document.getElementById('streak-card');
@@ -3329,7 +3300,7 @@ function recRenderStreakCard(streak) {
       </div>
     </div>
     <div class="streak-days">${pips}</div>
-    <div class="streak-note">★ = palier bonus (${REC_STREAK_MILESTONES.join(', ')} jours) · le jour entouré en doré est celui à valider aujourd'hui.</div>
+    <div class="streak-note">★ = palier bonus (3, 7, 14, 21, 26 jours) · le jour entouré en doré est celui à valider aujourd'hui.</div>
   `;
 }
 

@@ -398,7 +398,6 @@
         <button class="subtab active" data-eclats-tab="give" onclick="showEclatsTab('give')">💎 Donner / retirer</button>
         <button class="subtab" data-eclats-tab="partner" onclick="showEclatsTab('partner')">🤝 Bonus partenaire</button>
         <button class="subtab" data-eclats-tab="shop" onclick="showEclatsTab('shop')">🛒 Boutique</button>
-        <button class="subtab" data-eclats-tab="streak" onclick="showEclatsTab('streak')">🔥 Calendrier streak</button>
       </div>
 
       <!-- Onglet : Donner / retirer des éclats -->
@@ -527,42 +526,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-
-      <!-- Onglet : Calendrier de streak -->
-      <div id="eclats-tab-streak" class="eclats-tab" style="display:none; flex-direction:column; gap:20px;">
-        <div class="card">
-          <div class="card-title">Durée &amp; récompense quotidienne</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:14px;">
-            Ajuste la longueur du calendrier de streak et le montant gagné chaque jour validé —
-            pratique pour raccourcir ou allonger le calendrier selon la durée d'un event.
-          </p>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Nombre de jours du calendrier</label>
-              <input type="number" id="streak-event-days" min="1" max="90" placeholder="ex: 26">
-            </div>
-            <div class="form-field">
-              <label>Éclats gagnés par jour validé</label>
-              <input type="number" id="streak-daily-reward" min="0" placeholder="ex: 5">
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Paliers bonus</div>
-          <p style="color:var(--muted);font-size:13px;margin-bottom:14px;">
-            Un palier bonus verse des Éclats supplémentaires le jour indiqué (en plus de la récompense
-            quotidienne). Le jour d'un palier ne peut pas dépasser le nombre de jours du calendrier ci-dessus.
-          </p>
-          <div id="streak-milestones-rows" style="display:flex; flex-direction:column; gap:10px;"></div>
-          <button class="btn-action btn-unlock" style="margin-top:14px;" onclick="addStreakMilestoneRow()">+ Ajouter un palier</button>
-        </div>
-
-        <div id="streak-config-error" style="color:var(--red);font-size:13px;display:none;"></div>
-        <div>
-          <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="saveStreakConfig()">💾 Enregistrer le calendrier</button>
         </div>
       </div>
     </div>
@@ -1075,11 +1038,10 @@ async function setFlag(key, value) {
 function showEclatsTab(name) {
   document.querySelectorAll('.eclats-tab').forEach(el => el.style.display = 'none');
   const el = document.getElementById('eclats-tab-' + name);
-  el.style.display = (name === 'shop' || name === 'streak') ? 'flex' : 'block';
+  el.style.display = name === 'shop' ? 'flex' : 'block';
   document.querySelectorAll('[data-eclats-tab]').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-eclats-tab="${name}"]`).classList.add('active');
   if (name === 'shop') loadShopItems();
-  if (name === 'streak') loadStreakConfig();
 }
 
 // ── Recherche générique de membre (autocomplete réutilisé 3x) ────────────
@@ -1386,77 +1348,6 @@ async function setCommandeStatus(id, status) {
     loadCommandes();
   } else {
     toast(data.error || 'Erreur', 'error');
-  }
-}
-
-// ── Onglet : Calendrier de streak (NOUVEAU v12) ──────────────────────────
-let streakMilestones = [];
-
-async function loadStreakConfig() {
-  const errEl = document.getElementById('streak-config-error');
-  errEl.style.display = 'none';
-  const data = await apiFetch('/admin/streak-config');
-  if (data.error) {
-    errEl.textContent = data.error;
-    errEl.style.display = 'block';
-    return;
-  }
-  document.getElementById('streak-event-days').value = data.event_days;
-  document.getElementById('streak-daily-reward').value = data.daily_reward_eclats;
-  streakMilestones = (data.milestones || []).map(m => ({ ...m }));
-  renderStreakMilestoneRows();
-}
-
-function renderStreakMilestoneRows() {
-  const wrap = document.getElementById('streak-milestones-rows');
-  if (!streakMilestones.length) {
-    wrap.innerHTML = `<p style="color:var(--muted);font-size:13px;">Aucun palier — clique sur "Ajouter un palier".</p>`;
-    return;
-  }
-  wrap.innerHTML = streakMilestones.map((m, i) => `
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div class="form-field" style="margin:0;flex:1;">
-        <label>Jour</label>
-        <input type="number" min="1" value="${m.day}" oninput="streakMilestones[${i}].day = parseInt(this.value,10) || 0">
-      </div>
-      <div class="form-field" style="margin:0;flex:1;">
-        <label>Bonus (éclats)</label>
-        <input type="number" min="0" value="${m.bonus_eclats}" oninput="streakMilestones[${i}].bonus_eclats = parseInt(this.value,10) || 0">
-      </div>
-      <button class="btn-action btn-ban" style="margin-top:20px;font-size:12px;padding:8px 12px;" onclick="removeStreakMilestoneRow(${i})">✕</button>
-    </div>
-  `).join('');
-}
-
-function addStreakMilestoneRow() {
-  const eventDays = parseInt(document.getElementById('streak-event-days').value, 10) || 26;
-  streakMilestones.push({ day: eventDays, bonus_eclats: 50 });
-  renderStreakMilestoneRows();
-}
-
-function removeStreakMilestoneRow(i) {
-  streakMilestones.splice(i, 1);
-  renderStreakMilestoneRows();
-}
-
-async function saveStreakConfig() {
-  const errEl = document.getElementById('streak-config-error');
-  errEl.style.display = 'none';
-
-  const event_days = parseInt(document.getElementById('streak-event-days').value, 10);
-  const daily_reward_eclats = parseInt(document.getElementById('streak-daily-reward').value, 10);
-
-  const data = await apiFetch('/admin/streak-config', 'PUT', {
-    event_days, daily_reward_eclats, milestones: streakMilestones,
-  });
-
-  if (data.ok) {
-    toast('Calendrier de streak mis à jour.', 'success');
-    streakMilestones = data.milestones;
-    renderStreakMilestoneRows();
-  } else {
-    errEl.textContent = data.error || 'Erreur';
-    errEl.style.display = 'block';
   }
 }
 
