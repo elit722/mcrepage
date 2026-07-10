@@ -1004,7 +1004,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   <div class="page-inner">
     <p class="section-eyebrow">Téléchargement</p>
     <h2 class="section-title"><span class="kanji">改造</span>Modpack</h2>
-    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">Choisissez la version adaptée à votre machine. Disponibles sur Modrinth et en téléchargement direct.</p>
+    <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2.5rem;">Choisissez la version adaptée à votre machine. Disponibles via installateur Modrinth et en téléchargement direct.</p>
     <div class="modpack-grid">
 <div class="modpack-card">
         <span class="pack-badge badge-low">FAIBLE CONFIG</span>
@@ -2677,7 +2677,13 @@ async function sendDC(pseudo, ally, teamInternal, sc, recap){
   }
 
   async function post(content) {
-    return fetch(WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content, username:'Emerarudo Senso — Test Équipe'})});
+    // Le Worker exige désormais un Bearer + une réservation /submission/team
+    // déjà posée (voir étape 1 ci-dessous) avant d'accepter ce formulaire.
+    return fetch(WEBHOOK, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${rlUser.access_token}`},
+      body:JSON.stringify({content, username:'Emerarudo Senso — Test Équipe'})
+    });
   }
 
   // 1) Réservation côté serveur AVANT l'envoi Discord : garantit qu'un même
@@ -2840,9 +2846,11 @@ async function submitPartnerForm() {
   ].filter(Boolean).join('\n');
 
   try {
+    // Le Worker exige désormais un Bearer + la réservation /submission/partner
+    // (posée juste au-dessus) avant d'accepter ce formulaire.
     const r = await fetch(WEBHOOK, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${rlUser.access_token}` },
       body: JSON.stringify({ content, username: 'Emerarudo Senso — Candidature Partenaire' })
     });
     pfSubmittedCache = true; // la réservation serveur a eu lieu, quoi qu'il arrive ci-dessous
@@ -2870,9 +2878,20 @@ const WORKER_URL = 'https://relink-auth.refugeemeraudien-direction.workers.dev/s
 
 async function fetchServStats() {
   const ids = ['stat-players','stat-ram','stat-cpu','stat-disk','stat-status'];
+
+  // Le Worker exige désormais un Bearer sur /server (auparavant public malgré
+  // l'auth-gate visuel). Si personne n'est connecté, on ne tente même pas
+  // l'appel et on l'indique clairement au lieu d'afficher une erreur réseau.
+  if (!rlUser || !rlUser.access_token) {
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+    const sub = document.getElementById('stat-status-sub');
+    if (sub) sub.textContent = 'Connecte-toi pour voir les stats serveur';
+    return;
+  }
+
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '…'; });
   try {
-    const r = await fetch(WORKER_URL);
+    const r = await fetch(WORKER_URL, { headers: { 'Authorization': `Bearer ${rlUser.access_token}` } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
 
@@ -2935,7 +2954,10 @@ async function fetchServStats() {
   }
 }
 
-fetchServStats();
+// NOTE : l'appel initial de fetchServStats() a été déplacé après
+// l'initialisation de rlUser (cf. rlInit ci-dessous), car /server exige
+// désormais un Bearer token — appeler la fonction avant que rlUser existe
+// provoquerait une erreur de référence.
 setInterval(fetchServStats, 30000);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2995,6 +3017,10 @@ let rlUser = null; // { discord_id, pseudo, email, avatar_url, access_token, min
   // Affiche le bandeau d'incitation même si l'utilisateur n'est pas connecté
   rlUpdateLinkBanner();
 })();
+
+// Premier chargement des stats serveur — placé ici (après rlInit) car
+// fetchServStats() lit désormais rlUser.access_token (route /server protégée).
+fetchServStats();
 
 // Pages nécessitant une connexion
 const AUTH_PROTECTED_PAGES = ['page-modpack','page-servinfo','page-clans','page-equipe'];
@@ -3078,7 +3104,7 @@ function recRenderContent(pageId) {
           <div class="rec-icon">🎉</div>
           <h3>Bienvenue sur le serveur</h3>
           <p>Récompense de bienvenue pour tout compte fraîchement lié à ton profil Minecraft.</p>
-          <span class="rec-status available">Disponible</span>
+          <span class="rec-status locked-status">À venir</span>
         </div>
         <div class="rec-card">
           <div class="rec-icon">🗓️</div>
@@ -3090,6 +3116,24 @@ function recRenderContent(pageId) {
           <div class="rec-icon">🤝</div>
           <h3>Parrainage</h3>
           <p>Invite un ami qui lie son compte via /link et gagnez tous les deux une récompense.</p>
+          <span class="rec-status locked-status">À venir</span>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">📜</div>
+          <h3>Quêtes Journalières</h3>
+          <p>Des quêtes journalières de niveau variable pour gagner des éclats en s'amusant</p>
+          <span class="rec-status locked-status">À venir</span>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">🔥</div>
+          <h3>Streak de Jeu</h3>
+          <p>Des éclats tous les jours ou vous vous connecter et des palliers qui rapporte de plus en plus si vous êtes réguliers ! (+leaderboard des séries cumulés sur les events)</p>
+          <span class="rec-status locked-status">À venir</span>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">🔥</div>
+          <h3>Shop</h3>
+          <p>Lootbox, Item, Money en jeu : tout ça achetable avec des éclats, sans jamais rien dépenser car aucune transaction réel n'est accepté seul votre investissement vous rapporte des éclats !</p>
           <span class="rec-status locked-status">À venir</span>
         </div>
       </div>`;
