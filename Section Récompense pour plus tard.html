@@ -1,3 +1,4 @@
+
 // Affiche la barre de compte + le contenu enrichi des récompenses une fois débloqué :
 // infos éclats, streak façon Duolingo, code de parrainage, classements et boutique.
 function recRenderContent(pageId) {
@@ -343,25 +344,4 @@ async function recBuyItem(id, name) {
   } catch(e) {
     if (status) { status.className = 'rl-status err'; status.textContent = `❌ ${e.message}`; }
   }
-}
-
-function rlUpdateUI() {
-  const loginBtn   = document.getElementById('rl-login-trigger');
-  const settingsBtn = document.getElementById('rl-settings-trigger');
-  const avatarTop  = document.getElementById('rl-avatar-top');
-  if (rlUser) {
-    loginBtn.style.display   = 'none';
-    settingsBtn.style.display = 'flex';
-    avatarTop.style.display  = 'block';
-    avatarTop.src            = rlUser.avatar_url || '';
-  } else {
-    loginBtn.style.display   = '';
-    settingsBtn.style.display = 'none';
-    avatarTop.style.display  = 'none';
-  }
-  rlApplyGates();
-  pfApplyGate();
-  teamApplyGate();
-  rlApplyMcGates();
-  rlUpdateLinkBanner();
 }

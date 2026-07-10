@@ -3115,6 +3115,27 @@ function rlApplyMcGates() {
 
 // [ REINSERER ICI LE CODE DE LA SECTION RECOMPENSE QUAND LE SYSTEME SERA FONCTIONELLE (worker + mod bcs pour l'instant on y est pas)]
 
+function rlUpdateUI() {
+  const loginBtn   = document.getElementById('rl-login-trigger');
+  const settingsBtn = document.getElementById('rl-settings-trigger');
+  const avatarTop  = document.getElementById('rl-avatar-top');
+  if (rlUser) {
+    loginBtn.style.display   = 'none';
+    settingsBtn.style.display = 'flex';
+    avatarTop.style.display  = 'block';
+    avatarTop.src            = rlUser.avatar_url || '';
+  } else {
+    loginBtn.style.display   = '';
+    settingsBtn.style.display = 'none';
+    avatarTop.style.display  = 'none';
+  }
+  rlApplyGates();
+  pfApplyGate();
+  teamApplyGate();
+  rlApplyMcGates();
+  rlUpdateLinkBanner();
+}
+
 // ── Bandeau d'incitation à la liaison Discord/Minecraft ──
 // Affiché tant que le compte n'a pas de minecraft_uuid (que l'utilisateur
 // soit connecté ou non). Se masque pour la session en cours via "✕",
