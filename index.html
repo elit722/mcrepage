@@ -1799,6 +1799,22 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
   </div>
 </div>
 
+function recRenderContent(pageId) {
+  if (pageId !== 'page-recompense' || !rlUser) return;
+  const bar = document.getElementById('rec-account-bar');
+  if (bar) {
+    bar.style.display = 'flex';
+    const avatar = document.getElementById('rec-mc-avatar');
+    const name   = document.getElementById('rec-mc-name');
+    if (avatar) avatar.src = rlUser.minecraft_uuid
+      ? `https://mc-heads.net/avatar/${rlUser.minecraft_uuid}/40`
+      : '';
+    if (name) name.textContent = rlUser.minecraft_username || rlUser.pseudo || '—';
+  }
+  const content = document.getElementById('rec-content');
+  if (!content || content.dataset.loaded === '1') return;
+  content.dataset.loaded = '1';
+}
 <!-- ══ QUI SOMMES NOUS ══════════════════════════════════════════════════════ -->
 <div id="page-about" class="page-section">
   <div class="page-inner">
