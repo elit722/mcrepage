@@ -628,6 +628,68 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
 .rec-status.available{background:rgba(201,168,76,.15);color:var(--gold-light);}
 .rec-status.locked-status{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
 .rec-loading{text-align:center;padding:1.5rem;font-size:.78rem;color:rgba(201,168,76,.3);font-style:italic;}
+.rec-account-eclats{margin-left:auto;font-family:'Source Code Pro',monospace;color:var(--gold-light);font-size:.85rem;white-space:nowrap;}
+.rec-empty{text-align:center;padding:1.4rem;font-size:.78rem;color:var(--mist);}
+
+.rec-section{margin-top:2.6rem;}
+.rec-section-head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;}
+.rec-section-head h3{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--gold-light);letter-spacing:.05em;}
+.rec-section-head .rec-section-icon{font-size:1.1rem;}
+.rec-section-desc{font-size:.78rem;color:var(--mist);margin-bottom:1.2rem;line-height:1.7;}
+
+.rec-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;}
+.rec-info-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:1.3rem 1.4rem;}
+.rec-info-card h4{font-family:'Cinzel Decorative',serif;font-size:.7rem;color:var(--gold);letter-spacing:.05em;margin-bottom:.8rem;text-transform:uppercase;}
+.rec-info-card ul{list-style:none;display:grid;gap:.55rem;}
+.rec-info-card li{font-size:.78rem;color:var(--mist);line-height:1.55;padding-left:1.1rem;position:relative;}
+.rec-info-card li::before{content:'◆';position:absolute;left:0;top:0;color:rgba(201,168,76,.55);font-size:.6rem;}
+.rec-info-card li strong{color:var(--gold-light);font-weight:600;}
+
+/* Code de parrainage */
+.ref-box{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:1.1rem 1.3rem;margin-bottom:1rem;}
+.ref-code{font-family:'Source Code Pro',monospace;font-size:1.2rem;letter-spacing:.15em;color:var(--gold-light);background:rgba(0,0,0,.3);padding:.5rem 1rem;border-radius:3px;border:1px solid rgba(201,168,76,.3);}
+.ref-copy-btn{background:transparent;border:1px solid rgba(201,168,76,.35);color:var(--gold);font-size:.66rem;font-family:'Cinzel Decorative',serif;padding:.5rem .9rem;border-radius:3px;cursor:pointer;letter-spacing:.05em;transition:all .2s;}
+.ref-copy-btn:hover{background:rgba(201,168,76,.12);border-color:var(--gold);}
+.ref-count{margin-left:auto;font-size:.78rem;color:var(--mist);}
+.ref-count b{color:var(--gold-light);font-family:'Source Code Pro',monospace;font-size:.95rem;}
+.ref-redeem-row{display:flex;gap:.6rem;flex-wrap:wrap;}
+.ref-redeem-row input{flex:1;min-width:160px;background:rgba(0,0,0,.3);border:1px solid rgba(201,168,76,.25);border-radius:3px;padding:.6rem .8rem;color:var(--white-jade);font-family:'Source Code Pro',monospace;letter-spacing:.1em;text-transform:uppercase;}
+.ref-redeem-row input:focus{outline:none;border-color:var(--gold);}
+.ref-redeem-row button{background:linear-gradient(135deg,var(--gold),#a5842f);border:none;color:#0D0A06;font-family:'Cinzel Decorative',serif;font-size:.66rem;letter-spacing:.05em;padding:.6rem 1.1rem;border-radius:3px;cursor:pointer;white-space:nowrap;}
+
+/* Streak façon Duolingo */
+.streak-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:1.4rem 1.5rem;}
+.streak-top{display:flex;align-items:center;gap:1.3rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.streak-flame{font-size:2.3rem;line-height:1;filter:drop-shadow(0 0 10px rgba(201,168,76,.4));}
+.streak-flame.off{opacity:.3;filter:none;}
+.streak-count{font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--gold-light);}
+.streak-count span{font-size:.68rem;color:var(--mist);display:block;font-family:'Source Code Pro',monospace;letter-spacing:.05em;text-transform:uppercase;margin-top:.15rem;}
+.streak-mini-stats{display:flex;gap:1.5rem;margin-left:auto;flex-wrap:wrap;}
+.streak-mini-stats div{text-align:center;}
+.streak-mini-stats .smv{font-family:'Source Code Pro',monospace;font-size:1rem;color:var(--gold-light);display:block;}
+.streak-mini-stats .sml{font-size:.58rem;color:var(--mist);letter-spacing:.06em;text-transform:uppercase;}
+.streak-days{display:flex;gap:.4rem;flex-wrap:wrap;}
+.streak-day{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-family:'Source Code Pro',monospace;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.3);flex-shrink:0;}
+.streak-day.validated{background:rgba(201,168,76,.22);border-color:rgba(201,168,76,.5);color:var(--gold-light);}
+.streak-day.today{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.25);}
+.streak-day.milestone{border-radius:8px;}
+.streak-note{font-size:.68rem;color:rgba(201,168,76,.5);margin-top:.7rem;font-style:italic;}
+
+/* Boutique */
+.shop-cats{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.3rem;}
+.shop-cat-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);color:var(--mist);font-size:.66rem;font-family:'Cinzel Decorative',serif;padding:.45rem .9rem;border-radius:20px;cursor:pointer;letter-spacing:.04em;transition:all .2s;}
+.shop-cat-btn.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold-light);}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.1rem;}
+.shop-item{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:1.2rem;text-align:center;position:relative;transition:border-color .2s,transform .2s;}
+.shop-item:hover{border-color:rgba(201,168,76,.35);transform:translateY(-3px);}
+.shop-item .shop-item-cat{position:absolute;top:.6rem;right:.6rem;font-size:.55rem;color:rgba(201,168,76,.5);letter-spacing:.05em;text-transform:uppercase;}
+.shop-item h4{font-family:'Cinzel Decorative',serif;font-size:.75rem;color:var(--gold-light);margin:.4rem 0 .3rem;}
+.shop-item p{font-size:.72rem;color:var(--mist);line-height:1.5;margin-bottom:.7rem;min-height:1.5em;}
+.shop-item .shop-price{font-family:'Source Code Pro',monospace;font-size:1rem;color:var(--gold-light);margin-bottom:.7rem;}
+.shop-item .shop-price .old{color:rgba(255,255,255,.3);text-decoration:line-through;font-size:.8rem;margin-right:.4rem;}
+.shop-item .shop-buy-btn{width:100%;background:linear-gradient(135deg,var(--gold),#a5842f);border:none;color:#0D0A06;font-family:'Cinzel Decorative',serif;font-size:.64rem;letter-spacing:.05em;padding:.55rem;border-radius:3px;cursor:pointer;transition:opacity .2s;}
+.shop-item .shop-buy-btn:hover{opacity:.88;}
+.shop-item .shop-limit{font-size:.6rem;color:rgba(255,255,255,.35);margin-top:.5rem;}
 
 /* ── RELINK TOP BAR ── */
 .top-bar{
@@ -826,7 +888,7 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     </div>
     <div class="link-banner-perks">
       <span class="link-banner-perk"><span class="lbp-ico">🛡️</span>Sécurise ton compte</span>
-      <span class="link-banner-perk"><span class="lbp-ico">🎁</span>Récompenses IG (systeme en cours de developpement, inaccessible pour l'instant)</span>
+      <span class="link-banner-perk"><span class="lbp-ico">🎁</span>Récompenses IG [en dev pour les futurs events]</span>
       <span class="link-banner-perk"><span class="lbp-ico">🖼️</span>Ta PP Discord dans l'interchat</span>
       <span class="link-banner-perk"><span class="lbp-ico">⏱️</span>Fais gagner du temps au staff</span>
     </div>
@@ -1732,13 +1794,28 @@ body{background:var(--ink);color:var(--white-jade);font-family:'Noto Serif JP',s
     <div id="rec-content">
       <div class="rec-loading">En cours de création…</div>
     </div>
-
     <p style="text-align:center;font-size:.87rem;color:var(--mist);margin-bottom:2rem;"><br><br> Quelques <strong>Spoilers</strong> du futur systeme de récompense avec Streak, parainage, classement et shop mais toujours 100% gratuit (aucune transaction réel : tout s'obtient en jouant au max) : <strong>/link</strong>.</p>
     <img src=".\spoiler recompense\preview1test.png" width="50%"> <img src=".\spoiler recompense\preview2.png" width="50%"> <img src=".\spoiler recompense\preview3.png" width="50%"> <img src=".\spoiler recompense\preview4.png" width="50%"> <img src=".\spoiler recompense\preview5.png" width="50%">
     <img src=".\spoiler recompense\previewitem1.png" width="35%"> <img src=".\spoiler recompense\previewitem2.png" width="35%"> <img src=".\spoiler recompense\previewitem3.png" width="35%"> <img src=".\spoiler recompense\previewitem4.png" width="35%"> <img src=".\spoiler recompense\previewitem5.png" width="35%">
   </div>
 </div>
 
+function recRenderContent(pageId) {
+  if (pageId !== 'page-recompense' || !rlUser) return;
+  const bar = document.getElementById('rec-account-bar');
+  if (bar) {
+    bar.style.display = 'flex';
+    const avatar = document.getElementById('rec-mc-avatar');
+    const name   = document.getElementById('rec-mc-name');
+    if (avatar) avatar.src = rlUser.minecraft_uuid
+      ? `https://mc-heads.net/avatar/${rlUser.minecraft_uuid}/40`
+      : '';
+    if (name) name.textContent = rlUser.minecraft_username || rlUser.pseudo || '—';
+  }
+  const content = document.getElementById('rec-content');
+  if (!content || content.dataset.loaded === '1') return;
+  content.dataset.loaded = '1';
+}
 <!-- ══ QUI SOMMES NOUS ══════════════════════════════════════════════════════ -->
 <div id="page-about" class="page-section">
   <div class="page-inner">
@@ -3030,7 +3107,7 @@ const RL_GATE_MCLINK_HTML = `
   <div class="auth-gate-card">
     <span class="auth-gate-kanji">🔗</span>
     <div class="auth-gate-title">Compte Minecraft non lié</div>
-    <p class="auth-gate-desc">Pour accéder à tes récompenses (système de récompense non terminé : inaccessible pour l'instant), lie ton compte Minecraft à ton compte ReLink.<br>Tape <strong>/link</strong> en jeu, récupère le code, puis entre-le ici.</p>
+    <p class="auth-gate-desc">Pour accéder à tes récompenses dans le futur, lie ton compte Minecraft à ton compte ReLink.<br>Tape <strong>/link</strong> en jeu, récupère le code, puis entre-le ici.</p>
     <button class="auth-gate-btn gold" onclick="rlOpenLinkMinecraft(false)">
       🔗 Lier mon compte Minecraft
     </button>
@@ -3055,46 +3132,7 @@ function rlApplyMcGates() {
   });
 }
 
-// Affiche la barre de compte + le contenu des récompenses une fois débloqué.
-// (Contenu statique par défaut : à brancher sur RL_API + '/rewards' si besoin.)
-function recRenderContent(pageId) {
-  if (pageId !== 'page-recompense' || !rlUser) return;
-  const bar = document.getElementById('rec-account-bar');
-  if (bar) {
-    bar.style.display = 'flex';
-    const avatar = document.getElementById('rec-mc-avatar');
-    const name   = document.getElementById('rec-mc-name');
-    if (avatar) avatar.src = rlUser.minecraft_uuid
-      ? `https://mc-heads.net/avatar/${rlUser.minecraft_uuid}/40`
-      : '';
-    if (name) name.textContent = rlUser.minecraft_username || rlUser.pseudo || '—';
-  }
-  const content = document.getElementById('rec-content');
-  if (content && content.dataset.loaded !== '1') {
-    content.dataset.loaded = '1';
-    content.innerHTML = `
-      <div class="rec-grid">
-        <div class="rec-card">
-          <div class="rec-icon">🎉</div>
-          <h3>Bienvenue sur le serveur</h3>
-          <p>Récompense de bienvenue pour tout compte fraîchement lié à ton profil Minecraft.</p>
-          <span class="rec-status available">Disponible</span>
-        </div>
-        <div class="rec-card">
-          <div class="rec-icon">🗓️</div>
-          <h3>Récompenses d'event</h3>
-          <p>Débloquées automatiquement en participant aux events organisés par le staff.</p>
-          <span class="rec-status locked-status">À venir</span>
-        </div>
-        <div class="rec-card">
-          <div class="rec-icon">🤝</div>
-          <h3>Parrainage</h3>
-          <p>Invite un ami qui lie son compte via /link et gagnez tous les deux une récompense.</p>
-          <span class="rec-status locked-status">À venir</span>
-        </div>
-      </div>`;
-  }
-}
+// [ REINSERER ICI LE CODE DE LA SECTION RECOMPENSE QUAND LE SYSTEME SERA FONCTIONELLE (worker + mod bcs pour l'instant on y est pas)]
 
 function rlUpdateUI() {
   const loginBtn   = document.getElementById('rl-login-trigger');
@@ -3225,6 +3263,18 @@ function rlOpenLinkMinecraft(mandatory = true) {
         autocomplete="one-time-code"
         class="rl-input"
       />
+      <label for="rl-link-referral-input" style="display:block;margin-top:.8rem;font-size:.8rem;color:var(--mist,#aaa);">
+        Code de parrainage d'un ami <span style="opacity:.7">(optionnel)</span>
+      </label>
+      <input
+        id="rl-link-referral-input"
+        type="text"
+        maxlength="8"
+        placeholder="ex: AB3D9F2K"
+        autocomplete="off"
+        class="rl-input"
+        style="text-transform:uppercase;margin-top:.3rem"
+      />
       <div id="rl-link-code-status"></div>
       <button type="submit" class="rl-dc-btn" style="background:#107C10;margin-top:1rem">
         ✅ Valider le code
@@ -3262,8 +3312,10 @@ async function rlSubmitLinkCode() {
   if (!rlUser) { rlOpenLogin(); return; }
 
   const input = document.getElementById('rl-link-code-input');
+  const referralInput = document.getElementById('rl-link-referral-input');
   const statusEl = document.getElementById('rl-link-code-status');
   const code = (input?.value || '').trim();
+  const referralCode = (referralInput?.value || '').trim().toUpperCase();
 
   input?.classList.remove('err');
 
@@ -3282,18 +3334,26 @@ async function rlSubmitLinkCode() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${rlUser.access_token}`
       },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, referral_code: referralCode || undefined })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Code invalide ou expiré');
 
-    // d attendu : { ok: true, minecraft_uuid, minecraft_username }
+    // d attendu : { ok: true, minecraft_uuid, minecraft_username, referral }
     rlUser.minecraft_uuid     = d.minecraft_uuid;
     rlUser.minecraft_username = d.minecraft_username;
     localStorage.setItem('rl_user', JSON.stringify(rlUser));
 
+    let referralMsg = '';
+    if (referralCode) {
+      referralMsg = d.referral?.ok
+        ? `<div class="rl-status ok" style="margin-top:.5rem">🤝 Code de parrainage accepté (${esc(d.referral.parrain)}) — vos Éclats arrivent après 2h de jeu.</div>`
+        : `<div class="rl-status err" style="margin-top:.5rem">⚠️ Compte lié, mais code de parrainage refusé : ${esc(d.referral?.error || 'erreur inconnue')}</div>`;
+    }
+    if (statusEl) statusEl.innerHTML = `<div class="rl-status ok">✅ Compte Minecraft lié !</div>${referralMsg}`;
+
     rlUpdateUI();
-    rlOpenSettings(true);
+    setTimeout(() => rlOpenSettings(true), referralMsg ? 900 : 0);
   } catch(e) {
     input?.classList.add('err');
     if (statusEl) statusEl.innerHTML = `<div class="rl-status err">❌ ${e.message}</div>`;
